@@ -8,12 +8,6 @@
 .plugin-card.plugin-card-cocart-suggestion h3, .plugin-card.cocart-plugin h3 {
   margin: 0 0 4px;
 }
-.plugin-card.cocart-plugin .plugin-card-top {
-  min-height: 150px;
-}
-.plugin-card.cocart-plugin .plugin-card-bottom {
-  min-height: 36px;
-}
 .plugin-card.plugin-card-cocart-suggestion .desc > p {
   width: 70%;
 }
@@ -55,7 +49,7 @@
   box-shadow: 0 1px 0 #d8c3e2;
 }
 .plugin-card .plugin-action-buttons .cocart-plugin-primary:hover {
-  background: #9b50e3;
+  background: #6131af;
   border-color: #422479;
   color: #fff;
 }
@@ -67,7 +61,7 @@
   clear: both;
   padding: 12px 20px;
   background-color: #fafafa;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid #e5e5e5;
   overflow: hidden;
 }
 
