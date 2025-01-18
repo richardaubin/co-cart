@@ -4,8 +4,8 @@
  *
  * @author  Sébastien Dumont
  * @package CoCart\API\Products\v2
- * @since   3.1.0
- * @license GPL-2.0+
+ * @since   3.1.0 Introduced.
+ * @license GPL-3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -59,7 +59,7 @@ if ( ! class_exists( 'CoCart_REST_Terms_V2_Controller' ) ) {
 						'permission_callback' => array( $this, 'get_item_permissions_check' ),
 						'args'                => array(
 							'id'      => array(
-								'description' => __( 'Unique identifier for the resource.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Unique identifier for the resource.', 'cocart-core' ),
 								'type'        => 'integer',
 							),
 							'context' => $this->get_context_param( array( 'default' => 'view' ) ),

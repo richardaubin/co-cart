@@ -1,9 +1,120 @@
-# Changelog for CoCart
+# Changelog for CoCart Core
 
-## v4.3.7 - ?? ??, 2024
+## v4.3.17 - 14th January, 2025
 
-* Updated: Documentation URL has changed to <https://ogdocs.cocartapi.com>
-* Updated: Translation URL has changed to <https://translate.cocartapi.com>
+### Bug Fix
+
+* REST API: Stock status was incorrectly queried for Products API and now checks available stock statuses before filtering.
+
+### Improvements
+
+* REST API: Version of CoCart only returns in the returned headers when debug is enabled now.
+* REST API: `WP_DEBUG` is made sure it is defined before returning extras for developers in the store response.
+
+## v4.3.16 - 12th December, 2024
+
+### Bug Fix
+
+* REST API: Authentication failed to validate incorrect login now fixed.
+
+## v4.3.15 - 29th November, 2024
+
+### Bug Fix
+
+* REST API: Fix persistent cart for registered users. [Solves issue [#474](https://github.com/co-cart/co-cart/issues/474)]
+
+> Developer note: The last patch was not a great one but have found the root of the issue affecting carts for registered customers and is fixed in this one.
+
+## v4.3.14 - 21st November, 2024
+
+### Bug Fixes
+
+* REST API: Deleting an item would not remove said item 100% due to a load conflict when authenticating.
+* REST API: Product not able to validate if item was already removed.
+
+> Dev note: The conflict is not triggered only on DELETE request methods.
+
+## v4.3.13 - 21st November, 2024
+
+### Security Patch
+
+It appears that the rules of hidden and private meta is not respected and is still exposed on products that have such meta. This security patch ignores any meta data that is still leaking publicly without authorization.
+
+**Wait what happened to v4.3.12?**
+
+A commit error was spotted shortly after just releasing it and was taken down immediately.
+
+### Improvement
+
+* REST API: Last-Modified header now returns the actual date modified of the product if a product ID is detected.
+
+## v4.3.11 - 20th November, 2024
+
+### Bug Fix
+
+* REST API: Removed conflicting cache headers being sent.
+
+### Improvements
+
+* REST API: Cache patterns are more familiar and consistent with most regex usage in PHP, making it preferable for readability and maintainability.
+* REST API: Cache headers are set at a later priority fixing potential issues with some cache plugins and preflight.
+* REST API: Cache control determines if route is authenticated or not.
+* REST API: Last-Modified header now uses timezone set in WordPress general settings. Falls back to the offset if not.
+
+### Compatibility
+
+* Tested with WordPress v6.7
+* Tested with WooCommerce v9.4
+
+## v4.3.10 - 14th November, 2024
+
+### 🔥 Hot Fix
+
+* REST API: Typo caused fatal for Products API (v2 ONLY).
+
+## v4.3.9 - 14th November 2024
+
+### Security Patch
+
+> Just a note: The security issue isn't directly related to CoCart itself, but we’re here to help keep your store secure. Since CoCart is a public API, security patches will be released as soon as possible to prevent the issue from affecting your site, so you don’t have to wait for a fix from the plugin causing it.
+> We recommend updating to this version if you’re using any WooCommerce plugins that might reveal public information.
+> We want you to know that we would never publicly name a plugin with a security concern. However, if you notice any security issues with CoCart or another plugin connected to it, please [report the security vulnerability](https://cocartapi.com/security-policy/#Reporting-Security-Vulnerabilities) so we can address it quickly.
+> Thank you for helping us keep CoCart safe for everyone!
+
+## v4.3.8 - 7th November, 2024
+
+### 🐛 Bug Fix
+
+> Developer note: A commit was missing causing a fatal error when adding items to the cart.
+
+### Changes
+
+* REST API: Cart item prices correctly display based on tax options for the cart not the store.
+
+## v4.3.7 - 5th November, 2024
+
+### Bug Fixes
+
+* REST API: Fixed rounding issue due to decimal separator being different with the cart total for some odd reason with WooCommerce.
+* REST API: Fixed accessing correct schema for viewing a single session.
+* Plugin: Properly deprecated `is_rest_api_request()` function within the authentication class.
+
+### Changes
+
+* WordPress Dashboard: Updated Setup Wizard Ready Step verbiage.
+* WordPress Dashboard: Bumped upgrade notice from showing after 4 weeks newly installed to 6 weeks.
+* WordPress Dashboard: No longer call Gravatar.
+* Plugin: Translation URL has changed to <https://translate.cocartapi.com>
+
+### Improvements
+
+* REST API: Moved some cart validation further up before returning cart contents.
+* REST API: Reset the item key when adding item again as it may have been manipulated by adding cart item data via code or plugin.
+* REST API: Only update cart item quantity if quantity is different when requested.
+* REST API: Check cached price against price with tax mode not just the product price set.
+* WordPress Dashboard: Adjusted notices to get cached for the current site should it be a multisite.
+* WordPress Dashboard: No longer reset upgrade notice each time CoCart updates.
+* Plugin: PHPStan used to help with correcting errors and inconsistencies.
 
 ## v4.3.6 - 23rd August, 2024
 

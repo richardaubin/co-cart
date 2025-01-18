@@ -4,7 +4,7 @@
  *
  * @author  Sébastien Dumont
  * @package CoCart\RestApi
- * @since   4.?.? Introduced.
+ * @since   5.X.X Introduced.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Abstract Rest Posts Controller Class.
  *
- * @since   4.?.? Introduced.
+ * @since   5.X.X Introduced.
  * @extends CoCart_REST_Controller
  */
 abstract class CoCart_REST_Posts_Controller extends CoCart_REST_Controller {

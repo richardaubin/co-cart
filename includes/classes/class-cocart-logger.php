@@ -6,6 +6,7 @@
  * @package CoCart\Classes
  * @since   2.1.0 Introduced.
  * @version 4.0.0
+ * @license GPL-3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -68,7 +69,7 @@ class CoCart_Logger {
 			} else {
 				$log_entry = "\n" . sprintf(
 					/* translators: %1$s: Log entry name, %2$s: log entry version */
-					esc_html__( '====%1$s Version: %2$s====', 'cart-rest-api-for-woocommerce' ),
+					esc_html__( '====%1$s Version: %2$s====', 'cocart-core' ),
 					apply_filters( 'cocart_log_entry_name', '', $plugin ),
 					apply_filters( 'cocart_log_entry_version', '', $plugin )
 				) . "\n";

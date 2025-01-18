@@ -5,7 +5,8 @@
  * @author  Sébastien Dumont
  * @package CoCart\Classes
  * @since   3.1.0 Introduced.
- * @version 4.1.0
+ * @version 5.0.0
+ * @license GPL-3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -132,17 +133,31 @@ class CoCart_Cart_Cache {
 	 * @param WC_Cart $cart The cart object.
 	 */
 	public function calculate_cached_items( $cart ) {
+		// Reduce calculating if not triggered on appropriate events.
+		if ( is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+			return;
+		}
+
 		$cart_contents_cached = $this->get_cart_contents_cached();
 
 		// If cart contents is cached, proceed.
 		if ( ! empty( $cart_contents_cached ) && is_array( $cart_contents_cached ) ) {
+			$tax_display_mode = CoCart_Utilities_Cart_Helpers::get_tax_display_mode();
+			$price_function   = CoCart_Utilities_Product_Helpers::get_price_from_tax_display_mode( $tax_display_mode );
+
 			foreach ( $cart->get_cart() as $key => $value ) {
 				$product = $value['data']; // Get original product data.
 
 				// If this item is cached then look up price difference before setting the new price.
 				if ( isset( $cart_contents_cached[ $key ] ) ) {
-					if ( isset( $cart_contents_cached[ $key ]['price'] ) && $product->get_price() !== $cart_contents_cached[ $key ]['price'] ) {
-						$value['data']->set_price( $cart_contents_cached[ $key ]['price'] );
+					$cached_item = $cart_contents_cached[ $key ];
+
+					if ( isset( $cached_item['price'] ) && $price_function( $product ) !== $cached_item['price'] ) {
+						$product->set_price( $cached_item['price'] );
+
+						// Override sale and regular too so the set price is what is shown even if there prices are originally lower.
+						$product->set_sale_price( $cached_item['price'] );
+						$product->set_regular_price( $cached_item['price'] );
 					}
 				}
 			}

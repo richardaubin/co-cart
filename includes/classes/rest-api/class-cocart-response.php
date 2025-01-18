@@ -6,6 +6,7 @@
  * @package CoCart\Classes
  * @since   3.0.0 Introduced.
  * @version 4.0.0
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -86,7 +87,7 @@ class CoCart_Response {
 						'cocart_response_returned_empty',
 						sprintf(
 							/* translators: %s: REST API URL */
-							__( 'Request returned nothing for "%s"! Please seek assistance.', 'cart-rest-api-for-woocommerce' ),
+							__( 'Request returned nothing for "%s"! Please seek assistance.', 'cocart-core' ),
 							rest_url( sprintf( '/%s/%s/', $name_space, $endpoint ) )
 						)
 					);
@@ -100,7 +101,9 @@ class CoCart_Response {
 			$response->header( 'CoCart-Timestamp', time() );
 
 			// Add version of CoCart.
-			$response->header( 'CoCart-Version', COCART_VERSION );
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				$response->header( 'CoCart-Version', COCART_VERSION );
+			}
 
 			// Returns additional headers for the cart endpoint.
 			if ( strpos( $raw_endpoint, 'cart' ) !== false ) {

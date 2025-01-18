@@ -7,7 +7,7 @@
  * @author  Sébastien Dumont
  * @package CoCart\Functions
  * @since   3.7.0
- * @license GPL-2.0+
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -50,7 +50,7 @@ function cocart_let_to_num( $size ) {
  * Convert monetary values from store settings to string based integers, using
  * the smallest unit of a currency.
  *
- * @since 4.4.0 Introduced.
+ * @since 5.0.0 Introduced.
  *
  * @param int|float|string $value   Value to format. Int is allowed, as it may also represent a valid price.
  * @param array            $options Options that influence the formatting.
@@ -135,7 +135,7 @@ function cocart_format_money( $value, array $options = array() ) {
  *
  * Converts slugs such as "attribute_pa_size" to "Size".
  *
- * @since 4.4.0 Introduced.
+ * @since 5.0.0 Introduced.
  *
  * @param array      $attributes Array of data from the cart.
  * @param WC_Product $product    The product object.

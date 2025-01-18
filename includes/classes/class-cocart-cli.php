@@ -4,8 +4,9 @@
  *
  * @author  Sébastien Dumont
  * @package CoCart\Classes
- * @since   3.0.0
- * @license GPL-2.0+
+ * @since   3.0.0 Introduced.
+ * @version 5.0.0
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -32,6 +33,9 @@ if ( ! class_exists( 'CoCart_CLI' ) ) {
 		 */
 		public function __construct() {
 			$this->includes();
+
+			WP_CLI::add_command( 'cocart', 'CoCart_CLI_Status_Command::status' );
+
 			$this->hooks();
 		}
 
@@ -41,6 +45,7 @@ if ( ! class_exists( 'CoCart_CLI' ) ) {
 		 * @access private
 		 */
 		private function includes() {
+			require_once __DIR__ . '/cli/class-cocart-cli-status-command.php';
 			require_once __DIR__ . '/cli/class-cocart-cli-update-command.php';
 			require_once __DIR__ . '/cli/class-cocart-cli-version-command.php';
 		}

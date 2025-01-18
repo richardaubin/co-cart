@@ -5,7 +5,7 @@
  * @author  Sébastien Dumont
  * @package CoCart\Admin
  * @since   4.3.0 Introduced.
- * @license GPL-2.0+
+ * @license GPL-3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -35,6 +35,7 @@ class CoCart_Admin_Updates_Screen_Updates extends CoCart_Admin_Plugin_Updates {
 	 */
 	public function update_screen_modal() {
 		$updateable_plugins = get_plugin_updates();
+
 		if ( empty( $updateable_plugins[ COCART_SLUG . '/' . COCART_SLUG . '.php' ] )
 			|| empty( $updateable_plugins[ COCART_SLUG . '/' . COCART_SLUG . '.php' ]->update )
 			|| empty( $updateable_plugins[ COCART_SLUG . '/' . COCART_SLUG . '.php' ]->update->new_version ) ) {
@@ -45,7 +46,7 @@ class CoCart_Admin_Updates_Screen_Updates extends CoCart_Admin_Plugin_Updates {
 		$this->major_untested_plugins = $this->get_untested_plugins( $this->new_version, 'major' );
 
 		if ( ! empty( $this->major_untested_plugins ) ) {
-			echo $this->get_extensions_modal_warning(); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
+			echo $this->get_extensions_modal_warning(); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped, WordPress.Security.EscapeOutput.OutputNotEscaped 
 			$this->update_screen_modal_js();
 		}
 	} // END update_screen_modal()
@@ -66,13 +67,13 @@ class CoCart_Admin_Updates_Screen_Updates extends CoCart_Admin_Plugin_Updates {
 					if ( modal_dismissed ) {
 						return;
 					}
-					var $checkbox = $( 'input[value="cart-rest-api-for-woocommerce/cart-rest-api-for-woocommerce.php"]' );
+					var $checkbox = $( 'input[value="<?php echo COCART_SLUG . '/' . COCART_SLUG; ?>.php"]' );
 					if ( $checkbox.prop( 'checked' ) ) {
 						$( '#cocart-upgrade-warning' ).trigger( 'click' );
 					}
 				}
 
-				$( '#plugins-select-all, input[value="cart-rest-api-for-woocommerce/cart-rest-api-for-woocommerce.php"]' ).on( 'change', function() {
+				$( '#plugins-select-all, input[value="<?php echo COCART_SLUG . '/' . COCART_SLUG; ?>.php"]' ).on( 'change', function() {
 					show_modal_if_checked();
 				} );
 
@@ -89,7 +90,7 @@ class CoCart_Admin_Updates_Screen_Updates extends CoCart_Admin_Plugin_Updates {
 				// Uncheck the CoCart update checkbox if the modal is canceled.
 				$( '#cocart_untested_extensions_modal .cancel' ).on( 'click', function( evt ) {
 					evt.preventDefault();
-					$( 'input[value="cart-rest-api-for-woocommerce/cart-rest-api-for-woocommerce.php"]' ).prop( 'checked', false );
+					$( 'input[value="<?php echo COCART_SLUG . '/' . COCART_SLUG; ?>.php"]' ).prop( 'checked', false );
 					tb_remove();
 				});
 			})( jQuery );

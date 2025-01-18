@@ -5,7 +5,8 @@
  * @author  Sébastien Dumont
  * @package CoCart\Classes
  * @since   2.1.0 Introduced.
- * @version 4.4.0
+ * @version 5.0.0
+ * @license GPL-3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -45,7 +46,7 @@ class CoCart_Load_Cart {
 	 *
 	 * @since 2.1.0 Introduced.
 	 * @since 4.2.0 Replaced `wc_nocache_headers()` with `cocart_nocache_headers()`.
-	 * @since 4.4.0 No longer return debug logs, merge carts together or optionally notify customers of any messages.
+	 * @since 5.0.0 No longer return debug logs, merge carts together or optionally notify customers of any messages.
 	 *
 	 * @uses CoCart_Load_Cart::maybe_load_cart()
 	 * @uses CoCart_Load_Cart::get_action_query()
@@ -71,7 +72,7 @@ class CoCart_Load_Cart {
 
 				wc_clear_notices();
 				wc_add_notice(
-					esc_html__( 'Cart is not valid! If this is an error, contact for help.', 'cart-rest-api-for-woocommerce' ),
+					esc_html__( 'Cart is not valid! If this is an error, contact for help.', 'cocart-core' ),
 					'error'
 				);
 			}
@@ -146,6 +147,11 @@ class CoCart_Load_Cart {
 			return false;
 		}
 
+		// Make sure we are not accessing this feature via REST API to prevent conflicting loops.
+		if ( CoCart::is_rest_api_request() ) {
+			return false;
+		}
+
 		$action = self::get_action_query();
 
 		// If we did not request to load a cart then just return.
@@ -190,14 +196,14 @@ class CoCart_Load_Cart {
 	 *
 	 * @since 3.3.0 Introduced.
 	 *
-	 * @deprecated 4.4.0 No longer used.
+	 * @deprecated 5.0.0 No longer used.
 	 *
 	 * @param string $checkout_url Checkout URL.
 	 *
 	 * @return string $checkout_url Original checkout URL or checkout URL with added query argument.
 	 */
 	public static function proceed_to_checkout( $checkout_url ) {
-		cocart_deprecated_function( 'CoCart_Load_Cart::proceed_to_checkout', '4.4.0', __( 'No longer use.', 'cart-rest-api-for-woocommerce' ) );
+		cocart_deprecated_function( 'CoCart_Load_Cart::proceed_to_checkout', '5.0.0', __( 'No longer use.', 'cocart-core' ) );
 
 		if ( ! is_user_logged_in() && self::maybe_load_cart() ) {
 			$action   = self::get_action_query();
@@ -225,13 +231,7 @@ class CoCart_Load_Cart {
 	 * @return boolean
 	 */
 	protected static function maybe_use_cookie_monster() {
-		return cocart_do_deprecated_filter(
-			'cocart_use_cookie_monster',
-			'4.4.0',
-			null,
-			__( 'No longer use.', 'cart-rest-api-for-woocommerce' ),
-			array( true )
-		);
+		return cocart_do_deprecated_filter( 'cocart_use_cookie_monster', '5.0.0', null, __( 'No longer used.', 'cocart-core' ), array( true ) );
 	} // END maybe_use_cookie_monster()
 
 	/**
@@ -244,7 +244,7 @@ class CoCart_Load_Cart {
 	 *
 	 * @static
 	 *
-	 * @since 4.4.0 Introduced.
+	 * @since 5.0.0 Introduced.
 	 *
 	 * @uses CoCart_Load_Cart::maybe_load_cart()
 	 * @uses CoCart_Load_Cart::get_action_query()
@@ -266,7 +266,7 @@ class CoCart_Load_Cart {
 			/**
 			 * Filter allows you to change where to redirect should loading the cart fail.
 			 *
-			 * @since 4.4.0 Introduced.
+			 * @since 5.0.0 Introduced.
 			 */
 			$redirect_home = apply_filters( 'cocart_load_cart_redirect_home', home_url() );
 

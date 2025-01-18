@@ -5,7 +5,8 @@
  * @author  Sébastien Dumont
  * @package CoCart\Classes
  * @since   3.7.10 Introduced.
- * @version 4.0.0
+ * @version 4.3.10
+ * @license GPL-3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -30,6 +31,8 @@ class CoCart_Security {
 	 */
 	public function __construct() {
 		add_filter( 'rest_index', array( $this, 'hide_from_rest_index' ) );
+
+		add_filter( 'cocart_products_ignore_private_meta_keys', array( $this, 'remove_exposed_product_meta' ), 0, 2 );
 	} // END __construct()
 
 	/**
@@ -64,6 +67,32 @@ class CoCart_Security {
 
 		return $response;
 	} // END hide_from_rest_index()
+
+	/**
+	 * Removes meta data that a plugin should NOT be outputting with Products API.
+	 *
+	 * @access public
+	 *
+	 * @since 4.3.9 Introduced.
+	 *
+	 * @hooked: cocart_products_ignore_private_meta_keys - 1
+	 *
+	 * @param array      $ignored_meta_keys Ignored meta keys.
+	 * @param WC_Product $product           The product object.
+	 *
+	 * @return array $ignored_meta_keys Ignored meta keys.
+	 */
+	public function remove_exposed_product_meta( $ignored_meta_keys, $product ) {
+		$meta_data = $product->get_meta_data();
+
+		foreach ( $meta_data as $meta ) {
+			if ( 'wcwl_mailout_errors' == $meta->key ) {
+				$ignored_meta_keys[] = $meta->key;
+			}
+		}
+
+		return $ignored_meta_keys;
+	} // END remove_exposed_product_meta()
 } // END class
 
 return new CoCart_Security();

@@ -6,6 +6,7 @@
  * @package CoCart\Classes
  * @since   2.1.0 Introduced.
  * @version 4.2.0
+ * @license GPL-3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -314,16 +315,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 			 *
 			 * @deprecated 2.7.2 No replacement.
 			 */
-			cocart_do_deprecated_filter(
-				'cocart_empty_cart_expiration',
-				'2.7.2',
-				null,
-				sprintf(
-					/* translators: %s: Filter name */
-					__( '%s is no longer used.', 'cart-rest-api-for-woocommerce' ),
-					'cocart_empty_cart_expiration'
-				)
-			);
+			cocart_do_deprecated_filter( 'cocart_empty_cart_expiration', '2.7.2', null );
 
 			// Check the data exists before continuing.
 			if ( ! $this->_data || empty( $this->_data ) || is_null( $this->_data ) ) {
@@ -646,7 +638,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	public function update_session_timestamp( $customer_id, $timestamp ) {
 		global $wpdb;
 
-		$wpdb->update(
+		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$this->_table,
 			array(
 				'cart_expiry' => $timestamp,
@@ -684,7 +676,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 			null,
 			sprintf(
 				/* translators: %s: Filter name */
-				__( '%s is no longer used.', 'cart-rest-api-for-woocommerce' ),
+				__( '%s is no longer used.', 'cocart-core' ),
 				'cocart_cookie_supported'
 			)
 		);

@@ -7,8 +7,8 @@
  * @author  Sébastien Dumont
  * @package CoCart\Uninstaller
  * @since   2.1.0
- * @version 3.2.0
- * @license GPL-2.0+
+ * @version 5.0.0
+ * @license GPL-3.0
  */
 
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
@@ -52,7 +52,7 @@ if ( defined( 'COCART_REMOVE_ALL_DATA' ) && true === COCART_REMOVE_ALL_DATA ) {
 		Automattic\WooCommerce\Admin\Notes\Notes::delete_notes_with_name( 'cocart-wc-admin-help-improve' );
 		Automattic\WooCommerce\Admin\Notes\Notes::delete_notes_with_name( 'cocart-wc-admin-need-help' );
 		Automattic\WooCommerce\Admin\Notes\Notes::delete_notes_with_name( 'cocart-wc-admin-thanks-install' );
-		/*Automattic\WooCommerce\Admin\Notes\Notes::delete_notes_with_name( 'cocart-wc-admin-upgrade' );*/
+		Automattic\WooCommerce\Admin\Notes\Notes::delete_notes_with_name( 'cocart-wc-admin-upgrade' );
 	}
 
 	// Clear any cached data that has been removed.

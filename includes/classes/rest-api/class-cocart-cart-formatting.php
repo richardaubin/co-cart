@@ -6,6 +6,7 @@
  * @package CoCart\Classes
  * @since   3.0.0 Introduced.
  * @version 4.0.0
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -29,8 +30,9 @@ class CoCart_Cart_Formatting {
 	 */
 	public function __construct() {
 		// Returns the cart contents without the cart item key as the parent array.
-		add_filter( 'cocart_cart', array( $this, 'remove_items_parent_item_key' ), 0 );
-		add_filter( 'cocart_cart', array( $this, 'remove_removed_items_parent_item_key' ), 0 );
+		add_filter( 'cocart_cart', array( $this, 'remove_items_parent_item_key' ), 99 );
+		add_filter( 'cocart_cart', array( $this, 'remove_removed_items_parent_item_key' ), 99 );
+		add_filter( 'cocart_empty_cart', array( $this, 'remove_removed_items_parent_item_key' ), 99 );
 
 		// Remove any empty cart item data objects.
 		add_filter( 'cocart_cart_item_data', array( $this, 'clean_empty_cart_item_data' ), 0 );

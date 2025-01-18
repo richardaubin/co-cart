@@ -3,9 +3,10 @@
  * REST API: CoCart_Products_Controller class.
  *
  * @author  Sébastien Dumont
- * @package CoCart\RestApi\Products\v1
+ * @package CoCart\RESTAPI\Products\v1
  * @since   3.1.0 Introduced.
- * @version 4.?.?
+ * @version 5.0.0
+ * @license GPL-3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -72,7 +73,7 @@ class CoCart_Products_Controller extends CoCart_REST_Posts_Controller {
 			array(
 				'args'   => array(
 					'id' => array(
-						'description' => __( 'Unique identifier for the product.', 'cart-rest-api-for-woocommerce' ),
+						'description' => __( 'Unique identifier for the product.', 'cocart-core' ),
 						'type'        => 'integer',
 					),
 				),
@@ -146,7 +147,7 @@ class CoCart_Products_Controller extends CoCart_REST_Posts_Controller {
 		if ( $page > $max_pages && $total_posts > 0 ) {
 			return new WP_Error(
 				'cocart_products_invalid_page_number',
-				__( 'The page number requested is larger than the number of products available.', 'cart-rest-api-for-woocommerce' ),
+				__( 'The page number requested is larger than the number of products available.', 'cocart-core' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -362,7 +363,7 @@ endif;
 		$object = $this->get_object( (int) $request['id'] );
 
 		if ( ! $object || 0 === $object->get_id() || 'publish' !== $object->get_status() ) {
-			return new WP_Error( 'cocart_' . $this->post_type . '_invalid_id', __( 'Invalid ID.', 'cart-rest-api-for-woocommerce' ), array( 'status' => 404 ) );
+			return new WP_Error( 'cocart_' . $this->post_type . '_invalid_id', __( 'Invalid ID.', 'cocart-core' ), array( 'status' => 404 ) );
 		}
 
 		$data     = $this->prepare_object_for_response( $object, $request );
@@ -499,17 +500,34 @@ endif;
 		// Taxonomy query to filter products by type, category, tag and attribute.
 		$tax_query = array();
 
-		// Filter product type by slug.
-		if ( ! empty( $request['type'] ) ) {
+		$terms = array();
+
+		// Filter product types to include.
+		if ( ! empty( $request['include_types'] ) ) {
+			$terms = $request['include_types'];
+		} elseif ( ! empty( $request['type'] ) ) {
+			// Filter by a single product type.
 			if ( 'variation' === $request['type'] ) {
 				$args['post_type'] = 'product_variation';
 			} else {
+				$terms = $request['type'];
+
 				$tax_query[] = array(
 					'taxonomy' => 'product_type',
 					'field'    => 'slug',
-					'terms'    => $request['type'],
+					'terms'    => $terms,
 				);
 			}
+		}
+
+		// Filter product types to exclude.
+		if ( ! empty( $request['exclude_types'] ) ) {
+			$tax_query[] = array(
+				'taxonomy' => 'product_type',
+				'field'    => 'slug',
+				'terms'    => $request['exclude_types'],
+				'operator' => 'NOT IN',
+			);
 		}
 
 		// Set before into date query. Date query must be specified as an array of an array.
@@ -612,6 +630,17 @@ endif;
 			}
 		}
 
+		// Filter virtual products.
+		if ( isset( $request['virtual'] ) ) {
+			$args['meta_query'] = $this->add_meta_query( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				$args,
+				array(
+					'key'   => '_virtual',
+					'value' => wc_bool_to_string( $request['virtual'] ),
+				)
+			);
+		}
+
 		// Hide free products.
 		if ( ! empty( $request['hide_free'] ) ) {
 			$args['meta_query'] = $this->add_meta_query( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
@@ -654,18 +683,30 @@ endif;
 			);
 		}
 
+		if ( ! empty( $request['global_unique_id'] ) ) {
+			$global_unique_ids  = array_map( 'trim', explode( ',', $request['global_unique_id'] ) );
+			$args['meta_query'] = $this->add_meta_query( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				$args,
+				array(
+					'key'     => '_global_unique_id',
+					'value'   => $global_unique_ids,
+					'compare' => 'IN',
+				)
+			);
+		}
+
 		// Price filter.
 		if ( ! empty( $request['min_price'] ) || ! empty( $request['max_price'] ) ) {
 			$args['meta_query'] = $this->add_meta_query( $args, cocart_get_min_max_price_meta_query( $request ) ); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query, WPCS: slow query ok.
 		}
 
-		// Filter product in stock or out of stock.
-		if ( is_bool( $request['stock_status'] ) ) {
+		// Filter by stock status.
+		if ( ! empty( $request['stock_status'] ) ) {
 			$args['meta_query'] = $this->add_meta_query( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query, WPCS: slow query ok.
 				$args,
 				array(
 					'key'   => '_stock_status',
-					'value' => true === $request['stock_status'] ? 'instock' : 'outofstock',
+					'value' => in_array( $request['stock_status'], array_keys( wc_get_product_stock_status_options() ) ) ? $request['stock_status'] : 'outofstock',
 				)
 			);
 		}
@@ -838,8 +879,8 @@ endif;
 				'date_modified'     => wc_rest_prepare_date_response( current_time( 'mysql' ), false ),
 				'date_modified_gmt' => wc_rest_prepare_date_response( time() ),
 				'src'               => $attachments,
-				'name'              => __( 'Placeholder', 'cart-rest-api-for-woocommerce' ),
-				'alt'               => __( 'Placeholder', 'cart-rest-api-for-woocommerce' ),
+				'name'              => __( 'Placeholder', 'cocart-core' ),
+				'alt'               => __( 'Placeholder', 'cocart-core' ),
 				'position'          => 0,
 			);
 		}
@@ -1109,7 +1150,7 @@ endif;
 			'variations'            => array(),
 			'grouped_products'      => array(),
 			'menu_order'            => $product->get_menu_order( 'view' ),
-			'meta_data'             => $product->get_meta_data(),
+			'meta_data'             => CoCart_Utilities_Product_Helpers::get_meta_data( $product ),
 			'add_to_cart'           => array(
 				'text'        => $product->add_to_cart_text(),
 				'description' => $product->add_to_cart_description(),
@@ -1174,7 +1215,7 @@ endif;
 			'images'                => $this->get_images( $product ),
 			'attributes'            => $this->get_attributes( $product ),
 			'menu_order'            => $product->get_menu_order( 'view' ),
-			'meta_data'             => $product->get_meta_data(),
+			'meta_data'             => CoCart_Utilities_Product_Helpers::get_meta_data( $product ),
 		);
 
 		return $data;
@@ -1219,69 +1260,69 @@ endif;
 			'type'       => 'object',
 			'properties' => array(
 				'id'                    => array(
-					'description' => __( 'Unique identifier for the product.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Unique identifier for the product.', 'cocart-core' ),
 					'type'        => 'integer',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'name'                  => array(
-					'description' => __( 'Product name.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Product name.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'slug'                  => array(
-					'description' => __( 'Product slug.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Product slug.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'permalink'             => array(
-					'description' => __( 'Product permalink.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Product permalink.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'date_created'          => array(
-					'description' => __( "The date the product was created, in the site's timezone.", 'cart-rest-api-for-woocommerce' ),
+					'description' => __( "The date the product was created, in the site's timezone.", 'cocart-core' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'date_created_gmt'      => array(
-					'description' => __( 'The date the product was created, as GMT.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'The date the product was created, as GMT.', 'cocart-core' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'date_modified'         => array(
-					'description' => __( "The date the product was last modified, in the site's timezone.", 'cart-rest-api-for-woocommerce' ),
+					'description' => __( "The date the product was last modified, in the site's timezone.", 'cocart-core' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'date_modified_gmt'     => array(
-					'description' => __( 'The date the product was last modified, as GMT.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'The date the product was last modified, as GMT.', 'cocart-core' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'type'                  => array(
-					'description' => __( 'Product type. Default values are `simple | variable | variation` but other types maybe also be available with other product type extensions.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Product type. Default values are `simple | variable | variation` but other types maybe also be available with other product type extensions.', 'cocart-core' ),
 					'type'        => 'string',
 					'enum'        => array_merge( array_keys( wc_get_product_types() ), array( 'variation' ) ),
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'featured'              => array(
-					'description' => __( 'Featured product.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Featured product.', 'cocart-core' ),
 					'type'        => 'boolean',
 					'default'     => false,
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'catalog_visibility'    => array(
-					'description' => __( 'Catalog visibility. Default is visible. Other values are `any | catalog | search and hidden`.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Catalog visibility. Default is visible. Other values are `any | catalog | search and hidden`.', 'cocart-core' ),
 					'type'        => 'string',
 					'default'     => 'visible',
 					'enum'        => array( 'any', 'visible', 'catalog', 'search', 'hidden' ),
@@ -1289,139 +1330,139 @@ endif;
 					'readonly'    => true,
 				),
 				'description'           => array(
-					'description' => __( 'Product description.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Product description.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'short_description'     => array(
-					'description' => __( 'Product short description.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Product short description.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'sku'                   => array(
-					'description' => __( 'Unique identifier.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Unique identifier.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'price'                 => array(
-					'description' => __( 'The current price of the product. Returns formatted.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'The current price of the product. Returns formatted.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'regular_price'         => array(
-					'description' => __( 'The regular price of the product. Returns formatted.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'The regular price of the product. Returns formatted.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'sale_price'            => array(
-					'description' => __( 'The sale price of the product. Returns formatted.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'The sale price of the product. Returns formatted.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'date_on_sale_from'     => array(
-					'description' => __( "Start date of sale price, in the site's timezone.", 'cart-rest-api-for-woocommerce' ),
+					'description' => __( "Start date of sale price, in the site's timezone.", 'cocart-core' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'date_on_sale_from_gmt' => array(
-					'description' => __( 'Start date of sale price, as GMT.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Start date of sale price, as GMT.', 'cocart-core' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'date_on_sale_to'       => array(
-					'description' => __( "End date of sale price, in the site's timezone.", 'cart-rest-api-for-woocommerce' ),
+					'description' => __( "End date of sale price, in the site's timezone.", 'cocart-core' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'date_on_sale_to_gmt'   => array(
-					'description' => __( 'End date of sale price, as GMT.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'End date of sale price, as GMT.', 'cocart-core' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'on_sale'               => array(
-					'description' => __( 'Shows if the product is on sale.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Shows if the product is on sale.', 'cocart-core' ),
 					'type'        => 'boolean',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'purchasable'           => array(
-					'description' => __( 'Shows if the product can be bought.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Shows if the product can be bought.', 'cocart-core' ),
 					'type'        => 'boolean',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'total_sales'           => array(
-					'description' => __( 'Amount of sales.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Amount of sales.', 'cocart-core' ),
 					'type'        => 'integer',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'virtual'               => array(
-					'description' => __( 'Shows if the product is virtual.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Shows if the product is virtual.', 'cocart-core' ),
 					'type'        => 'boolean',
 					'default'     => false,
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'downloadable'          => array(
-					'description' => __( 'Shows if the product is downloadable.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Shows if the product is downloadable.', 'cocart-core' ),
 					'type'        => 'boolean',
 					'default'     => false,
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'external_url'          => array(
-					'description' => __( 'Product external URL. Only for external products.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Product external URL. Only for external products.', 'cocart-core' ),
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'button_text'           => array(
-					'description' => __( 'Product external button text. Only for external products.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Product external button text. Only for external products.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'manage_stock'          => array(
-					'description' => __( 'Stock management at product level.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Stock management at product level.', 'cocart-core' ),
 					'type'        => 'boolean',
 					'default'     => false,
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'stock_quantity'        => array(
-					'description' => __( 'Stock quantity.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Stock quantity.', 'cocart-core' ),
 					'type'        => 'integer',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'has_options'           => array(
-					'description' => __( 'Determines whether or not the product has additional options that need selecting before adding to cart.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Determines whether or not the product has additional options that need selecting before adding to cart.', 'cocart-core' ),
 					'type'        => 'boolean',
 					'default'     => false,
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'in_stock'              => array(
-					'description' => __( 'Determines if product is listed as "in stock" or "out of stock".', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Determines if product is listed as "in stock" or "out of stock".', 'cocart-core' ),
 					'type'        => 'boolean',
 					'default'     => true,
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'backorders'            => array(
-					'description' => __( 'If managing stock, this controls if backorders are allowed.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'If managing stock, this controls if backorders are allowed.', 'cocart-core' ),
 					'type'        => 'string',
 					'default'     => 'no',
 					'enum'        => array( 'no', 'notify', 'yes' ),
@@ -1429,19 +1470,19 @@ endif;
 					'readonly'    => true,
 				),
 				'backorders_allowed'    => array(
-					'description' => __( 'Are backorders allowed?', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Are backorders allowed?', 'cocart-core' ),
 					'type'        => 'boolean',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'backordered'           => array(
-					'description' => __( 'Shows if the product is on backordered.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Shows if the product is on backordered.', 'cocart-core' ),
 					'type'        => 'boolean',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'sold_individually'     => array(
-					'description' => __( 'Allow one of the item to be bought in a single order.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Allow one of the item to be bought in a single order.', 'cocart-core' ),
 					'type'        => 'boolean',
 					'default'     => false,
 					'context'     => array( 'view' ),
@@ -1450,20 +1491,20 @@ endif;
 				'weight'                => array(
 					'description' => sprintf(
 						/* translators: %s: weight unit */
-						__( 'Product weight (%s).', 'cart-rest-api-for-woocommerce' ),
+						__( 'Product weight (%s).', 'cocart-core' ),
 						$weight_unit
 					),
 					'type'        => 'object',
 					'context'     => array( 'view' ),
 					'properties'  => array(
 						'value' => array(
-							'description' => __( 'Product weight value.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Product weight value.', 'cocart-core' ),
 							'type'        => 'string',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'unit'  => array(
-							'description' => __( 'Product weight unit.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Product weight unit.', 'cocart-core' ),
 							'type'        => 'string',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
@@ -1472,14 +1513,14 @@ endif;
 					'readonly'    => true,
 				),
 				'dimensions'            => array(
-					'description' => __( 'Product dimensions.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Product dimensions.', 'cocart-core' ),
 					'type'        => 'object',
 					'context'     => array( 'view' ),
 					'properties'  => array(
 						'length' => array(
 							'description' => sprintf(
 								/* translators: %s: dimension unit */
-								__( 'Product length (%s).', 'cart-rest-api-for-woocommerce' ),
+								__( 'Product length (%s).', 'cocart-core' ),
 								$dimension_unit
 							),
 							'type'        => 'string',
@@ -1489,7 +1530,7 @@ endif;
 						'width'  => array(
 							'description' => sprintf(
 								/* translators: %s: dimension unit */
-								__( 'Product width (%s).', 'cart-rest-api-for-woocommerce' ),
+								__( 'Product width (%s).', 'cocart-core' ),
 								$dimension_unit
 							),
 							'type'        => 'string',
@@ -1499,7 +1540,7 @@ endif;
 						'height' => array(
 							'description' => sprintf(
 								/* translators: %s: dimension unit */
-								__( 'Product height (%s).', 'cart-rest-api-for-woocommerce' ),
+								__( 'Product height (%s).', 'cocart-core' ),
 								$dimension_unit
 							),
 							'type'        => 'string',
@@ -1510,67 +1551,67 @@ endif;
 					'readonly'    => true,
 				),
 				'shipping_required'     => array(
-					'description' => __( 'Shows if the product need to be shipped.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Shows if the product need to be shipped.', 'cocart-core' ),
 					'type'        => 'boolean',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'reviews_allowed'       => array(
-					'description' => __( 'Shows if reviews are allowed.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Shows if reviews are allowed.', 'cocart-core' ),
 					'type'        => 'boolean',
 					'default'     => true,
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'reviews'               => array(
-					'description' => __( 'Lists product reviews, when requested.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Lists product reviews, when requested.', 'cocart-core' ),
 					'type'        => 'object',
 					'context'     => array( 'view' ),
 					'properties'  => array(
 						'review_id'       => array(
-							'description' => __( 'Review ID.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Review ID.', 'cocart-core' ),
 							'type'        => 'integer',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'author_name'     => array(
-							'description' => __( 'Author name.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Author name.', 'cocart-core' ),
 							'type'        => 'string',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'author_url'      => array(
-							'description' => __( 'Author URL.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Author URL.', 'cocart-core' ),
 							'type'        => 'string',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'review_comment'  => array(
-							'description' => __( 'Review comment.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Review comment.', 'cocart-core' ),
 							'type'        => 'string',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'review_date'     => array(
-							'description' => __( "Review date, in the site's timezone.", 'cart-rest-api-for-woocommerce' ),
+							'description' => __( "Review date, in the site's timezone.", 'cocart-core' ),
 							'type'        => 'date-time',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'review_date_gmt' => array(
-							'description' => __( 'Review date, as GMT.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Review date, as GMT.', 'cocart-core' ),
 							'type'        => 'date-time',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'rating'          => array(
-							'description' => __( 'Rating number.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Rating number.', 'cocart-core' ),
 							'type'        => 'integer',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'verified'        => array(
-							'description' => __( 'Shows if the product review is verified.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Shows if the product review is verified.', 'cocart-core' ),
 							'type'        => 'integer',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
@@ -1579,31 +1620,31 @@ endif;
 					'readonly'    => true,
 				),
 				'average_rating'        => array(
-					'description' => __( 'Reviews average rating.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Reviews average rating.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'rating_count'          => array(
-					'description' => __( 'Amount of reviews that the product has.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Amount of reviews that the product has.', 'cocart-core' ),
 					'type'        => 'integer',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'review_count'          => array(
-					'description' => __( 'Amount of reviews that the product have.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Amount of reviews that the product have.', 'cocart-core' ),
 					'type'        => 'integer',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'rating_html'           => array(
-					'description' => __( 'Returns the rating of the product in html.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Returns the rating of the product in html.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'related_ids'           => array(
-					'description' => __( 'List of related products IDs.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'List of related products IDs.', 'cocart-core' ),
 					'type'        => 'array',
 					'items'       => array(
 						'type' => 'integer',
@@ -1612,7 +1653,7 @@ endif;
 					'readonly'    => true,
 				),
 				'upsell_ids'            => array(
-					'description' => __( 'List of up-sell products IDs.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'List of up-sell products IDs.', 'cocart-core' ),
 					'type'        => 'array',
 					'items'       => array(
 						'type' => 'integer',
@@ -1621,7 +1662,7 @@ endif;
 					'readonly'    => true,
 				),
 				'cross_sell_ids'        => array(
-					'description' => __( 'List of cross-sell products IDs.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'List of cross-sell products IDs.', 'cocart-core' ),
 					'type'        => 'array',
 					'items'       => array(
 						'type' => 'integer',
@@ -1630,32 +1671,32 @@ endif;
 					'readonly'    => true,
 				),
 				'parent_id'             => array(
-					'description' => __( 'Product parent ID.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Product parent ID.', 'cocart-core' ),
 					'type'        => 'integer',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'categories'            => array(
-					'description' => __( 'List of product categories.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'List of product categories.', 'cocart-core' ),
 					'type'        => 'array',
 					'context'     => array( 'view' ),
 					'items'       => array(
 						'type'       => 'object',
 						'properties' => array(
 							'id'   => array(
-								'description' => __( 'Category ID.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Category ID.', 'cocart-core' ),
 								'type'        => 'integer',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'name' => array(
-								'description' => __( 'Category name.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Category name.', 'cocart-core' ),
 								'type'        => 'string',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'slug' => array(
-								'description' => __( 'Category slug.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Category slug.', 'cocart-core' ),
 								'type'        => 'string',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
@@ -1665,26 +1706,26 @@ endif;
 					'readonly'    => true,
 				),
 				'tags'                  => array(
-					'description' => __( 'List of product tags.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'List of product tags.', 'cocart-core' ),
 					'type'        => 'array',
 					'context'     => array( 'view' ),
 					'items'       => array(
 						'type'       => 'object',
 						'properties' => array(
 							'id'   => array(
-								'description' => __( 'Tag ID.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Tag ID.', 'cocart-core' ),
 								'type'        => 'integer',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'name' => array(
-								'description' => __( 'Tag name.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Tag name.', 'cocart-core' ),
 								'type'        => 'string',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'slug' => array(
-								'description' => __( 'Tag slug.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Tag slug.', 'cocart-core' ),
 								'type'        => 'string',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
@@ -1694,44 +1735,44 @@ endif;
 					'readonly'    => true,
 				),
 				'images'                => array(
-					'description' => __( 'List of product images.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'List of product images.', 'cocart-core' ),
 					'type'        => 'array',
 					'context'     => array( 'view' ),
 					'items'       => array(
 						'type'       => 'object',
 						'properties' => array(
 							'id'                => array(
-								'description' => __( 'Image ID.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Image ID.', 'cocart-core' ),
 								'type'        => 'integer',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'date_created'      => array(
-								'description' => __( "The date the image was created, in the site's timezone.", 'cart-rest-api-for-woocommerce' ),
+								'description' => __( "The date the image was created, in the site's timezone.", 'cocart-core' ),
 								'type'        => 'date-time',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'date_created_gmt'  => array(
-								'description' => __( 'The date the image was created, as GMT.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'The date the image was created, as GMT.', 'cocart-core' ),
 								'type'        => 'date-time',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'date_modified'     => array(
-								'description' => __( "The date the image was last modified, in the site's timezone.", 'cart-rest-api-for-woocommerce' ),
+								'description' => __( "The date the image was last modified, in the site's timezone.", 'cocart-core' ),
 								'type'        => 'date-time',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'date_modified_gmt' => array(
-								'description' => __( 'The date the image was last modified, as GMT.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'The date the image was last modified, as GMT.', 'cocart-core' ),
 								'type'        => 'date-time',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'src'               => array(
-								'description' => __( 'Image URL.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Image URL.', 'cocart-core' ),
 								'type'        => 'array',
 								'format'      => 'uri',
 								'context'     => array( 'view' ),
@@ -1739,19 +1780,19 @@ endif;
 								'readonly'    => true,
 							),
 							'name'              => array(
-								'description' => __( 'Image name.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Image name.', 'cocart-core' ),
 								'type'        => 'string',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'alt'               => array(
-								'description' => __( 'Image alternative text.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Image alternative text.', 'cocart-core' ),
 								'type'        => 'string',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'position'          => array(
-								'description' => __( 'Image position. 0 means that the image is featured.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Image position. 0 means that the image is featured.', 'cocart-core' ),
 								'type'        => 'integer',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
@@ -1761,46 +1802,46 @@ endif;
 					'readonly'    => true,
 				),
 				'attributes'            => array(
-					'description' => __( 'List of attributes.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'List of attributes.', 'cocart-core' ),
 					'type'        => 'array',
 					'context'     => array( 'view' ),
 					'items'       => array(
 						'type'       => 'object',
 						'properties' => array(
 							'id'                   => array(
-								'description' => __( 'Attribute ID.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Attribute ID.', 'cocart-core' ),
 								'type'        => 'integer',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'name'                 => array(
-								'description' => __( 'Attribute name.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Attribute name.', 'cocart-core' ),
 								'type'        => 'string',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'position'             => array(
-								'description' => __( 'Attribute position.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Attribute position.', 'cocart-core' ),
 								'type'        => 'integer',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'is_attribute_visible' => array(
-								'description' => __( "Is the attribute visible on the \"Additional information\" tab in the product's page.", 'cart-rest-api-for-woocommerce' ),
+								'description' => __( "Is the attribute visible on the \"Additional information\" tab in the product's page.", 'cocart-core' ),
 								'type'        => 'boolean',
 								'default'     => false,
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'used_for_variation'   => array(
-								'description' => __( 'Can the attribute be used as variation?', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Can the attribute be used as variation?', 'cocart-core' ),
 								'type'        => 'boolean',
 								'default'     => false,
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'options'              => array(
-								'description' => __( 'List of available term names of the attribute.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'List of available term names of the attribute.', 'cocart-core' ),
 								'type'        => 'array',
 								'context'     => array( 'view' ),
 								'items'       => array(
@@ -1813,26 +1854,26 @@ endif;
 					'readonly'    => true,
 				),
 				'default_attributes'    => array(
-					'description' => __( 'Defaults variation attributes.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Defaults variation attributes.', 'cocart-core' ),
 					'type'        => 'array',
 					'context'     => array( 'view' ),
 					'items'       => array(
 						'type'       => 'object',
 						'properties' => array(
 							'id'     => array(
-								'description' => __( 'Attribute ID.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Attribute ID.', 'cocart-core' ),
 								'type'        => 'integer',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'name'   => array(
-								'description' => __( 'Attribute name.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Attribute name.', 'cocart-core' ),
 								'type'        => 'string',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'option' => array(
-								'description' => __( 'Selected attribute term name.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Selected attribute term name.', 'cocart-core' ),
 								'type'        => 'string',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
@@ -1842,108 +1883,108 @@ endif;
 					'readonly'    => true,
 				),
 				'variations'            => array(
-					'description' => __( 'List of all variation IDs and data if requested true with `return_variations` parameter.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'List of all variation IDs and data if requested true with `return_variations` parameter.', 'cocart-core' ),
 					'type'        => 'array',
 					'context'     => array( 'view' ),
 					'items'       => array(
 						'type'       => 'object',
 						'properties' => array(
 							'id'                 => array(
-								'description' => __( 'Unique identifier for the product.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Unique identifier for the product.', 'cocart-core' ),
 								'type'        => 'integer',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'name'               => array(
-								'description' => __( 'Product name.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Product name.', 'cocart-core' ),
 								'type'        => 'string',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'slug'               => array(
-								'description' => __( 'Product slug.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Product slug.', 'cocart-core' ),
 								'type'        => 'string',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'permalink'          => array(
-								'description' => __( 'Product permalink.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Product permalink.', 'cocart-core' ),
 								'type'        => 'string',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'date_created'       => array(
-								'description' => __( "The date the product was created, in the site's timezone.", 'cart-rest-api-for-woocommerce' ),
+								'description' => __( "The date the product was created, in the site's timezone.", 'cocart-core' ),
 								'type'        => 'date-time',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'date_created_gmt'   => array(
-								'description' => __( 'The date the product was created, as GMT.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'The date the product was created, as GMT.', 'cocart-core' ),
 								'type'        => 'date-time',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'date_modified'      => array(
-								'description' => __( "The date the product was last modified, in the site's timezone.", 'cart-rest-api-for-woocommerce' ),
+								'description' => __( "The date the product was last modified, in the site's timezone.", 'cocart-core' ),
 								'type'        => 'date-time',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'date_modified_gmt'  => array(
-								'description' => __( 'The date the product was last modified, as GMT.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'The date the product was last modified, as GMT.', 'cocart-core' ),
 								'type'        => 'date-time',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'purchasable'        => array(
-								'description' => __( 'Shows if the product can be bought.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Shows if the product can be bought.', 'cocart-core' ),
 								'type'        => 'boolean',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'total_sales'        => array(
-								'description' => __( 'Amount of sales.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Amount of sales.', 'cocart-core' ),
 								'type'        => 'integer',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'virtual'            => array(
-								'description' => __( 'If the product is virtual.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'If the product is virtual.', 'cocart-core' ),
 								'type'        => 'boolean',
 								'default'     => false,
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'downloadable'       => array(
-								'description' => __( 'If the product is downloadable.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'If the product is downloadable.', 'cocart-core' ),
 								'type'        => 'boolean',
 								'default'     => false,
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'manage_stock'       => array(
-								'description' => __( 'Stock management at product level.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Stock management at product level.', 'cocart-core' ),
 								'type'        => 'boolean',
 								'default'     => false,
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'stock_quantity'     => array(
-								'description' => __( 'Stock quantity.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Stock quantity.', 'cocart-core' ),
 								'type'        => 'integer',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'in_stock'           => array(
-								'description' => __( 'Determines if product is listed as "in stock" or "out of stock".', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Determines if product is listed as "in stock" or "out of stock".', 'cocart-core' ),
 								'type'        => 'boolean',
 								'default'     => true,
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'backorders'         => array(
-								'description' => __( 'If managing stock, this controls if backorders are allowed.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'If managing stock, this controls if backorders are allowed.', 'cocart-core' ),
 								'type'        => 'string',
 								'default'     => 'no',
 								'enum'        => array( 'no', 'notify', 'yes' ),
@@ -1951,19 +1992,19 @@ endif;
 								'readonly'    => true,
 							),
 							'backorders_allowed' => array(
-								'description' => __( 'Are backorders allowed?', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Are backorders allowed?', 'cocart-core' ),
 								'type'        => 'boolean',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'backordered'        => array(
-								'description' => __( 'Shows if the product is on backordered.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Shows if the product is on backordered.', 'cocart-core' ),
 								'type'        => 'boolean',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'low_stock_amount'   => array(
-								'description' => __( 'Low stock amount.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Low stock amount.', 'cocart-core' ),
 								'type'        => 'int',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
@@ -1971,20 +2012,20 @@ endif;
 							'weight'             => array(
 								'description' => sprintf(
 									/* translators: %s: weight unit */
-									__( 'Product weight (%s).', 'cart-rest-api-for-woocommerce' ),
+									__( 'Product weight (%s).', 'cocart-core' ),
 									$weight_unit
 								),
 								'type'        => 'object',
 								'context'     => array( 'view' ),
 								'properties'  => array(
 									'value' => array(
-										'description' => __( 'Product weight value.', 'cart-rest-api-for-woocommerce' ),
+										'description' => __( 'Product weight value.', 'cocart-core' ),
 										'type'        => 'string',
 										'context'     => array( 'view' ),
 										'readonly'    => true,
 									),
 									'unit'  => array(
-										'description' => __( 'Product weight unit.', 'cart-rest-api-for-woocommerce' ),
+										'description' => __( 'Product weight unit.', 'cocart-core' ),
 										'type'        => 'string',
 										'context'     => array( 'view' ),
 										'readonly'    => true,
@@ -1993,14 +2034,14 @@ endif;
 								'readonly'    => true,
 							),
 							'dimensions'         => array(
-								'description' => __( 'Product dimensions.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Product dimensions.', 'cocart-core' ),
 								'type'        => 'object',
 								'context'     => array( 'view' ),
 								'properties'  => array(
 									'length' => array(
 										'description' => sprintf(
 											/* translators: %s: dimension unit */
-											__( 'Product length (%s).', 'cart-rest-api-for-woocommerce' ),
+											__( 'Product length (%s).', 'cocart-core' ),
 											$dimension_unit
 										),
 										'type'        => 'string',
@@ -2010,7 +2051,7 @@ endif;
 									'width'  => array(
 										'description' => sprintf(
 											/* translators: %s: dimension unit */
-											__( 'Product width (%s).', 'cart-rest-api-for-woocommerce' ),
+											__( 'Product width (%s).', 'cocart-core' ),
 											$dimension_unit
 										),
 										'type'        => 'string',
@@ -2020,7 +2061,7 @@ endif;
 									'height' => array(
 										'description' => sprintf(
 											/* translators: %s: dimension unit */
-											__( 'Product height (%s).', 'cart-rest-api-for-woocommerce' ),
+											__( 'Product height (%s).', 'cocart-core' ),
 											$dimension_unit
 										),
 										'type'        => 'string',
@@ -2031,50 +2072,50 @@ endif;
 								'readonly'    => true,
 							),
 							'shipping_required'  => array(
-								'description' => __( 'Shows if the product need to be shipped.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Shows if the product need to be shipped.', 'cocart-core' ),
 								'type'        => 'boolean',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'images'             => array(
-								'description' => __( 'List of product images.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'List of product images.', 'cocart-core' ),
 								'type'        => 'array',
 								'context'     => array( 'view' ),
 								'items'       => array(
 									'type'       => 'object',
 									'properties' => array(
 										'id'               => array(
-											'description' => __( 'Image ID.', 'cart-rest-api-for-woocommerce' ),
+											'description' => __( 'Image ID.', 'cocart-core' ),
 											'type'        => 'integer',
 											'context'     => array( 'view' ),
 											'readonly'    => true,
 										),
 										'date_created'     => array(
-											'description' => __( "The date the image was created, in the site's timezone.", 'cart-rest-api-for-woocommerce' ),
+											'description' => __( "The date the image was created, in the site's timezone.", 'cocart-core' ),
 											'type'        => 'date-time',
 											'context'     => array( 'view' ),
 											'readonly'    => true,
 										),
 										'date_created_gmt' => array(
-											'description' => __( 'The date the image was created, as GMT.', 'cart-rest-api-for-woocommerce' ),
+											'description' => __( 'The date the image was created, as GMT.', 'cocart-core' ),
 											'type'        => 'date-time',
 											'context'     => array( 'view' ),
 											'readonly'    => true,
 										),
 										'date_modified'    => array(
-											'description' => __( "The date the image was last modified, in the site's timezone.", 'cart-rest-api-for-woocommerce' ),
+											'description' => __( "The date the image was last modified, in the site's timezone.", 'cocart-core' ),
 											'type'        => 'date-time',
 											'context'     => array( 'view' ),
 											'readonly'    => true,
 										),
 										'date_modified_gmt' => array(
-											'description' => __( 'The date the image was last modified, as GMT.', 'cart-rest-api-for-woocommerce' ),
+											'description' => __( 'The date the image was last modified, as GMT.', 'cocart-core' ),
 											'type'        => 'date-time',
 											'context'     => array( 'view' ),
 											'readonly'    => true,
 										),
 										'src'              => array(
-											'description' => __( 'Image URL.', 'cart-rest-api-for-woocommerce' ),
+											'description' => __( 'Image URL.', 'cocart-core' ),
 											'type'        => 'array',
 											'format'      => 'uri',
 											'context'     => array( 'view' ),
@@ -2082,19 +2123,19 @@ endif;
 											'readonly'    => true,
 										),
 										'name'             => array(
-											'description' => __( 'Image name.', 'cart-rest-api-for-woocommerce' ),
+											'description' => __( 'Image name.', 'cocart-core' ),
 											'type'        => 'string',
 											'context'     => array( 'view' ),
 											'readonly'    => true,
 										),
 										'alt'              => array(
-											'description' => __( 'Image alternative text.', 'cart-rest-api-for-woocommerce' ),
+											'description' => __( 'Image alternative text.', 'cocart-core' ),
 											'type'        => 'string',
 											'context'     => array( 'view' ),
 											'readonly'    => true,
 										),
 										'position'         => array(
-											'description' => __( 'Image position. 0 means that the image is featured.', 'cart-rest-api-for-woocommerce' ),
+											'description' => __( 'Image position. 0 means that the image is featured.', 'cocart-core' ),
 											'type'        => 'integer',
 											'context'     => array( 'view' ),
 											'readonly'    => true,
@@ -2104,26 +2145,26 @@ endif;
 								'readonly'    => true,
 							),
 							'attributes'         => array(
-								'description' => __( 'List of attributes.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'List of attributes.', 'cocart-core' ),
 								'type'        => 'array',
 								'context'     => array( 'view' ),
 								'items'       => array(
 									'type'       => 'object',
 									'properties' => array(
 										'id'     => array(
-											'description' => __( 'Attribute ID.', 'cart-rest-api-for-woocommerce' ),
+											'description' => __( 'Attribute ID.', 'cocart-core' ),
 											'type'        => 'integer',
 											'context'     => array( 'view' ),
 											'readonly'    => true,
 										),
 										'name'   => array(
-											'description' => __( 'Attribute name.', 'cart-rest-api-for-woocommerce' ),
+											'description' => __( 'Attribute name.', 'cocart-core' ),
 											'type'        => 'string',
 											'context'     => array( 'view' ),
 											'readonly'    => true,
 										),
 										'option' => array(
-											'description' => __( 'Option value of attribute.', 'cart-rest-api-for-woocommerce' ),
+											'description' => __( 'Option value of attribute.', 'cocart-core' ),
 											'type'        => 'string',
 											'context'     => array( 'view' ),
 											'readonly'    => true,
@@ -2133,32 +2174,32 @@ endif;
 								'readonly'    => true,
 							),
 							'menu_order'         => array(
-								'description' => __( 'Menu order, used to custom sort products.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Menu order, used to custom sort products.', 'cocart-core' ),
 								'type'        => 'integer',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'meta_data'          => array(
-								'description' => __( 'Meta data.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Meta data.', 'cocart-core' ),
 								'type'        => 'array',
 								'context'     => array( 'view' ),
 								'items'       => array(
 									'type'       => 'object',
 									'properties' => array(
 										'id'    => array(
-											'description' => __( 'Meta ID.', 'cart-rest-api-for-woocommerce' ),
+											'description' => __( 'Meta ID.', 'cocart-core' ),
 											'type'        => 'integer',
 											'context'     => array( 'view' ),
 											'readonly'    => true,
 										),
 										'key'   => array(
-											'description' => __( 'Meta key.', 'cart-rest-api-for-woocommerce' ),
+											'description' => __( 'Meta key.', 'cocart-core' ),
 											'type'        => 'string',
 											'context'     => array( 'view' ),
 											'readonly'    => true,
 										),
 										'value' => array(
-											'description' => __( 'Meta value.', 'cart-rest-api-for-woocommerce' ),
+											'description' => __( 'Meta value.', 'cocart-core' ),
 											'type'        => 'mixed',
 											'context'     => array( 'view' ),
 											'readonly'    => true,
@@ -2172,7 +2213,7 @@ endif;
 					'readonly'    => true,
 				),
 				'grouped_products'      => array(
-					'description' => __( 'List of grouped products ID.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'List of grouped products ID.', 'cocart-core' ),
 					'type'        => 'array',
 					'items'       => array(
 						'type' => 'integer',
@@ -2181,32 +2222,32 @@ endif;
 					'readonly'    => true,
 				),
 				'menu_order'            => array(
-					'description' => __( 'Menu order, used to custom sort products.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Menu order, used to custom sort products.', 'cocart-core' ),
 					'type'        => 'integer',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'meta_data'             => array(
-					'description' => __( 'Meta data.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Meta data.', 'cocart-core' ),
 					'type'        => 'array',
 					'context'     => array( 'view' ),
 					'items'       => array(
 						'type'       => 'object',
 						'properties' => array(
 							'id'    => array(
-								'description' => __( 'Meta ID.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Meta ID.', 'cocart-core' ),
 								'type'        => 'integer',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'key'   => array(
-								'description' => __( 'Meta key.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Meta key.', 'cocart-core' ),
 								'type'        => 'string',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
 							'value' => array(
-								'description' => __( 'Meta value.', 'cart-rest-api-for-woocommerce' ),
+								'description' => __( 'Meta value.', 'cocart-core' ),
 								'type'        => 'mixed',
 								'context'     => array( 'view' ),
 								'readonly'    => true,
@@ -2216,19 +2257,19 @@ endif;
 					'readonly'    => true,
 				),
 				'add_to_cart'           => array(
-					'description' => __( 'Add to Cart button.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Add to Cart button.', 'cocart-core' ),
 					'type'        => 'object',
 					'context'     => array( 'view' ),
 					'properties'  => array(
 						'text'        => array(
-							'description' => __( 'Text', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Text', 'cocart-core' ),
 							'type'        => 'string',
-							'default'     => __( 'Add to Cart', 'cart-rest-api-for-woocommerce' ),
+							'default'     => __( 'Add to Cart', 'cocart-core' ),
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'description' => array(
-							'description' => __( 'Description', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Description', 'cocart-core' ),
 							'type'        => 'string',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
@@ -2247,7 +2288,7 @@ endif;
 			$schema['properties']['images']['items']['properties']['src']['properties'][ $size ] = array(
 				'description' => sprintf(
 					/* translators: %s: Product image URL */
-					__( 'Product image URL for "%s".', 'cart-rest-api-for-woocommerce' ),
+					__( 'Product image URL for "%s".', 'cocart-core' ),
 					$size
 				),
 				'type'        => 'string',
@@ -2261,7 +2302,7 @@ endif;
 				$schema['properties']['variations']['items']['properties']['images']['items']['properties']['src']['properties'][ $size ] = array(
 					'description' => sprintf(
 						/* translators: %s: Product image URL */
-						__( 'Product image URL for "%s".', 'cart-rest-api-for-woocommerce' ),
+						__( 'Product image URL for "%s".', 'cocart-core' ),
 						$size
 					),
 					'type'        => 'string',
@@ -2322,55 +2363,81 @@ endif;
 		$params = parent::get_collection_params();
 
 		$params['slug']               = array(
-			'description'       => __( 'Limit result set to products with a specific slug.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit result set to products with a specific slug.', 'cocart-core' ),
 			'type'              => 'string',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['after']              = array(
-			'description'       => __( 'Limit response to products created after a given ISO8601 compliant date.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit response to products created after a given ISO8601 compliant date.', 'cocart-core' ),
 			'type'              => 'string',
 			'format'            => 'date-time',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['before']             = array(
-			'description'       => __( 'Limit response to products created before a given ISO8601 compliant date.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit response to products created before a given ISO8601 compliant date.', 'cocart-core' ),
 			'type'              => 'string',
 			'format'            => 'date-time',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
+		$params['exclude_types']      = array(
+			'description'       => __( 'Exclude products with any of the types from result set.', 'cocart-core' ),
+			'type'              => 'array',
+			'items'             => array(
+				'type' => 'string',
+				'enum' => array_keys( wc_get_product_types() ),
+			),
+			'sanitize_callback' => 'wp_parse_list',
+			'validate_callback' => 'rest_validate_request_arg',
+		);
+		$params['include_types']      = array(
+			'description'       => __( 'Limit result set to products with any of the types.', 'cocart-core' ),
+			'type'              => 'array',
+			'items'             => array(
+				'type' => 'string',
+				'enum' => array_keys( wc_get_product_types() ),
+			),
+			'sanitize_callback' => 'wp_parse_list',
+			'validate_callback' => 'rest_validate_request_arg',
+		);
 		$params['type']               = array(
-			'description'       => __( 'Limit result set to products assigned a specific type.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit result set to products assigned a specific type.', 'cocart-core' ),
 			'type'              => 'string',
 			'enum'              => array_merge( array_keys( wc_get_product_types() ), array( 'variation' ) ),
 			'sanitize_callback' => 'sanitize_key',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['sku']                = array(
-			'description'       => __( 'Limit result set to products with specific SKU(s). Use commas to separate.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit result set to products with specific SKU(s). Use commas to separate.', 'cocart-core' ),
 			'type'              => 'string',
 			'sanitize_callback' => 'sanitize_text_field',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
+		$params['virtual']            = array(
+			'description'       => __( 'Limit result set to virtual products.', 'cocart-core' ),
+			'type'              => 'boolean',
+			'sanitize_callback' => 'rest_sanitize_boolean',
+			'validate_callback' => 'rest_validate_request_arg',
+		);
 		$params['hide_free']          = array(
-			'description'       => __( 'Limit result set to hide free products.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit result set to hide free products.', 'cocart-core' ),
 			'type'              => 'boolean',
 			'sanitize_callback' => 'wc_string_to_bool',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['featured']           = array(
-			'description'       => __( 'Limit result set to featured products.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit result set to featured products.', 'cocart-core' ),
 			'type'              => 'boolean',
 			'sanitize_callback' => 'wc_string_to_bool',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['category']           = array(
-			'description'       => __( 'Limit result set to products assigned a specific category ID or slug.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit result set to products assigned a specific category ID or slug.', 'cocart-core' ),
 			'type'              => 'string',
 			'sanitize_callback' => 'sanitize_text_field',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['category_operator']  = array(
-			'description'       => __( 'Operator to compare product category terms.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Operator to compare product category terms.', 'cocart-core' ),
 			'type'              => 'string',
 			'enum'              => array( 'in', 'not in', 'and' ),
 			'default'           => 'in',
@@ -2378,13 +2445,13 @@ endif;
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['tag']                = array(
-			'description'       => __( 'Limit result set to products assigned a specific tag ID or slug.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit result set to products assigned a specific tag ID or slug.', 'cocart-core' ),
 			'type'              => 'string',
 			'sanitize_callback' => 'sanitize_text_field',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['tag_operator']       = array(
-			'description'       => __( 'Operator to compare product tags.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Operator to compare product tags.', 'cocart-core' ),
 			'type'              => 'string',
 			'enum'              => array( 'in', 'not in', 'and' ),
 			'default'           => 'in',
@@ -2392,55 +2459,55 @@ endif;
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['stock_status']       = array(
-			'description'       => __( 'Limit result set to products with specified stock status.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit result set to products with specified stock status.', 'cocart-core' ),
 			'type'              => 'string',
 			'enum'              => array_keys( wc_get_product_stock_status_options() ),
 			'sanitize_callback' => 'sanitize_text_field',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['on_sale']            = array(
-			'description'       => __( 'Limit result set to products on sale.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit result set to products on sale.', 'cocart-core' ),
 			'type'              => 'boolean',
 			'sanitize_callback' => 'wc_string_to_bool',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['min_price']          = array(
-			'description'       => __( 'Limit result set to products based on a minimum price.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit result set to products based on a minimum price.', 'cocart-core' ),
 			'type'              => 'string',
 			'sanitize_callback' => 'sanitize_text_field',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['max_price']          = array(
-			'description'       => __( 'Limit result set to products based on a maximum price.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit result set to products based on a maximum price.', 'cocart-core' ),
 			'type'              => 'string',
 			'sanitize_callback' => 'sanitize_text_field',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['show_reviews']       = array(
-			'description'       => __( 'Returns product reviews for all products or an individual product.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Returns product reviews for all products or an individual product.', 'cocart-core' ),
 			'type'              => 'boolean',
 			'sanitize_callback' => 'wc_string_to_bool',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['return_variations']  = array(
-			'description'       => __( 'Returns all variations for variable products.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Returns all variations for variable products.', 'cocart-core' ),
 			'type'              => 'boolean',
 			'sanitize_callback' => 'wc_string_to_bool',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['attributes']         = array(
-			'description' => __( 'Limit result set to products with selected global attributes.', 'cart-rest-api-for-woocommerce' ),
+			'description' => __( 'Limit result set to products with selected global attributes.', 'cocart-core' ),
 			'type'        => 'array',
 			'items'       => array(
 				'type'       => 'object',
 				'properties' => array(
 					'attribute' => array(
-						'description'       => __( 'Attribute taxonomy name.', 'cart-rest-api-for-woocommerce' ),
+						'description'       => __( 'Attribute taxonomy name.', 'cocart-core' ),
 						'type'              => 'string',
 						'sanitize_callback' => 'wc_sanitize_taxonomy_name',
 					),
 					'term_id'   => array(
-						'description'       => __( 'List of attribute term IDs.', 'cart-rest-api-for-woocommerce' ),
+						'description'       => __( 'List of attribute term IDs.', 'cocart-core' ),
 						'type'              => 'array',
 						'items'             => array(
 							'type' => 'integer',
@@ -2448,7 +2515,7 @@ endif;
 						'sanitize_callback' => 'wp_parse_id_list',
 					),
 					'slug'      => array(
-						'description'       => __( 'List of attribute slug(s). If a term ID is provided, this will be ignored.', 'cart-rest-api-for-woocommerce' ),
+						'description'       => __( 'List of attribute slug(s). If a term ID is provided, this will be ignored.', 'cocart-core' ),
 						'type'              => 'array',
 						'items'             => array(
 							'type' => 'string',
@@ -2456,7 +2523,7 @@ endif;
 						'sanitize_callback' => 'wp_parse_slug_list',
 					),
 					'operator'  => array(
-						'description' => __( 'Operator to compare product attribute terms.', 'cart-rest-api-for-woocommerce' ),
+						'description' => __( 'Operator to compare product attribute terms.', 'cocart-core' ),
 						'type'        => 'string',
 						'enum'        => array( 'in', 'not in', 'and' ),
 					),
@@ -2465,7 +2532,7 @@ endif;
 			'default'     => array(),
 		);
 		$params['attribute_relation'] = array(
-			'description'       => __( 'The logical relationship between attributes when filtering across multiple at once.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'The logical relationship between attributes when filtering across multiple at once.', 'cocart-core' ),
 			'type'              => 'string',
 			'enum'              => array( 'in', 'and' ),
 			'default'           => 'and',
@@ -2473,7 +2540,7 @@ endif;
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['catalog_visibility'] = array(
-			'description'       => __( 'Determines if hidden or visible catalog products are shown.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Determines if hidden or visible catalog products are shown.', 'cocart-core' ),
 			'type'              => 'string',
 			'default'           => 'visible',
 			'enum'              => array( 'any', 'visible', 'catalog', 'search', 'hidden' ),
@@ -2481,7 +2548,7 @@ endif;
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['rating']             = array(
-			'description'       => __( 'Limit result set to products with a certain average rating.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit result set to products with a certain average rating.', 'cocart-core' ),
 			'type'              => 'array',
 			'items'             => array(
 				'type' => 'integer',
@@ -2491,18 +2558,18 @@ endif;
 			'sanitize_callback' => 'wp_parse_id_list',
 		);
 		$params['offset']             = array(
-			'description' => __( 'Offset the result set by a specific number of items.', 'cart-rest-api-for-woocommerce' ),
+			'description' => __( 'Offset the result set by a specific number of items.', 'cocart-core' ),
 			'type'        => 'integer',
 		);
 		$params['order']              = array(
-			'description'       => __( 'Order sort attribute ascending or descending.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Order sort attribute ascending or descending.', 'cocart-core' ),
 			'type'              => 'string',
 			'default'           => 'DESC',
 			'enum'              => array( 'ASC', 'DESC' ),
 			'sanitize_callback' => 'sanitize_text_field',
 		);
 		$params['orderby']            = array(
-			'description'       => __( 'Sort collection by product attribute.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Sort collection by product attribute.', 'cocart-core' ),
 			'type'              => 'string',
 			'default'           => get_option( 'woocommerce_default_catalog_orderby', 'date' ),
 			'enum'              => array(
@@ -2529,7 +2596,7 @@ endif;
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['exclude']            = array( // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude
-			'description'       => __( 'Ensure result set excludes specific IDs.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Ensure result set excludes specific IDs.', 'cocart-core' ),
 			'type'              => 'array',
 			'items'             => array(
 				'type' => 'integer',
@@ -2538,7 +2605,7 @@ endif;
 			'sanitize_callback' => 'wp_parse_id_list',
 		);
 		$params['include']            = array(
-			'description'       => __( 'Limit result set to specific IDs.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit result set to specific IDs.', 'cocart-core' ),
 			'type'              => 'array',
 			'items'             => array(
 				'type' => 'integer',
@@ -2547,7 +2614,7 @@ endif;
 			'sanitize_callback' => 'wp_parse_id_list',
 		);
 		$params['parent']             = array(
-			'description'       => __( 'Limit result set to products with particular parent IDs.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit result set to products with particular parent IDs.', 'cocart-core' ),
 			'type'              => 'array',
 			'items'             => array(
 				'type' => 'integer',
@@ -2556,7 +2623,7 @@ endif;
 			'sanitize_callback' => 'wp_parse_id_list',
 		);
 		$params['parent_exclude']     = array(
-			'description'       => __( 'Limit result set to all products except those of a particular parent ID.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Limit result set to all products except those of a particular parent ID.', 'cocart-core' ),
 			'type'              => 'array',
 			'items'             => array(
 				'type' => 'integer',

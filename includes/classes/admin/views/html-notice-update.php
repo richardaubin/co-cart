@@ -6,7 +6,7 @@
  * @package CoCart\Admin\Views
  * @since   3.0.0
  * @version 3.10.0
- * @license GPL-2.0+
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -23,7 +23,7 @@ $update_url = wp_nonce_url( // phpcs:ignore: WordPress.NamingConventions.PrefixA
 <div class="notice notice-info cocart-notice">
 	<div class="cocart-notice-inner">
 		<div class="cocart-notice-icon">
-			<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/logo.jpg' ); ?>" alt="CoCart Logo" />
+			<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/icon-logo.png' ); ?>" alt="CoCart Logo" /><?php // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
 		</div>
 
 		<div class="cocart-notice-content">
@@ -32,7 +32,7 @@ $update_url = wp_nonce_url( // phpcs:ignore: WordPress.NamingConventions.PrefixA
 					<?php
 					printf(
 						/* translators: %s: CoCart */
-						esc_html__( '%s database update required', 'cart-rest-api-for-woocommerce' ),
+						esc_html__( '%s database update required', 'cocart-core' ),
 						'CoCart'
 					);
 					?>
@@ -42,12 +42,12 @@ $update_url = wp_nonce_url( // phpcs:ignore: WordPress.NamingConventions.PrefixA
 				<?php
 				printf(
 					/* translators: %s: CoCart */
-					esc_html__( '%s has been updated! To keep things running smoothly, we have to update your database to the newest version.', 'cart-rest-api-for-woocommerce' ),
+					esc_html__( '%s has been updated! To keep things running smoothly, we have to update your database to the newest version.', 'cocart-core' ),
 					'CoCart'
 				);
 
 				/* translators: 1: Link to docs 2: Close link. */
-				printf( ' ' . esc_html__( 'The database update process runs in the background and may take a little while, so please be patient. Advanced users can alternatively update via %1$sWP CLI%2$s.', 'cart-rest-api-for-woocommerce' ), '<a href="' . esc_url( COCART_STORE_URL . 'upgrading-the-database-using-wp-cli/' ) . '" target="_blank">', '</a>' );
+				printf( ' ' . esc_html__( 'The database update process runs in the background and may take a little while, so please be patient. Advanced users can alternatively update via %1$sWP CLI%2$s.', 'cocart-core' ), '<a href="' . esc_url( COCART_STORE_URL . 'upgrading-the-database-using-wp-cli/' ) . '" target="_blank" rel="noopener noreferrer">', '</a>' );
 				?>
 			</p>
 		</div>
@@ -57,13 +57,13 @@ $update_url = wp_nonce_url( // phpcs:ignore: WordPress.NamingConventions.PrefixA
 				<?php
 				printf(
 					/* translators: %s: CoCart */
-					esc_html__( 'Update %s Database', 'cart-rest-api-for-woocommerce' ),
+					esc_html__( 'Update %s Database', 'cocart-core' ),
 					'CoCart'
 				);
 				?>
 			</a>
-			<span class="no-thanks"><a href="https://cocart.dev/guide/how-to-update-cocart/" target="_blank">
-				<?php esc_html_e( 'Learn more about updates', 'cart-rest-api-for-woocommerce' ); ?>
+			<span class="no-thanks"><a href="https://cocart.dev/guide/how-to-update-cocart/" target="_blank" rel="noopener noreferrer">
+				<?php esc_html_e( 'Learn more about updates', 'cocart-core' ); ?>
 			</a></span>
 		</div>
 	</div>

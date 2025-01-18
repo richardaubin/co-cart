@@ -5,7 +5,7 @@
  * @author  Sébastien Dumont
  * @package CoCart\Compatibility\Modules
  * @since   3.0.0
- * @license GPL-2.0+
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -63,7 +63,7 @@ if ( ! class_exists( 'CoCart_FGC_Compatibility' ) ) {
 					if ( ! empty( $values['fgc_quantity'] ) && $quantity !== $values['fgc_quantity'] ) {
 						$error_message = sprintf(
 							/* translators: %s Product title. */
-							__( 'You are not allowed to modify the quantity of your %s gift.', 'cart-rest-api-for-woocommerce' ),
+							__( 'You are not allowed to modify the quantity of your %s gift.', 'cocart-core' ),
 							$values['data']->get_name()
 						);
 

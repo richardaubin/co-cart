@@ -4,8 +4,8 @@
  *
  * @author  Sébastien Dumont
  * @package CoCart\Third Party\Plugin
- * @since   4.4.0
- * @license GPL-2.0+
+ * @since   5.0.0
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -41,7 +41,7 @@ if ( ! class_exists( 'CoCart_Plugin_LiteSpeed_Cache' ) ) {
 		 *
 		 * @access public
 		 *
-		 * @since 4.4.0 Introduced.
+		 * @since 5.0.0 Introduced.
 		 */
 		public function disable_vary_change() {
 			$rest_prefix = trailingslashit( rest_get_url_prefix() );

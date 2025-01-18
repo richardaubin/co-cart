@@ -5,7 +5,8 @@
  * @author  Sébastien Dumont
  * @package CoCart\API\Cart\v2
  * @since   3.0.0 Introduced.
- * @version 4.4.0
+ * @version 5.0.0
+ * @license GPL-3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -74,7 +75,7 @@ class CoCart_REST_Clear_Cart_V2_Controller extends CoCart_REST_Cart_V2_Controlle
 	 * @access public
 	 *
 	 * @since   1.0.0 Introduced.
-	 * @version 4.4.0
+	 * @version 5.0.0
 	 *
 	 * @param WP_REST_Request $request The request object.
 	 *
@@ -137,7 +138,7 @@ class CoCart_REST_Clear_Cart_V2_Controller extends CoCart_REST_Cart_V2_Controlle
 				do_action( 'cocart_cart_cleared' );
 
 				// Notice message.
-				$message = __( 'Cart is cleared.', 'cart-rest-api-for-woocommerce' );
+				$message = __( 'Cart is cleared.', 'cocart-core' );
 
 				/**
 				 * Filters message about the cart being cleared.
@@ -158,7 +159,7 @@ class CoCart_REST_Clear_Cart_V2_Controller extends CoCart_REST_Cart_V2_Controlle
 				return CoCart_Response::get_response( $response, $this->namespace, $this->rest_base );
 			} else {
 				// Notice message.
-				$message = __( 'Clearing the cart failed!', 'cart-rest-api-for-woocommerce' );
+				$message = __( 'Clearing the cart failed!', 'cocart-core' );
 
 				/**
 				 * Filters message about the cart failing to clear.
@@ -193,7 +194,7 @@ class CoCart_REST_Clear_Cart_V2_Controller extends CoCart_REST_Cart_V2_Controlle
 		$params['keep_removed_items'] = array(
 			'required'          => false,
 			'default'           => false,
-			'description'       => __( 'Keeps removed items in session when clearing the cart.', 'cart-rest-api-for-woocommerce' ),
+			'description'       => __( 'Keeps removed items in session when clearing the cart.', 'cocart-core' ),
 			'type'              => 'boolean',
 			'validate_callback' => 'rest_validate_request_arg',
 		);

@@ -7,6 +7,7 @@
  * @author  Sébastien Dumont
  * @package CoCart\Functions
  * @since   4.2.0 Introduced.
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -80,7 +81,7 @@ function cocart_get_source( $cart_key ) {
 /**
  * Returns the cart hash of the cart.
  *
- * @since 4.4.0 Introduced.
+ * @since 5.0.0 Introduced.
  *
  * @param string $cart_key The cart key.
  *
@@ -133,7 +134,7 @@ function cocart_carts_in_session( $session = '' ) {
 	global $wpdb;
 
 	if ( ! cocart_maybe_show_results() ) {
-		return __( 'Missing session table.', 'cart-rest-api-for-woocommerce' );
+		return __( 'Missing session table.', 'cocart-core' );
 	}
 
 	if ( empty( $session ) ) {
@@ -259,7 +260,7 @@ function cocart_carts_source_web() {
 	global $wpdb;
 
 	if ( ! cocart_maybe_show_results() ) {
-		return __( 'Missing session table.', 'cart-rest-api-for-woocommerce' );
+		return __( 'Missing session table.', 'cocart-core' );
 	}
 
 	$results = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -289,7 +290,7 @@ function cocart_carts_source_headless() {
 	global $wpdb;
 
 	if ( ! cocart_maybe_show_results() ) {
-		return __( 'Missing session table.', 'cart-rest-api-for-woocommerce' );
+		return __( 'Missing session table.', 'cocart-core' );
 	}
 
 	$results = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -319,7 +320,7 @@ function cocart_carts_source_other() {
 	global $wpdb;
 
 	if ( ! cocart_maybe_show_results() ) {
-		return __( 'Missing session table.', 'cart-rest-api-for-woocommerce' );
+		return __( 'Missing session table.', 'cocart-core' );
 	}
 
 	$results = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching

@@ -6,6 +6,7 @@
  * @package CoCart\API\v1
  * @since   2.1.0 Introduced.
  * @version 2.7.0
+ * @license GPL-3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -51,7 +52,7 @@ class CoCart_Totals_Controller extends CoCart_API_Controller {
 					'html' => array(
 						'required'          => false,
 						'default'           => false,
-						'description'       => __( 'Returns the totals pre-formatted.', 'cart-rest-api-for-woocommerce' ),
+						'description'       => __( 'Returns the totals pre-formatted.', 'cocart-core' ),
 						'type'              => 'boolean',
 						'validate_callback' => 'rest_validate_request_arg',
 					),

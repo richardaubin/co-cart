@@ -5,8 +5,9 @@
  */
 
 module.exports = function(grunt) {
-	var sass = require( 'node-sass' );
+	var sass = require( 'sass' );
 	require( 'load-grunt-tasks' )( grunt );
+	grunt.loadNpmTasks('grunt-shell');
 
 	// Project configuration.
 	grunt.initConfig({
@@ -31,7 +32,10 @@ module.exports = function(grunt) {
 					{
 						expand: true,
 						cwd: '<%= dirs.scss %>/admin/',
-						src: ['**/*.scss'],
+						src: [
+							'**/*.scss',
+							'!cocart-updates.scss'
+						],
 						dest: '<%= dirs.css %>/admin/',
 						ext: '.css'
 					},
@@ -157,6 +161,24 @@ module.exports = function(grunt) {
 			]
 		},
 
+		// Download translations
+		glotpress_download: {
+			stable: {
+				options: {
+					domainPath: 'languages',
+					url: 'https://translate.cocartapi.com',
+					slug: '<%= pkg.name %>',
+				}
+			},
+			development: {
+				options: {
+					domainPath: 'languages',
+					url: 'https://translate.cocartapi.com',
+					slug: '<%= pkg.name %>/development',
+				}
+			},
+		},
+
 		// Generate .pot file
 		makepot: {
 			target: {
@@ -205,7 +227,11 @@ module.exports = function(grunt) {
 		checktextdomain: {
 			options:{
 				text_domain: '<%= pkg.name %>', // Project text domain.
-				updateDomains: [ 'woocommerce' ], // List of text domains to replace should they be incorrect.
+				updateDomains: [ // List of text domains to replace should they be incorrect.
+					'co-cart',
+					'meshpress',
+					'woocommerce'
+				],
 				keywords: [
 					'__:1,2d',
 					'_e:1,2d',
@@ -220,7 +246,8 @@ module.exports = function(grunt) {
 					'_n:1,2,4d',
 					'_nx:1,2,4c,5d',
 					'_n_noop:1,2,3d',
-					'_nx_noop:1,2,3c,4d'
+					'_nx_noop:1,2,3c,4d',
+					'wp_set_script_translations:1,2d,3'
 				]
 			},
 			files: {
@@ -274,6 +301,10 @@ module.exports = function(grunt) {
 					{
 						from: /public static \$version = \'.*.'/m,
 						to: "public static $version = '<%= pkg.version %>'"
+					},
+					{
+						from: /public static \$tested_up_to_wp = \'.*.'/m,
+						to: "public static $tested_up_to_wp = '<%= pkg.tested_up_to %>'"
 					},
 					{
 						from: /public static \$required_wp = \'.*.'/m,
@@ -352,7 +383,7 @@ module.exports = function(grunt) {
 						src: [
 							'**',
 							'!.*',
-							'!**/*.{dist,gif,html,jpg,jpeg,js,json,log,lock,md,png,scss,sh,txt,xml,zip}',
+							'!**/*.{dist,gif,html,jpg,jpeg,js,json,log,lock,md,md5,neon,png,scss,sh,txt,xml,zip}',
 							'!.*/**',
 							'!.DS_Store',
 							'!.htaccess',
@@ -423,14 +454,63 @@ module.exports = function(grunt) {
 						dest: ''
 					}
 				]
+			},
+			tarGz: {
+				options: {
+					archive: './releases/<%= pkg.name %>-v<%= pkg.version %>.tar.gz',
+					mode: 'tgz' // Setting the mode to 'tgz' will create a .tar.gz archive
+				},
+				files: [
+					{
+						expand: true,
+						cwd: './build/',
+						src: '**',
+						dest: '<%= pkg.name %>'
+					}
+				]
 			}
 		},
 
 		// Deletes the deployable plugin folder once zipped up.
 		clean: {
 			build: [ 'build/' ],
-			firebuild: [ 'fire-build/' ]
+			firebuild: [ 'fire-build/' ],
+			checksum: ['checksum.md5']
 		},
+
+		// Shell task to generate the checksum file with exclusions
+		shell: {
+			generateChecksum: {
+				command: `find . -type f \
+					! -path '*/.*' \
+					! -name '*.dist' \
+					! -name '*.gif' \
+					! -name '*.html' \
+					! -name '*.jpg' \
+					! -name '*.jpeg' \
+					! -name '*.js' \
+					! -name '*.json' \
+					! -name '*.log' \
+					! -name '*.lock' \
+					! -name '*.md' \
+					! -name '*.png' \
+					! -name '*.scss' \
+					! -name '*.sh' \
+					! -name '*.txt' \
+					! -name '*.xml' \
+					! -name '*.zip' \
+					! -name '*.md5' \
+					! -name '*.neon' \
+					! -path '*/assets/scss/*' \
+					! -path '*/bin/*' \
+					! -path '*/node_modules/*' \
+					! -path '*/releases/*' \
+					! -path '*/tests/*' \
+					! -path '*/vendor/*' \
+					! -path '*/unit-tests/*' \
+					-exec md5sum {} + > checksum.md5`
+			}
+		}
 
 	}); // END of Grunt modules.
 
@@ -458,22 +538,30 @@ module.exports = function(grunt) {
 	 * This includes extracting translatable strings, updating the master pot file.
 	 * If this is part of a deploy process, it should come before zipping everything up.
 	 */
+	grunt.registerTask( 'get-translations', [ 'glotpress_download:stable' ] );
+	grunt.registerTask( 'get-translations:dev', [ 'glotpress_download:development' ] );
 	grunt.registerTask( 'update-pot', [ 'checktextdomain', 'makepot' ] );
 
 	/**
 	 * Creates a deployable plugin zipped up ready to upload
 	 * and install on a WordPress installation.
 	 */
-	grunt.registerTask( 'zip', [ 'copy:build', 'compress:zip', 'clean:build' ] );
+	grunt.registerTask( 'zip-only', [ 'copy:build', 'compress:zip', 'clean:build' ] );
+	grunt.registerTask( 'tar-only', [ 'copy:build', 'compress:tarGz', 'clean:build' ] );
 
 	// Backup a copy of everything incase of emergency.
 	grunt.registerTask( 'zipfire', [ 'copy:firebuild', 'compress:firebuild', 'clean:firebuild' ] );
 
 	// Build Plugin.
-	grunt.registerTask( 'build', [ 'version', 'css', 'js', 'update-pot', 'zip' ] );
+	grunt.registerTask( 'compress-all', [ 'copy:build', 'compress:zip', 'compress:tarGz', 'clean:build' ] );
+	grunt.registerTask( 'build', [ 'version', 'css', 'js', 'update-pot', 'compress-all' ] );
 	grunt.registerTask( 'fire', [ 'version', 'css', 'js', 'update-pot', 'zipfire' ] );
+	grunt.registerTask( 'clear', [ 'clean:build', 'clean:firebuild' ] );
 
 	// Ready for release.
-	grunt.registerTask( 'ready', [ 'version', 'stable', 'css', 'js', 'update-pot', 'zip' ] );
+	grunt.registerTask( 'ready', [ 'version', 'stable', 'css', 'js', 'update-pot', 'compress-all' ] );
+
+	// Register a custom task for generating the checksum
+	grunt.registerTask( 'checksum', [ 'clean:checksum', 'shell:generateChecksum' ]);
 
 };

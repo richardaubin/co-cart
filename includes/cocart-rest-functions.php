@@ -8,7 +8,7 @@
  * @package CoCart\Functions
  * @since   3.0.0
  * @version 4.2.0
- * @license GPL-2.0+
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -126,7 +126,7 @@ function cocart_upload_image_from_url( $image_url ) {
 			'cocart_invalid_image_url',
 			sprintf(
 				/* translators: %s: image URL */
-				__( 'Invalid URL %s.', 'cart-rest-api-for-woocommerce' ),
+				__( 'Invalid URL %s.', 'cocart-core' ),
 				$image_url
 			),
 			array( 'status' => 400 )
@@ -153,12 +153,12 @@ function cocart_upload_image_from_url( $image_url ) {
 			'cocart_invalid_remote_image_url',
 			sprintf(
 				/* translators: %s: image URL */
-				__( 'Error getting remote image %s.', 'cart-rest-api-for-woocommerce' ),
+				__( 'Error getting remote image %s.', 'cocart-core' ),
 				$image_url
 			) . ' '
 			. sprintf(
 				/* translators: %s: error message */
-				__( 'Error: %s', 'cart-rest-api-for-woocommerce' ),
+				__( 'Error: %s', 'cocart-core' ),
 				$file_array['tmp_name']->get_error_message()
 			),
 			array( 'status' => 400 )
@@ -186,7 +186,7 @@ function cocart_upload_image_from_url( $image_url ) {
 			'cocart_invalid_image',
 			sprintf(
 				/* translators: %s: error message */
-				__( 'Invalid image: %s', 'cart-rest-api-for-woocommerce' ),
+				__( 'Invalid image: %s', 'cocart-core' ),
 				$file['error']
 			),
 			array( 'status' => 400 )
@@ -377,7 +377,7 @@ function cocart_add_to_cart_message( $products, $show_qty = false, $return_msg =
 			'cocart_add_to_cart_item_name_in_quotes',
 			sprintf(
 				/* translators: %s: product name */
-				_x( '&ldquo;%s&rdquo;', 'Item name in quotes', 'cart-rest-api-for-woocommerce' ),
+				_x( '&ldquo;%s&rdquo;', 'Item name in quotes', 'cocart-core' ),
 				wp_strip_all_tags( get_the_title( $product_id ) )
 			),
 			$product_id
@@ -389,7 +389,7 @@ function cocart_add_to_cart_message( $products, $show_qty = false, $return_msg =
 
 	$added_text = sprintf(
 		/* translators: %s: product name */
-		_n( '%s has been added to your cart.', '%s have been added to your cart.', $count, 'cart-rest-api-for-woocommerce' ),
+		_n( '%s has been added to your cart.', '%s have been added to your cart.', $count, 'cocart-core' ),
 		wc_format_list_of_items( $titles )
 	);
 
@@ -408,7 +408,7 @@ function cocart_add_to_cart_message( $products, $show_qty = false, $return_msg =
  *
  * @since 3.1.0 Introduced.
  *
- * @deprecated 4.4.0 Replaced with `cocart_format_money()` function.
+ * @deprecated 5.0.0 Replaced with `cocart_format_money()` function.
  *
  * @see cocart_format_money()
  *
@@ -419,7 +419,7 @@ function cocart_add_to_cart_message( $products, $show_qty = false, $return_msg =
  * @return string The new amount.
  */
 function cocart_prepare_money_response( $amount, $decimals = 2, $rounding_mode = PHP_ROUND_HALF_UP ) {
-	cocart_deprecated_function( 'cocart_prepare_money_response', '4.4.0', 'cocart_format_money' );
+	cocart_deprecated_function( 'cocart_prepare_money_response', '5.0.0', 'cocart_format_money' );
 
 	return cocart_format_money( $amount );
 } // END cocart_prepare_money_response()
@@ -544,7 +544,7 @@ function cocart_get_notice_types() {
  *
  * Useful to maintain site performance even when lots of REST namespaces are registered.
  *
- * @since 4.4.0 Introduced.
+ * @since 5.0.0 Introduced.
  *
  * @param string $ns         The namespace to check.
  * @param string $rest_route (Optional) The REST route being checked.
@@ -591,7 +591,7 @@ function cocart_rest_should_load_namespace( string $ns, string $rest_route = '' 
 /**
  * Get CoCart requested namespace.
  *
- * @since 4.4.0 Introduced.
+ * @since 5.0.0 Introduced.
  *
  * @return string
  */
@@ -602,7 +602,7 @@ function cocart_get_requested_namespace() {
 /**
  * Get CoCart requested namespace version.
  *
- * @since 4.4.0 Introduced.
+ * @since 5.0.0 Introduced.
  *
  * @return string
  */
@@ -613,13 +613,97 @@ function cocart_get_requested_namespace_version() {
 /**
  * Get CoCart requested API.
  *
- * @since 4.4.0 Introduced.
+ * @since 5.0.0 Introduced.
  *
  * @return string
  */
 function cocart_get_requested_api() {
 	return cocart_get_requested_namespace() . '/' . cocart_get_requested_namespace_version();
 } // END cocart_get_requested_api()
+
+/**
+ * Get the frontend URL.
+ *
+ * @since 5.0.0 Introduced.
+ *
+ * @param array $settings CoCart settings passed. Empty by default.
+ *
+ * @return string
+ */
+function cocart_get_frontend_url( array $settings = array() ) {
+	// If no settings already passed, fetch them.
+	if ( empty( $settings ) ) {
+		$settings = get_option( 'cocart_settings', array() );
+	}
+
+	$frontend_url = ! empty( $settings['general']['frontend_url'] ) ? $settings['general']['frontend_url'] : '';
+
+	// Dev note: The filter below will take precedence over the setting set above.
+
+	/**
+	 * Filters the frontend URL that users will be redirected to if WordPress access is disabled.
+	 *
+	 * @since 5.0.0 Introduced.
+	 */
+	$frontend_url = apply_filters( 'cocart_wp_frontend_url', $frontend_url );
+
+	// If nothing set or filtered then return default home_url().
+	if ( empty( $frontend_url ) ) {
+		return home_url();
+	}
+
+	return $frontend_url;
+} // END cocart_get_frontend_url()
+
+/**
+ * Checks if WordPress has been disabled access.
+ *
+ * @since 5.0.0 Introduced.
+ *
+ * @param array $settings CoCart settings passed. Default is 'no'.
+ *
+ * @return string
+ */
+function cocart_is_wp_disabled_access( array $settings = array() ) {
+	// If no settings already passed, fetch them.
+	if ( empty( $settings ) ) {
+		$settings = get_option( 'cocart_settings', array() );
+	}
+
+	$disabled = ! empty( $settings['general']['disable_wp_access'] ) ? $settings['general']['disable_wp_access'] : 'no';
+
+	// Dev note: The filter below will take precedence over the setting set above.
+
+	/**
+	 * Filters access to WordPress. Default is 'no'.
+	 *
+	 * @since 5.0.0 Introduced.
+	 */
+	$disabled = apply_filters( 'cocart_wp_disable_access', $disabled );
+
+	return $disabled;
+} // END cocart_is_wp_disabled_access()
+
+/**
+ * Returns the permalink for a page/post/product and replaces the frontend URL if set.
+ *
+ * @since 5.0.0 Introduced.
+ *
+ * @param string $url      Permalink of page/post/product.
+ * @param array  $settings CoCart settings passed. Empty by default.
+ *
+ * @return string Permalink.
+ */
+function cocart_get_permalink( string $url, array $settings = array() ) {
+	// If no settings already passed, fetch them.
+	if ( empty( $settings ) ) {
+		$settings = get_option( 'cocart_settings', array() );
+	}
+
+	$frontend_url = cocart_get_frontend_url( $settings );
+
+	return str_replace( home_url(), $frontend_url, $url );
+} // END cocart_get_permalink()
 
 if ( ! function_exists( 'rest_validate_quantity_arg' ) ) {
 	/**

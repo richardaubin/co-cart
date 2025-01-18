@@ -6,6 +6,7 @@
  * @package CoCart\Classes
  * @since   2.1.2 Introduced.
  * @version 4.0.0
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -93,7 +94,7 @@ class CoCart_WooCommerce {
 	 * @static
 	 *
 	 * @since   2.1.0 Introduced.
-	 * @version 4.4.0
+	 * @version 5.0.0
 	 */
 	public static function validate_cart_requested() {
 		// Return nothing if WP-GraphQL is requested.
@@ -124,7 +125,7 @@ class CoCart_WooCommerce {
 
 			// Compare the customer ID with the requested cart key. If they match then return error message.
 			if ( isset( $_REQUEST['cart_key'] ) && $customer_id === $_REQUEST['cart_key'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				$error = new WP_Error( 'cocart_already_authenticating_user', __( 'You are already authenticating as the customer. Cannot set cart key as the user.', 'cart-rest-api-for-woocommerce' ), array( 'status' => 403 ) );
+				$error = new WP_Error( 'cocart_already_authenticating_user', __( 'You are already authenticating as the customer. Cannot set cart key as the user.', 'cocart-core' ), array( 'status' => 403 ) );
 				wp_send_json_error( $error, 403 );
 				exit;
 			}
@@ -133,7 +134,7 @@ class CoCart_WooCommerce {
 
 			// If the user exists then return error message.
 			if ( ! empty( $user ) && apply_filters( 'cocart_secure_registered_users', true ) ) {
-				$error = new WP_Error( 'cocart_must_authenticate_user', __( 'Must authenticate customer as the cart key provided is a registered customer.', 'cart-rest-api-for-woocommerce' ), array( 'status' => 403 ) );
+				$error = new WP_Error( 'cocart_must_authenticate_user', __( 'Must authenticate customer as the cart key provided is a registered customer.', 'cocart-core' ), array( 'status' => 403 ) );
 				wp_send_json_error( $error, 403 );
 				exit;
 			}
@@ -162,31 +163,6 @@ class CoCart_WooCommerce {
 			)
 		);
 	} // END delete_user_data()
-
-	/**
-	 * Get the persistent cart from the database.
-	 *
-	 * @access private
-	 *
-	 * @static
-	 *
-	 * @since 2.9.1 Introduced.
-	 *
-	 * @return array
-	 */
-	private static function get_saved_cart() {
-		$saved_cart = array();
-
-		if ( apply_filters( 'woocommerce_persistent_cart_enabled', true ) ) { // phpcs:ignore: WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
-			$saved_cart_meta = get_user_meta( get_current_user_id(), '_woocommerce_persistent_cart_' . get_current_blog_id(), true );
-
-			if ( isset( $saved_cart_meta['cart'] ) ) {
-				$saved_cart = array_filter( (array) $saved_cart_meta['cart'] );
-			}
-		}
-
-		return $saved_cart;
-	} // END get_saved_cart()
 } // END class
 
 return new CoCart_WooCommerce();

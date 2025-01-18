@@ -5,7 +5,8 @@
  * @author  Sébastien Dumont
  * @package CoCart\API\Cart\v2
  * @since   3.0.0 Introduced.
- * @version 4.4.0
+ * @version 5.0.0
+ * @license GPL-3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -67,7 +68,7 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 	 * @access public
 	 *
 	 * @since   1.0.0 Introduced.
-	 * @version 4.4.0
+	 * @version 5.0.0
 	 *
 	 * @param WP_REST_Request $request The request object.
 	 *
@@ -95,7 +96,7 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 
 			// If item does not exist in cart return response.
 			if ( empty( $current_data ) ) {
-				$message = __( 'Item specified does not exist in cart.', 'cart-rest-api-for-woocommerce' );
+				$message = __( 'Item specified does not exist in cart.', 'cocart-core' );
 
 				/**
 				 * Filters message about cart item key required.
@@ -152,7 +153,7 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 			if ( $product->is_sold_individually() && $quantity > 1 ) {
 				$message = sprintf(
 					/* translators: %s Product name. */
-					__( 'You can only have 1 "%s" in your cart.', 'cart-rest-api-for-woocommerce' ),
+					__( 'You can only have 1 "%s" in your cart.', 'cocart-core' ),
 					$product->get_name()
 				);
 
@@ -172,6 +173,9 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 			// Only update cart item quantity if passed validation.
 			if ( $passed_validation ) {
 				if ( $quantity !== $current_data['quantity'] ) {
+					$new_data = $this->get_cart_item( $item_key, 'update' );
+
+					$product_id   = ! isset( $new_data['product_id'] ) ? 0 : absint( wp_unslash( $new_data['product_id'] ) );
 					$variation_id = ! isset( $new_data['variation_id'] ) ? 0 : absint( wp_unslash( $new_data['variation_id'] ) );
 					$product      = wc_get_product( $variation_id ? $variation_id : $product_id );
 
@@ -194,7 +198,7 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 						 */
 						$this->calculate_totals();
 					} else {
-						$message = __( 'Unable to update item quantity in cart.', 'cart-rest-api-for-woocommerce' );
+						$message = __( 'Unable to update item quantity in cart.', 'cocart-core' );
 
 						/**
 						 * Filters message about can not update item.
@@ -221,7 +225,7 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 						$response = array(
 							'message'  => sprintf(
 								/* translators: 1: product name, 2: new quantity */
-								__( 'The quantity for "%1$s" has increased to "%2$s".', 'cart-rest-api-for-woocommerce' ),
+								__( 'The quantity for "%1$s" has increased to "%2$s".', 'cocart-core' ),
 								$product->get_name(),
 								$new_data['quantity']
 							),
@@ -231,7 +235,7 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 						$response = array(
 							'message'  => sprintf(
 								/* translators: 1: product name, 2: new quantity */
-								__( 'The quantity for "%1$s" has decreased to "%2$s".', 'cart-rest-api-for-woocommerce' ),
+								__( 'The quantity for "%1$s" has decreased to "%2$s".', 'cocart-core' ),
 								$product->get_name(),
 								$new_data['quantity']
 							),
@@ -241,7 +245,7 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 						$response = array(
 							'message'  => sprintf(
 								/* translators: %s: product name */
-								__( 'The quantity for "%s" has not changed.', 'cart-rest-api-for-woocommerce' ),
+								__( 'The quantity for "%s" has not changed.', 'cocart-core' ),
 								$product->get_name()
 							),
 							'quantity' => $quantity,
@@ -285,19 +289,19 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 		// Update item query parameters.
 		$params += array(
 			'item_key'      => array(
-				'description'       => __( 'Unique identifier for the item in the cart.', 'cart-rest-api-for-woocommerce' ),
+				'description'       => __( 'Unique identifier for the item in the cart.', 'cocart-core' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
 			'quantity'      => array(
-				'description'       => __( 'Quantity of this item to update to.', 'cart-rest-api-for-woocommerce' ),
+				'description'       => __( 'Quantity of this item to update to.', 'cocart-core' ),
 				'type'              => 'string',
 				'required'          => true,
 				'validate_callback' => 'rest_validate_quantity_arg',
 			),
 			'return_status' => array(
-				'description'       => __( 'Returns a message and quantity value after updating item in cart.', 'cart-rest-api-for-woocommerce' ),
+				'description'       => __( 'Returns a message and quantity value after updating item in cart.', 'cocart-core' ),
 				'default'           => false,
 				'type'              => 'boolean',
 				'validate_callback' => 'rest_validate_request_arg',

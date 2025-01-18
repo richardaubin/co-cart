@@ -5,7 +5,7 @@
  * @author  Sébastien Dumont
  * @package CoCart\Admin\Views
  * @since   3.10.0
- * @license GPL-2.0+
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -21,7 +21,7 @@ $campaign_args['utm_content']  = 'plugin-link'; // phpcs:ignore: WordPress.Namin
 <div class="notice notice-error cocart-notice is-dismissible">
 	<div class="cocart-notice-inner">
 		<div class="cocart-notice-icon">
-			<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/logo.jpg' ); ?>" alt="CoCart Logo" />
+			<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/icon-logo.png' ); ?>" alt="CoCart Logo" /><?php // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
 		</div>
 
 		<div class="cocart-notice-content">
@@ -29,7 +29,7 @@ $campaign_args['utm_content']  = 'plugin-link'; // phpcs:ignore: WordPress.Namin
 				<?php
 				printf(
 					/* translators: %s: CoCart */
-					esc_html__( 'WordPress Playground is not compatible with the %s plugin. Recommend requesting a demo instead.', 'cart-rest-api-for-woocommerce' ),
+					esc_html__( 'WordPress Playground is not compatible with the %s plugin. Recommend requesting a demo instead.', 'cocart-core' ),
 					'CoCart'
 				);
 				?>
@@ -37,7 +37,7 @@ $campaign_args['utm_content']  = 'plugin-link'; // phpcs:ignore: WordPress.Namin
 		</div>
 
 		<div class="cocart-action">
-			<a href="<?php echo esc_url( add_query_arg( $campaign_args, 'https://cocartapi.com/try-free-demo/' ) ); ?>" class="button button-primary cocart-button" aria-label="<?php echo esc_html__( 'Request Demo', 'cart-rest-api-for-woocommerce' ); ?>"><?php echo esc_html__( 'Request Demo', 'cart-rest-api-for-woocommerce' ); ?></a>
+			<a href="<?php echo esc_url( add_query_arg( $campaign_args, 'https://cocartapi.com/try-free-demo/' ) ); ?>" class="button button-primary cocart-button" aria-label="<?php echo esc_html__( 'Request Demo', 'cocart-core' ); ?>"><?php echo esc_html__( 'Request Demo', 'cocart-core' ); ?></a>
 		</div>
 	</div>
 </div>

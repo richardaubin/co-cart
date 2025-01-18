@@ -5,6 +5,7 @@
  * @author  Sébastien Dumont
  * @package CoCart\Utilities
  * @since   4.2.0 Introduced.
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -98,8 +99,8 @@ class CoCart_Utilities_Product_Helpers {
 			$images[] = array(
 				'id'       => 0,
 				'src'      => $attachments,
-				'name'     => __( 'Placeholder', 'cart-rest-api-for-woocommerce' ),
-				'alt'      => __( 'Placeholder', 'cart-rest-api-for-woocommerce' ),
+				'name'     => __( 'Placeholder', 'cocart-core' ),
+				'alt'      => __( 'Placeholder', 'cocart-core' ),
 				'position' => 0,
 				'featured' => true,
 			);
@@ -304,23 +305,28 @@ class CoCart_Utilities_Product_Helpers {
 		 *
 		 * @since 3.11.0 Introduced.
 		 *
+		 * @deprecated 5.0.0 Replaced with a new filter `cocart_products_allowed_meta_keys`.
+		 *
 		 * @param array      $ignored_meta_keys Ignored meta keys.
 		 * @param WC_Product $product           The product object.
 		 */
-		$ignore_private_meta_keys = apply_filters( 'cocart_products_ignore_private_meta_keys', array(), $product );
+		cocart_do_deprecated_filter( 'cocart_products_ignore_private_meta_keys', '5.0.0', 'cocart_products_allowed_meta_keys', __( 'Changed to improve product security.', 'cocart-core' ), array( array(), $product ) );
+
+		/**
+		 * Filter allows you to specify the allowed meta keys for the product.
+		 *
+		 * When filtering, only list the meta keys you want to include!
+		 *
+		 * @since 5.0.0 Updated to whitelist allowed meta keys.
+		 *
+		 * @param array      $allowed_meta_keys Allowed meta keys.
+		 * @param WC_Product $product           The product object.
+		 */
+		$allowed_meta_keys = apply_filters( 'cocart_products_allowed_meta_keys', array(), $product );
 
 		foreach ( $meta_data as $meta ) {
-			$ignore_meta = false;
-
-			foreach ( $ignore_private_meta_keys as $ignore ) {
-				if ( str_starts_with( $meta->key, $ignore ) ) {
-					$ignore_meta = true;
-					break; // Exit the inner loop once a match is found.
-				}
-			}
-
-			// Add meta data only if it's not ignored.
-			if ( ! $ignore_meta ) {
+			// Add meta data only if the key is in the allowed list.
+			if ( in_array( $meta->key, $allowed_meta_keys, true ) ) {
 				$safe_meta[ $meta->key ] = $meta;
 			}
 		}
@@ -335,6 +341,42 @@ class CoCart_Utilities_Product_Helpers {
 		 */
 		return array_values( apply_filters( 'cocart_products_get_safe_meta_data', $safe_meta, $product ) );
 	} // END get_meta_data()
+
+	/**
+	 * Verifies the product ID passed and returns as an integer value.
+	 *
+	 * @access public
+	 *
+	 * @static
+	 *
+	 * @since 4.3.13 Introduced.
+	 *
+	 * @param string $id A product ID or SKU.
+	 *
+	 * @return int $product_id Product ID.
+	 */
+	public static function get_product_id( string $id ) {
+		$product_id = $id;
+
+		// Return nothing if no product ID was provided.
+		if ( empty( $product_id ) ) {
+			return;
+		}
+
+		// If the product ID was used by a SKU ID, then look up the product ID and return it.
+		if ( ! is_numeric( $product_id ) ) {
+			$product_id_by_sku = wc_get_product_id_by_sku( $product_id );
+
+			if ( ! empty( $product_id_by_sku ) && $product_id_by_sku > 0 ) {
+				$product_id = $product_id_by_sku;
+			}
+		}
+
+		// Force product ID to be integer.
+		$product_id = (int) $product_id;
+
+		return $product_id;
+	} // END get_product_id()
 
 	/**
 	 * Get the main product slug even if the product type is a variation.
@@ -360,7 +402,14 @@ class CoCart_Utilities_Product_Helpers {
 			$product_slug = $product->get_slug();
 		}
 
-		return $product_slug;
+		/**
+		 * Filter allows you to change the product slug returned.
+		 *
+		 * @since 5.0.0 Introduced.
+		 *
+		 * @param WC_Product $product The product object.
+		 */
+		return apply_filters( 'cocart_get_product_slug', $product_slug, $product );
 	} // END get_product_slug()
 
 	/**
@@ -385,7 +434,7 @@ class CoCart_Utilities_Product_Helpers {
 			$variation_id = $data_store->find_matching_product_variation( $product, $variation );
 
 			if ( empty( $variation_id ) ) {
-				$message = __( 'No matching variation found.', 'cart-rest-api-for-woocommerce' );
+				$message = __( 'No matching variation found.', 'cocart-core' );
 
 				throw new CoCart_Data_Exception( 'cocart_no_variation_found', $message, 404 );
 			}

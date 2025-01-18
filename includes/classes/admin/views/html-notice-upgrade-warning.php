@@ -6,7 +6,7 @@
  * @package  CoCart\Admin\Views
  * @since    1.2.3
  * @version  4.0.0
- * @license  GPL-2.0+
+ * @license  GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div class="notice notice-info cocart-notice">
 	<div class="cocart-notice-inner">
 		<div class="cocart-notice-icon">
-			<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/logo.jpg' ); ?>" alt="CoCart Logo" />
+			<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/icon-logo.png' ); ?>" alt="CoCart Logo" /><?php // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
 		</div>
 
 		<div class="cocart-notice-content">
@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<?php
 			printf(
 				/* translators: %s: CoCart */
-				esc_html__( 'What is next for %s?', 'cart-rest-api-for-woocommerce' ),
+				esc_html__( 'What is next for %s?', 'cocart-core' ),
 				'CoCart'
 			);
 			?>
@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<?php
 			printf(
 				/* translators: %1$s: CoCart, %2$s: CoCart's Next Version */
-				esc_html__( 'Version %2$s of %1$s is in development with many improvements and options including improved security. A newly added settings page with multiple options to quickly configure %1$s as you need and many more action hooks and filters for developers.', 'cart-rest-api-for-woocommerce' ),
+				esc_html__( 'Version %2$s of %1$s is in development with many improvements and options including improved security. A newly added settings page with multiple options to quickly configure %1$s as you need and many more action hooks and filters for developers.', 'cocart-core' ),
 				'CoCart',
 				esc_attr( COCART_NEXT_VERSION )
 			);
@@ -44,8 +44,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 
 		<div class="cocart-action">
-			<?php printf( '<a href="%1$s" class="button button-primary cocart-button" target="_blank">%2$s</a>', esc_url( 'https://github.com/co-cart/co-cart/blob/dev/NEXT_CHANGELOG.md' ), esc_html__( "What's Coming Next?", 'cart-rest-api-for-woocommerce' ) ); ?>
-			<a href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'cocart-hide-notice', 'upgrade_warning', CoCart_Helpers::cocart_get_current_admin_url() ), 'cocart_hide_notices_nonce', '_cocart_notice_nonce' ) ); ?>" class="no-thanks" aria-label="<?php echo esc_html__( 'Hide this notice.', 'cart-rest-api-for-woocommerce' ); ?>"><?php echo esc_html__( 'Remind me another time', 'cart-rest-api-for-woocommerce' ); ?></a>
+			<?php printf( '<a href="%1$s" class="button button-primary cocart-button" target="_blank" rel="noopener noreferrer">%2$s</a>', esc_url( 'https://github.com/co-cart/co-cart/blob/dev/NEXT_CHANGELOG.md' ), esc_html__( "What's Coming Next?", 'cocart-core' ) ); ?>
+			<a href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'cocart-hide-notice', 'upgrade_warning', CoCart_Helpers::cocart_get_current_admin_url() ), 'cocart_hide_notices_nonce', '_cocart_notice_nonce' ) ); ?>" class="no-thanks" aria-label="<?php echo esc_html__( 'Hide this notice.', 'cocart-core' ); ?>"><?php echo esc_html__( 'Remind me another time', 'cocart-core' ); ?></a>
 		</div>
 	</div>
 </div>

@@ -5,7 +5,8 @@
  * @author  Sébastien Dumont
  * @package CoCart\Classes
  * @since   2.6.0 Introduced.
- * @version 4.0.0
+ * @version 5.0.0
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -106,6 +107,9 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 				add_filter( 'determine_current_user', array( $this, 'authenticate' ), 16 );
 				add_filter( 'rest_authentication_errors', array( $this, 'authentication_fallback' ) );
 
+				// Triggers saved cart after login and updates user activity.
+				add_filter( 'rest_authentication_errors', array( $this, 'cocart_user_logged_in' ), 10 );
+
 				// Check authentication errors.
 				add_filter( 'rest_authentication_errors', array( $this, 'check_authentication_error' ), 15 );
 
@@ -127,15 +131,15 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 *
 		 * @since 2.9.1 Introduced.
 		 *
-		 * @deprecated 4.2.0 No replacement. Not needed anymore.
+		 * @since 4.2.0 Deprecated, thinking it was not needed anymore due to changes to support WooCommerce better for performance.
+		 * @since 4.3.7 Reinstated again.
+		 * @since 4.3.14 Don't update user to load saved cart when requesting to delete.
 		 *
 		 * @param WP_Error|null|bool $error Error from another authentication handler, null if we should handle it, or another value if not.
 		 *
 		 * @return WP_Error|null|bool
 		 */
 		public function cocart_user_logged_in( $error ) {
-			cocart_deprecated_function( 'CoCart_Authentication::cocart_user_logged_in', '4.2.0', null );
-
 			// Pass through errors from other authentication error checks used before this one.
 			if ( ! empty( $error ) ) {
 				return $error;
@@ -408,28 +412,19 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 				return false;
 			} elseif ( empty( $username ) || empty( $password ) ) {
 				// If either username or password is missing then return error.
-				$this->set_error( new WP_Error( 'cocart_authentication_error', __( 'Authentication invalid!', 'cart-rest-api-for-woocommerce' ), array( 'status' => 401 ) ) );
+				$this->set_error( new WP_Error( 'cocart_authentication_error', __( 'Authentication invalid!', 'cocart-core' ), array( 'status' => 401 ) ) );
 				return false;
 			}
 
 			$user = get_user_by( 'login', $username );
 
-			if ( ! wp_check_password( $password, $user->user_pass, $user->ID ) ) {
-				$this->set_error(
-					new WP_Error(
-						'cocart_authentication_error',
-						sprintf(
-							/* translators: %s: User name. */
-							__( 'The password you entered for the username "%s" is incorrect.', 'cart-rest-api-for-woocommerce' ),
-							$username
-						), array( 'status' => 401 )
-					)
-				);
+			if ( empty( $user ) ) {
+				$this->set_error( new WP_Error( 'cocart_authentication_error', __( 'Authentication is invalid. Please check your login details are correct and try again.', 'cocart-core' ), array( 'status' => 401 ) ) );
 				return false;
 			}
 
-			if ( is_wp_error( $user ) ) {
-				$this->set_error( new WP_Error( 'cocart_authentication_error', __( 'Authentication is invalid. Please check the authentication information is correct and try again.', 'cart-rest-api-for-woocommerce' ), array( 'status' => 401 ) ) );
+			if ( ! wp_check_password( $password, $user->data->user_pass, $user->ID ) ) {
+				$this->set_error( new WP_Error( 'cocart_authentication_error', __( 'The password you entered is incorrect.', 'cocart-core' ), array( 'status' => 401 ) ) );
 				return false;
 			}
 
@@ -508,14 +503,12 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 * Sends headers.
 		 *
 		 * Returns allowed headers and exposes headers that can be used.
-		 * Nocache headers are sent on authenticated requests.
 		 *
 		 * @access public
 		 *
 		 * @since 4.2.0 Introduced.
 		 *
 		 * @uses is_user_logged_in()
-		 * @uses wp_get_nocache_headers()
 		 *
 		 * @param bool             $served  Whether the request has already been served. Default false.
 		 * @param WP_HTTP_Response $result  Result to send to the client. Usually a WP_REST_Response.
@@ -526,7 +519,6 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 */
 		public function send_headers( $served, $result, $request, $server ) {
 			if ( strpos( $request->get_route(), 'cocart/' ) !== false ) {
-
 				$server->send_header( 'Access-Control-Allow-Headers', implode( ', ', self::ALLOW_HEADERS ) );
 				$server->send_header( 'Access-Control-Expose-Headers', implode( ', ', self::EXPOSE_HEADERS ) );
 
@@ -536,13 +528,10 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 				 * @param bool $rest_send_nocache_headers Whether to send no-cache headers.
 				 *
 				 * @since 4.2.0 Introduced.
+				 *
+				 * @deprecated 4.3.11 No longer used. See `cocart_send_cache_control_patterns` filter instead to control which routes are not cached.
 				 */
-				$send_no_cache_headers = apply_filters( 'cocart_send_nocache_headers', is_user_logged_in() );
-				if ( $send_no_cache_headers ) {
-					foreach ( wp_get_nocache_headers() as $no_cache_header_key => $no_cache_header_value ) {
-						$server->send_header( $no_cache_header_key, $no_cache_header_value );
-					}
-				}
+				cocart_do_deprecated_filter( 'cocart_send_nocache_headers', '4.3.11', null, __( 'This filter is no longer used.', 'cocart-core' ), array( is_user_logged_in() ) );
 			}
 
 			// Exit early during preflight requests. This is so someone cannot access API data by sending an OPTIONS request
@@ -563,20 +552,16 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 * These checks prevent access to the API from non-allowed origins. By default, the WordPress REST API allows
 		 * access from any origin. Because some API routes return PII, we need to add our own CORS headers.
 		 *
-		 * Allowed origins can be changed using the WordPress `allowed_http_origins` or `allowed_http_origin` filters if
+		 * Allowed origins can be changed using the `cocart_allowed_http_origins` or `cocart_allow_origin` filters if
 		 * access needs to be granted to other domains.
-		 *
-		 * @link https://developer.wordpress.org/reference/functions/get_http_origin/
-		 * @link https://developer.wordpress.org/reference/functions/get_allowed_http_origins/
 		 *
 		 * @access public
 		 *
 		 * @since 2.2.0 Introduced.
 		 * @since 3.3.0 Added new custom headers without the prefix `X-`
-		 * @since 4.4.0 Fallback to a wildcard if the origin has yet to be determined.
 		 *
-		 * @uses get_http_origin()
-		 * @uses is_allowed_http_origin()
+		 * @uses CoCart_Authentication()::get_http_origin()
+		 * @uses CoCart_Authentication()::is_allowed_http_origin()
 		 *
 		 * @param bool             $served  Whether the request has already been served. Default false.
 		 * @param WP_HTTP_Response $result  Result to send to the client. Usually a WP_REST_Response.
@@ -587,29 +572,6 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 */
 		public function cors_headers( $served, $result, $request, $server ) {
 			if ( strpos( $request->get_route(), 'cocart/' ) !== false ) {
-				$origin = get_http_origin();
-
-				// Requests from file:// and data: URLs send "Origin: null".
-				if ( 'null' !== $origin ) {
-					$origin = esc_url_raw( $origin );
-				}
-
-				// Fallback to a wildcard if the origin has yet to be determined.
-				if ( empty( $origin ) ) {
-					$origin = '*';
-				}
-
-				/**
-				 * Filter allows you to change the allowed HTTP origin result.
-				 *
-				 * @since 2.5.1 Introduced.
-				 * @since 4.4.0 Added the request object as parameter.
-				 *
-				 * @param string          $origin Origin URL if allowed, empty string if not.
-				 * @param WP_REST_Request $request The request object.
-				 */
-				$origin = apply_filters( 'cocart_allow_origin', $origin, $request );
-
 				$server->send_header( 'Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE' );
 				$server->send_header( 'Access-Control-Allow-Credentials', 'true' );
 				$server->send_header( 'Vary', 'Origin', false );
@@ -619,8 +581,8 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 
 				// Allow preflight requests and any allowed origins. Preflight requests
 				// are allowed because we'll be unable to validate customer header at that point.
-				if ( $this->is_preflight() || ! is_allowed_http_origin( $origin ) ) {
-					$server->send_header( 'Access-Control-Allow-Origin', $origin );
+				if ( $this->is_preflight() || $this->is_allowed_http_origin() ) {
+					$server->send_header( 'Access-Control-Allow-Origin', $this->get_http_origin() );
 				}
 
 				// Exit early during preflight requests. This is so someone cannot access API data by sending an OPTIONS request
@@ -632,6 +594,148 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 
 			return $served;
 		} // END cors_headers()
+
+		/**
+		 * Gets the HTTP Origin of the current request.
+		 *
+		 * @link https://developer.wordpress.org/reference/functions/get_http_origin/
+		 *
+		 * @access protected
+		 *
+		 * @since 5.0.0 Introduced.
+		 *
+		 * @uses get_http_origin()
+		 *
+		 * @return string URL of the origin. Empty string if no origin.
+		 */
+		protected function get_http_origin() {
+			$origin = get_http_origin();
+
+			if ( function_exists( 'getallheaders' ) ) {
+				$headers = getallheaders();
+				// Check for the origin header case-insensitively.
+				foreach ( $headers as $key => $value ) {
+					if ( 'origin' === strtolower( $key ) ) {
+						$origin = $value;
+					}
+				}
+			}
+
+			// Requests from file:// and data: URLs send "Origin: null".
+			if ( 'null' !== $origin ) {
+				$origin = esc_url_raw( $origin );
+			}
+
+			// Fallback to a wildcard if the origin has yet to be determined.
+			if ( empty( $origin ) ) {
+				$origin = '*';
+			}
+
+			/**
+			 * Filter allows you to change the allowed HTTP origin result.
+			 *
+			 * @since 2.5.1 Introduced.
+			 *
+			 * @param string $origin Origin URL if allowed, empty string if not.
+			 */
+			$origin = apply_filters( 'cocart_allow_origin', $origin );
+
+			return $origin;
+		} // END get_http_origin()
+
+		/**
+		 * Retrieves list of allowed HTTP origins.
+		 *
+		 * @access protected
+		 *
+		 * @since 5.0.0 Introduced.
+		 *
+		 * @uses admin_url()
+		 * @uses home_url()
+		 *
+		 * @return string[] Array of origin URLs.
+		 */
+		protected function get_allowed_http_origins() {
+			$admin_origin = parse_url( admin_url() );
+			$home_origin  = parse_url( home_url() );
+
+			// Helper function to construct URL with port if present.
+			$build_origin_url = function ( $scheme, $host, $port ) {
+				$url = $scheme . '://' . $host;
+
+				if ( ! empty( $port ) ) {
+					/**
+					 * Controls the list of ports considered safe for accessing the API.
+					 *
+					 * Filter allows to change and allow external requests for the HTTP request.
+					 *
+					 * @since 5.0.0 Introduced.
+					 *
+					 * @param int[]  $allowed_ports Array of integers for valid ports.
+					 * @param string $host          Host name of the requested URL.
+					 * @param string $url           Requested URL.
+					 */
+					$allowed_ports = apply_filters( 'cocart_http_allowed_safe_ports', array( 80, 443, 8080 ), $host, $url );
+					if ( is_array( $allowed_ports ) && ! in_array( $port, $allowed_ports, true ) ) {
+						return $url;
+					}
+
+					$url .= ':' . $port;
+				}
+
+				return $url;
+			};
+
+			$allowed_origins = array_unique(
+				array(
+					$build_origin_url( 'http', $admin_origin['host'], $admin_origin['port'] ?? '' ),
+					$build_origin_url( 'https', $admin_origin['host'], $admin_origin['port'] ?? '' ),
+					$build_origin_url( 'http', $home_origin['host'], $home_origin['port'] ?? '' ),
+					$build_origin_url( 'https', $home_origin['host'], $home_origin['port'] ?? '' ),
+				)
+			);
+
+			/**
+			 * Filter changes the origin types allowed for HTTP requests.
+			 *
+			 * @since 5.0.0 Introduced.
+			 *
+			 * @param string[] $allowed_origins {
+			 *     Array of default allowed HTTP origins.
+			 *
+			 *     @type string $2 Non-secure URL for home origin.
+			 *     @type string $3 Secure URL for home origin.
+			 * }
+			 */
+			return apply_filters( 'cocart_allowed_http_origins', $allowed_origins );
+		} // END get_allowed_http_origins()
+
+		/**
+		 * Determines if the HTTP origin is an authorized one.
+		 *
+		 * @access protected
+		 *
+		 * @since 5.0.0 Introduced.
+		 *
+		 * @uses CoCart_Authentication()::get_http_origin()
+		 * @uses CoCart_Authentication()::get_allowed_http_origins()
+		 *
+		 * @return string|bool Origin URL if allowed, false if not.
+		 */
+		protected function is_allowed_http_origin() {
+			$origin = $this->get_http_origin();
+
+			// Allow CORS to be simulated on a local environment.
+			if ( $this->is_wp_environment_local() ) {
+				return $origin;
+			}
+
+			if ( ! empty( $origin ) && ! in_array( $origin, $this->get_allowed_http_origins(), true ) ) {
+				$origin = false; // Return as false to prevent the `Access-Control-Allow-Origin` from returning.
+			}
+
+			return $origin;
+		} // END is_allowed_http_origin()
 
 		/**
 		 * Check for permission to access API.
@@ -685,7 +789,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 										'cocart_rest_permission_error',
 										sprintf(
 											/* translators: 1: permission method, 2: api route */
-											__( 'Permission to %1$s %2$s is only permitted if the user is authenticated.', 'cart-rest-api-for-woocommerce' ),
+											__( 'Permission to %1$s %2$s is only permitted if the user is authenticated.', 'cocart-core' ),
 											'READ',
 											$path
 										),
@@ -704,7 +808,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 										'cocart_rest_permission_error',
 										sprintf(
 											/* translators: 1: permission method, 2: api route */
-											__( 'Permission to %1$s %2$s is only permitted if the user is authenticated.', 'cart-rest-api-for-woocommerce' ),
+											__( 'Permission to %1$s %2$s is only permitted if the user is authenticated.', 'cocart-core' ),
 											'WRITE',
 											$path
 										),
@@ -720,7 +824,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 										'cocart_rest_permission_error',
 										sprintf(
 											/* translators: 1: permission method, 2: api route */
-											__( 'Permission to %1$s %2$s is only permitted if the user is authenticated.', 'cart-rest-api-for-woocommerce' ),
+											__( 'Permission to %1$s %2$s is only permitted if the user is authenticated.', 'cocart-core' ),
 											'OPTIONS',
 											$path
 										),
@@ -734,7 +838,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 								'cocart_rest_permission_error',
 								sprintf(
 									/* translators: %s: api route */
-									__( 'Unknown request method for %s.', 'cart-rest-api-for-woocommerce' ),
+									__( 'Unknown request method for %s.', 'cocart-core' ),
 									$path
 								),
 								401

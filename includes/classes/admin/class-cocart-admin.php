@@ -4,9 +4,9 @@
  *
  * @author  Sébastien Dumont
  * @package CoCart\Admin
- * @since   1.2.0
- * @version 4.0.0
- * @license GPL-2.0+
+ * @since   1.2.0 Introduced.
+ * @version 5.0.0
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -26,8 +26,10 @@ if ( ! class_exists( 'CoCart_Admin' ) ) {
 		public function __construct() {
 			add_action( 'init', array( $this, 'includes' ) );
 
-			// Plugin Updates.
+			// Just-incase a developer wants to add support for CoCart within a WordPress theme.
 			add_filter( 'extra_theme_headers', array( $this, 'enable_cocart_plugin_headers' ) );
+
+			// Plugin Updates.
 			add_filter( 'extra_plugin_headers', array( $this, 'enable_cocart_plugin_headers' ) );
 			add_filter( 'auto_update_plugin', array( $this, 'cocart_prevent_dangerous_auto_updates' ), 99, 2 );
 
@@ -52,6 +54,10 @@ if ( ! class_exists( 'CoCart_Admin' ) ) {
 			require_once __DIR__ . '/class-cocart-admin-menus.php';                                 // Admin Menus.
 			require_once __DIR__ . '/class-cocart-admin-notices.php';                               // Plugin Notices.
 
+			// Plugin identification and updates.
+			include_once __DIR__ . '/abstract/abstract-class-plugin-updates.php';                   // Plugin identification.
+			require_once __DIR__ . '/class-cocart-admin-updates.php';                               // Plugin Updates.
+
 			// Plugin search and suggestions.
 			require_once __DIR__ . '/plugin-suggestions/class-cocart-admin-plugin-suggestions.php'; // Plugin Suggestions.
 			require_once __DIR__ . '/plugin-suggestions/class-cocart-admin-plugin-search.php';      // Plugin Search.
@@ -61,7 +67,8 @@ if ( ! class_exists( 'CoCart_Admin' ) ) {
 			include_once __DIR__ . '/woocommerce/class-cocart-wc-admin-system-status.php';          // WooCommerce System Status.
 
 			// Pages.
-			require_once __DIR__ . '/pages/class-cocart-admin-pages-support.php';                   // Support.
+			require_once __DIR__ . '/pages/class-cocart-admin-pages-support.php';                   // Support page.
+			require_once __DIR__ . '/pages/class-cocart-admin-pages-updates.php';                   // Updates/License Manager page.
 			require_once __DIR__ . '/class-cocart-admin-setup-wizard.php';                          // Setup Wizard.
 		} // END includes()
 

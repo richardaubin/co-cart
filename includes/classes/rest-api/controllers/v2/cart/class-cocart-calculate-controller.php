@@ -5,7 +5,8 @@
  * @author  Sébastien Dumont
  * @package CoCart\API\Cart\v2
  * @since   3.0.0 Introduced.
- * @version 4.4.0
+ * @version 5.0.0
+ * @license GPL-3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -74,7 +75,7 @@ class CoCart_REST_Calculate_V2_Controller extends CoCart_REST_Cart_V2_Controller
 	 * @access public
 	 *
 	 * @since   1.0.0 Introduced.
-	 * @version 4.4.0
+	 * @version 5.0.0
 	 *
 	 * @param WP_REST_Request $request The request object.
 	 *
@@ -122,7 +123,7 @@ class CoCart_REST_Calculate_V2_Controller extends CoCart_REST_Cart_V2_Controller
 			'return_totals' => array(
 				'required'          => false,
 				'default'           => false,
-				'description'       => __( 'Returns the cart totals once calculated if requested.', 'cart-rest-api-for-woocommerce' ),
+				'description'       => __( 'Returns the cart totals once calculated if requested.', 'cocart-core' ),
 				'type'              => 'boolean',
 				'validate_callback' => 'rest_validate_request_arg',
 			),

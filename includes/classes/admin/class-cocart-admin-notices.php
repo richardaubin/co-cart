@@ -2,13 +2,11 @@
 /**
  * Display notices in the WordPress admin for CoCart.
  *
- * Forked the notice system from: https://github.com/woocommerce/woocommerce/blob/master/includes/admin/class-wc-admin-notices.php
- *
  * @author  Sébastien Dumont
  * @package CoCart\Admin\Notices
  * @since   1.2.0 Introduced.
- * @version 4.4.0
- * @license GPL-2.0+
+ * @version 4.3.7
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -65,6 +63,7 @@ if ( ! class_exists( 'CoCart_Admin_Notices' ) ) {
 			'upgrade_warning'     => 'upgrade_warning_notice',
 			'base_tables_missing' => 'base_tables_missing_notice',
 			'setup_wizard'        => 'setup_wizard_notice',
+			'disabled_wp_source'  => 'disabled_wp_source_notice',
 		);
 
 		/**
@@ -128,7 +127,7 @@ if ( ! class_exists( 'CoCart_Admin_Notices' ) ) {
 		 * @static
 		 *
 		 * @since 3.0.0 Introduced.
-		 * @since 4.4.0 Adjusted to get cached notices for the current site should it be a multisite.
+		 * @since 4.3.7 Adjusted to get cached notices for the current site should it be a multisite.
 		 *
 		 * @return array Cached notices for current site.
 		 */
@@ -154,7 +153,7 @@ if ( ! class_exists( 'CoCart_Admin_Notices' ) ) {
 		 *
 		 * @static
 		 *
-		 * @since 4.4.0 Introduced.
+		 * @since 4.3.7 Introduced.
 		 *
 		 * @param array $notices New value for the locally cached notices array.
 		 */
@@ -191,6 +190,7 @@ if ( ! class_exists( 'CoCart_Admin_Notices' ) ) {
 			self::add_notice( 'check_wp' );
 			self::add_notice( 'check_wc' );
 			self::add_notice( 'check_beta' );
+			self::add_notice( 'disabled_wp_source' );
 		} // END reset_admin_notices()
 
 		/**
@@ -257,7 +257,7 @@ if ( ! class_exists( 'CoCart_Admin_Notices' ) ) {
 		 *
 		 * @static
 		 *
-		 * @since 4.4.0 Introduced.
+		 * @since 4.3.7 Introduced.
 		 *
 		 * @param array|string $names_array_or_regex An array of notice names, or a string representing a regular expression.
 		 * @param bool         $force_save           Force saving inside this method instead of at the 'shutdown'.
@@ -305,11 +305,11 @@ if ( ! class_exists( 'CoCart_Admin_Notices' ) ) {
 		public function hide_notices() {
 			if ( isset( $_GET['cocart-hide-notice'] ) && isset( $_GET['_cocart_notice_nonce'] ) ) {
 				if ( ! wp_verify_nonce( sanitize_key( wp_unslash( $_GET['_cocart_notice_nonce'] ) ), 'cocart_hide_notices_nonce' ) ) {
-					wp_die( esc_html__( 'Action failed. Please refresh the page and retry.', 'cart-rest-api-for-woocommerce' ) );
+					wp_die( esc_html__( 'Action failed. Please refresh the page and retry.', 'cocart-core' ) );
 				}
 
 				if ( ! CoCart_Helpers::user_has_capabilities() ) {
-					wp_die( esc_html__( 'You don&#8217;t have permission to do this.', 'cart-rest-api-for-woocommerce' ) );
+					wp_die( esc_html__( 'You don&#8217;t have permission to do this.', 'cocart-core' ) );
 				}
 
 				$notice_name = sanitize_text_field( wp_unslash( $_GET['cocart-hide-notice'] ) );
@@ -328,7 +328,7 @@ if ( ! class_exists( 'CoCart_Admin_Notices' ) ) {
 		 *
 		 * @static
 		 *
-		 * @since 4.4.0 Introduced.
+		 * @since 4.3.7 Introduced.
 		 *
 		 * @param string $notice_name Notice name.
 		 */
@@ -352,7 +352,7 @@ if ( ! class_exists( 'CoCart_Admin_Notices' ) ) {
 		 *
 		 * @static
 		 *
-		 * @since 4.4.0 Introduced.
+		 * @since 4.3.7 Introduced.
 		 *
 		 * @param string   $notice_name The name of the admin notice to check.
 		 * @param int|null $user_id     User id, or null for the current user.
@@ -659,6 +659,27 @@ if ( ! class_exists( 'CoCart_Admin_Notices' ) ) {
 		public function setup_wizard_notice() {
 			include_once __DIR__ . '/views/html-notice-setup-wizard.php';
 		} // END setup_wizard_notice()
+
+		/**
+		 * Displays a notice once activated only if a legacy version of CoCart
+		 * from WordPress dot ORG was detected.
+		 *
+		 * @access public
+		 *
+		 * @since 5.0.0 Introduced.
+		 *
+		 * @return void
+		 */
+		public function disabled_wp_source_notice() {
+			$deactivated_notice = (int) get_transient( 'cocart_legacy_deactivated' );
+			if ( ! $deactivated_notice ) {
+				return;
+			}
+
+			include_once __DIR__ . '/views/html-notice-disabled-wp-source.php';
+
+			delete_transient( 'cocart_legacy_deactivated' );
+		} // END disabled_wp_source_notice()
 
 		/**
 		 * Displays a notice if the user installed CoCart on WordPress Playground.

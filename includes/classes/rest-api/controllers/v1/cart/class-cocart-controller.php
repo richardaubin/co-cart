@@ -5,7 +5,8 @@
  * @author  Sébastien Dumont
  * @package CoCart\RestApi\Cart\v1
  * @since   2.0.0 Introduced.
- * @version 4.?.?
+ * @version 5.X.X
+ * @license GPL-3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Handles the requests to get the cart via /get-cart endpoint.
  *
  * @since 2.0.0 Introduced.
- * @since 4.?.? Extends `CoCart_REST_Controller` abstract.
+ * @since 5.X.X Extends `CoCart_REST_Controller` abstract.
  * @extends CoCart_REST_Controller
  */
 class CoCart_API_Controller extends CoCart_REST_Controller {
@@ -94,7 +95,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 	 */
 	public function get_permission_check() {
 		if ( ! current_user_can( 'administrator' ) ) { // phpcs:ignore WordPress.WP.Capabilities.RoleFound
-			return new WP_Error( 'cocart_cannot_read_cart', __( 'Cannot read cart!', 'cart-rest-api-for-woocommerce' ), array( 'status' => 401 ) );
+			return new WP_Error( 'cocart_cannot_read_cart', __( 'Cannot read cart!', 'cocart-core' ), array( 'status' => 401 ) );
 		}
 
 		return true;
@@ -149,7 +150,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 	 */
 	public function get_cart_customer( $request = array() ) {
 		if ( empty( $request['id'] ) ) {
-			return new WP_Error( 'cocart_customer_missing', __( 'Customer ID is required!', 'cart-rest-api-for-woocommerce' ), array( 'status' => 404 ) );
+			return new WP_Error( 'cocart_customer_missing', __( 'Customer ID is required!', 'cocart-core' ), array( 'status' => 404 ) );
 		}
 
 		$saved_cart = $this->get_saved_cart( $request );
@@ -240,7 +241,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 			if ( ! $product->is_purchasable() ) {
 				$message = sprintf(
 					/* translators: %s: product name */
-					__( '%s has been removed from your cart because it can no longer be purchased. Please contact us if you need assistance.', 'cart-rest-api-for-woocommerce' ),
+					__( '%s has been removed from your cart because it can no longer be purchased. Please contact us if you need assistance.', 'cocart-core' ),
 					$product->get_name()
 				);
 
@@ -404,7 +405,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 		$cart_key = ! empty( $request['id'] ) ? $request['id'] : ''; // The cart key is a required variable.
 
 		if ( empty( $cart_key ) ) {
-			return new WP_Error( 'cocart_cart_key_missing', __( 'Cart Key is required!', 'cart-rest-api-for-woocommerce' ), array( 'status' => 404 ) );
+			return new WP_Error( 'cocart_cart_key_missing', __( 'Cart Key is required!', 'cocart-core' ), array( 'status' => 404 ) );
 		}
 
 		// Get the cart in the database.
@@ -412,7 +413,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 
 		// If no cart is saved with the ID specified return error.
 		if ( empty( $cart ) ) {
-			return new WP_Error( 'cocart_cart_in_session_not_valid', __( 'Cart in session is not valid!', 'cart-rest-api-for-woocommerce' ), array( 'status' => 404 ) );
+			return new WP_Error( 'cocart_cart_in_session_not_valid', __( 'Cart in session is not valid!', 'cocart-core' ), array( 'status' => 404 ) );
 		}
 
 		return $this->return_cart_contents( $request, maybe_unserialize( $cart['cart'] ), '', true );
@@ -444,13 +445,13 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 		}
 
 		if ( empty( $product_id ) ) {
-			$message = __( 'Product ID number is required!', 'cart-rest-api-for-woocommerce' );
+			$message = __( 'Product ID number is required!', 'cocart-core' );
 			CoCart_Logger::log( $message, 'error' );
 			return new WP_Error( 'cocart_product_id_required', $message, array( 'status' => 404 ) );
 		}
 
 		if ( ! is_numeric( $product_id ) ) {
-			$message = __( 'Product ID must be numeric!', 'cart-rest-api-for-woocommerce' );
+			$message = __( 'Product ID must be numeric!', 'cocart-core' );
 			CoCart_Logger::log( $message, 'error' );
 			return new WP_Error( 'cocart_product_id_not_numeric', $message, array( 'status' => 405 ) );
 		}
@@ -466,14 +467,16 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 	 * @since   1.0.0 Introduced.
 	 * @version 2.6.2
 	 *
-	 * @param int $quantity The product quantity.
+	 * @param int|float $quantity The product quantity.
 	 *
 	 * @return WP_Error WP_Error if not valid.
 	 */
 	protected function validate_quantity( $quantity ) {
 		if ( ! is_numeric( $quantity ) ) {
-			return new WP_Error( 'cocart_quantity_not_numeric', __( 'Quantity must be numeric!', 'cart-rest-api-for-woocommerce' ), array( 'status' => 405 ) );
+			return new WP_Error( 'cocart_quantity_not_numeric', __( 'Quantity must be numeric!', 'cocart-core' ), array( 'status' => 405 ) );
 		}
+
+		return $quantity;
 	} // END validate_quantity()
 
 	/**
@@ -526,7 +529,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 
 				$message = sprintf(
 					/* translators: %1$s: Attribute name, %2$s: Allowed values. */
-					__( 'Invalid value posted for %1$s. Allowed values: %2$s', 'cart-rest-api-for-woocommerce' ),
+					__( 'Invalid value posted for %1$s. Allowed values: %2$s', 'cocart-core' ),
 					$attribute_label,
 					implode( ', ', $attribute->get_slugs() )
 				);
@@ -552,9 +555,9 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 		}
 
 		if ( ! empty( $missing_attributes ) ) {
-			$message = __( 'Missing variation data for variable product.', 'cart-rest-api-for-woocommerce' ) . ' ' . sprintf(
+			$message = __( 'Missing variation data for variable product.', 'cocart-core' ) . ' ' . sprintf(
 				/* translators: %s: Attribute name. */
-				_n( '%s is a required field.', '%s are required fields.', count( $missing_attributes ), 'cart-rest-api-for-woocommerce' ),
+				_n( '%s is a required field.', '%s are required fields.', count( $missing_attributes ), 'cocart-core' ),
 				wc_format_list_of_items( $missing_attributes )
 			);
 
@@ -564,7 +567,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 			 * Filters message about missing variation data.
 			 *
 			 * @param string $message            Message.
-			 * @param string $missing_attributes Number of missing attributes.
+			 * @param int    $missing_attributes Number of missing attributes.
 			 * @param array  $missing_attributes List of missing attributes.
 			 */
 			$message = apply_filters( 'cocart_missing_variation_data_message', $message, count( $missing_attributes ), wc_format_list_of_items( $missing_attributes ) );
@@ -592,7 +595,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 		$variation_id = $data_store->find_matching_product_variation( $product, $variation );
 
 		if ( empty( $variation_id ) ) {
-			$message = __( 'No matching variation found.', 'cart-rest-api-for-woocommerce' );
+			$message = __( 'No matching variation found.', 'cocart-core' );
 
 			CoCart_Logger::log( $message, 'error' );
 
@@ -619,7 +622,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 		}
 
 		if ( ! $product || 'trash' === $product->get_status() ) {
-			$message = __( 'This product cannot be added to the cart.', 'cart-rest-api-for-woocommerce' );
+			$message = __( 'This product cannot be added to the cart.', 'cocart-core' );
 
 			CoCart_Logger::log( $message, 'error' );
 
@@ -654,7 +657,12 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 			return $product_id;
 		}
 
-		$this->validate_quantity( $quantity );
+		$quantity = $this->validate_quantity( $quantity );
+
+		// If validation returned an error return error response.
+		if ( is_wp_error( $quantity ) ) {
+			return $quantity;
+		}
 
 		$product = wc_get_product( $variation_id ? $variation_id : $product_id );
 
@@ -663,11 +671,11 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 			if ( $product ) {
 				$message = sprintf(
 					/* translators: %s: Product Name. */
-					__( 'Product "%s" no longer exists!', 'cart-rest-api-for-woocommerce' ),
+					__( 'Product "%s" no longer exists!', 'cocart-core' ),
 					$product->get_name()
 				);
 			} else {
-				$message = __( 'This product does not exist!', 'cart-rest-api-for-woocommerce' );
+				$message = __( 'This product does not exist!', 'cocart-core' );
 			}
 
 			CoCart_Logger::log( $message, 'error' );
@@ -720,7 +728,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 
 		// If validation returned false.
 		if ( ! $passed_validation ) {
-			$message = __( 'Product did not pass validation!', 'cart-rest-api-for-woocommerce' );
+			$message = __( 'Product did not pass validation!', 'cocart-core' );
 
 			CoCart_Logger::log( $message, 'error' );
 
@@ -758,7 +766,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 			if ( $found_in_cart ) {
 				$message = sprintf(
 					/* translators: %s: Product Name */
-					__( 'You cannot add another "%s" to your cart.', 'cart-rest-api-for-woocommerce' ),
+					__( 'You cannot add another "%s" to your cart.', 'cocart-core' ),
 					$product->get_name()
 				);
 
@@ -778,7 +786,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 
 		// Product is purchasable check.
 		if ( ! $product->is_purchasable() ) {
-			$message = __( 'Sorry, this product cannot be purchased.', 'cart-rest-api-for-woocommerce' );
+			$message = __( 'Sorry, this product cannot be purchased.', 'cocart-core' );
 
 			CoCart_Logger::log( $message, 'error' );
 
@@ -797,7 +805,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 		if ( ! $product->is_in_stock() ) {
 			$message = sprintf(
 				/* translators: %s: Product name */
-				__( 'You cannot add "%s" to the cart because the product is out of stock.', 'cart-rest-api-for-woocommerce' ),
+				__( 'You cannot add "%s" to the cart because the product is out of stock.', 'cocart-core' ),
 				$product->get_name()
 			);
 
@@ -817,7 +825,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 		if ( ! $product->has_enough_stock( $quantity ) ) {
 			$message = sprintf(
 				/* translators: 1: Quantity Requested, 2: Product Name, 3: Quantity in Stock */
-				__( 'You cannot add a quantity of %1$s for "%2$s" to the cart because there is not enough stock. - only %3$s remaining!', 'cart-rest-api-for-woocommerce' ),
+				__( 'You cannot add a quantity of %1$s for "%2$s" to the cart because there is not enough stock. - only %3$s remaining!', 'cocart-core' ),
 				$quantity,
 				$product->get_name(),
 				wc_format_stock_quantity_for_display( $product->get_stock_quantity(), $product )
@@ -835,7 +843,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 			if ( isset( $products_qty_in_cart[ $product->get_stock_managed_by_id() ] ) && ! $product->has_enough_stock( $products_qty_in_cart[ $product->get_stock_managed_by_id() ] + $quantity ) ) {
 				$message = sprintf(
 					/* translators: 1: Quantity in Stock, 2: Quantity in Cart */
-					__( 'You cannot add that amount to the cart &mdash; we have %1$s in stock and you already have %2$s in your cart.', 'cart-rest-api-for-woocommerce' ),
+					__( 'You cannot add that amount to the cart &mdash; we have %1$s in stock and you already have %2$s in your cart.', 'cocart-core' ),
 					wc_format_stock_quantity_for_display( $product->get_stock_quantity(), $product ),
 					wc_format_stock_quantity_for_display( $products_qty_in_cart[ $product->get_stock_managed_by_id() ], $product )
 				);
@@ -851,7 +859,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 
 		// If it is not OK to add the item, return an error response.
 		if ( ! $ok_to_add ) {
-			$error_msg = empty( $response ) ? __( 'This item can not be added to the cart.', 'cart-rest-api-for-woocommerce' ) : $response;
+			$error_msg = empty( $response ) ? __( 'This item can not be added to the cart.', 'cocart-core' ) : $response;
 
 			CoCart_Logger::log( $error_msg, 'error' );
 
@@ -915,7 +923,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 		if ( ! $current_product->has_enough_stock( $quantity ) ) {
 			$message = sprintf(
 				/* translators: 1: Quantity Requested, 2: Product Name 3: Quantity in Stock */
-				__( 'You cannot add that amount of (%1$s) for "%2$s" to the cart because there is not enough stock, only (%3$s remaining).', 'cart-rest-api-for-woocommerce' ),
+				__( 'You cannot add that amount of (%1$s) for "%2$s" to the cart because there is not enough stock, only (%3$s remaining).', 'cocart-core' ),
 				$quantity,
 				$current_product->get_name(),
 				wc_format_stock_quantity_for_display( $current_product->get_stock_quantity(), $current_product )
@@ -977,7 +985,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 		if ( 'cart' !== $rest_base && empty( $response ) ) {
 			$response = sprintf(
 				/* translators: %s: api route */
-				__( 'Request returned nothing for "%s"! Please seek assistance.', 'cart-rest-api-for-woocommerce' ),
+				__( 'Request returned nothing for "%s"! Please seek assistance.', 'cocart-core' ),
 				rest_url( sprintf( '/%s/%s/', $this->namespace, $rest_base ) )
 			);
 			CoCart_Logger::log( $response, 'error' );
@@ -1005,33 +1013,33 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 	public function get_item_schema() {
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
-			'title'      => 'CoCart - ' . __( 'Cart', 'cart-rest-api-for-woocommerce' ),
+			'title'      => 'CoCart - ' . __( 'Cart', 'cocart-core' ),
 			'type'       => 'object',
 			'properties' => array(
 				'items' => array(
-					'description' => __( 'List of cart items.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'List of cart items.', 'cocart-core' ),
 					'type'        => 'string',
 					'properties'  => array(
 						'key'               => array(
-							'description' => __( 'Unique identifier for the item within the cart.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Unique identifier for the item within the cart.', 'cocart-core' ),
 							'type'        => 'string',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'product_id'        => array(
-							'description' => __( 'Unique identifier for the product.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Unique identifier for the product.', 'cocart-core' ),
 							'type'        => 'integer',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'variation_id'      => array(
-							'description' => __( 'Unique identifier for the variation.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Unique identifier for the variation.', 'cocart-core' ),
 							'type'        => 'integer',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'variation'         => array(
-							'description' => __( 'Chosen attributes (for variations).', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Chosen attributes (for variations).', 'cocart-core' ),
 							'type'        => 'array',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
@@ -1039,13 +1047,13 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 								'type'       => 'object',
 								'properties' => array(
 									'attribute' => array(
-										'description' => __( 'Variation attribute slug.', 'cart-rest-api-for-woocommerce' ),
+										'description' => __( 'Variation attribute slug.', 'cocart-core' ),
 										'type'        => 'string',
 										'context'     => array( 'view' ),
 										'readonly'    => true,
 									),
 									'value'     => array(
-										'description' => __( 'Variation attribute value.', 'cart-rest-api-for-woocommerce' ),
+										'description' => __( 'Variation attribute value.', 'cocart-core' ),
 										'type'        => 'string',
 										'context'     => array( 'view' ),
 										'readonly'    => true,
@@ -1054,7 +1062,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 							),
 						),
 						'quantity'          => array(
-							'description' => __( 'Quantity of this item in the cart.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Quantity of this item in the cart.', 'cocart-core' ),
 							'type'        => 'string',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
@@ -1068,13 +1076,13 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 								'type'       => 'object',
 								'properties' => array(
 									'subtotal' => array(
-										'description' => __( 'Line subtotal tax data.', 'cart-rest-api-for-woocommerce' ),
+										'description' => __( 'Line subtotal tax data.', 'cocart-core' ),
 										'type'        => 'integer',
 										'context'     => array( 'view' ),
 										'readonly'    => true,
 									),
 									'total'    => array(
-										'description' => __( 'Line total tax data.', 'cart-rest-api-for-woocommerce' ),
+										'description' => __( 'Line total tax data.', 'cocart-core' ),
 										'type'        => 'integer',
 										'context'     => array( 'view' ),
 										'readonly'    => true,
@@ -1083,37 +1091,37 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 							),
 						),
 						'line_subtotal'     => array(
-							'description' => __( 'Line subtotal (the price of the product before coupon discounts have been applied).', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Line subtotal (the price of the product before coupon discounts have been applied).', 'cocart-core' ),
 							'type'        => 'integer',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'line_subtotal_tax' => array(
-							'description' => __( 'Line subtotal tax.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Line subtotal tax.', 'cocart-core' ),
 							'type'        => 'integer',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'line_total'        => array(
-							'description' => __( 'Line total (the price of the product after coupon discounts have been applied).', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Line total (the price of the product after coupon discounts have been applied).', 'cocart-core' ),
 							'type'        => 'integer',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'line_tax'          => array(
-							'description' => __( 'Line total tax.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Line total tax.', 'cocart-core' ),
 							'type'        => 'integer',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
 						),
 						'product_name'      => array(
-							'description' => __( 'Product name.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Product name.', 'cocart-core' ),
 							'type'        => 'string',
 							'context'     => ( 'view' ),
 							'readonly'    => true,
 						),
 						'product_price'     => array(
-							'description' => __( 'Current product price.', 'cart-rest-api-for-woocommerce' ),
+							'description' => __( 'Current product price.', 'cocart-core' ),
 							'type'        => 'string',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
@@ -1142,13 +1150,13 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 	public function get_collection_params() {
 		$params = array(
 			'cart_key' => array(
-				'description'       => __( 'Unique identifier for the cart/customer.', 'cart-rest-api-for-woocommerce' ),
+				'description'       => __( 'Unique identifier for the cart/customer.', 'cocart-core' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
 			'thumb'    => array(
-				'description'       => __( 'Returns the URL of the product image thumbnail.', 'cart-rest-api-for-woocommerce' ),
+				'description'       => __( 'Returns the URL of the product image thumbnail.', 'cocart-core' ),
 				'default'           => false,
 				'type'              => 'boolean',
 				'validate_callback' => 'rest_validate_request_arg',
@@ -1166,7 +1174,7 @@ class CoCart_API_Controller extends CoCart_REST_Controller {
 	 * @since 3.0.0 Introduced.
 	 * @since 4.0.0 Moved to this controller to share the validation.
 	 *
-	 * @deprecated 4.4.0 Moved function to `cocart-rest-functions.php`
+	 * @deprecated 5.0.0 Moved function to `cocart-rest-functions.php`
 	 *
 	 * @param int|float       $value   Number of quantity to validate.
 	 * @param WP_REST_Request $request The request object.

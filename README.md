@@ -1,70 +1,66 @@
-<p align="center"><img src="https://raw.githubusercontent.com/co-cart/co-cart/trunk/.wordpress-org/banner-772x250.jpg" alt="CoCart. Build headless stores, without building an API" /></p>
+# CoCart API - Core
 
 <p align="center">
-	<a href="https://github.com/co-cart/co-cart/blob/trunk/LICENSE.md" target="_blank">
+	<a href="https://github.com/co-cart/co-cart/blob/trunk/license.txt" target="_blank">
 		<img src="https://img.shields.io/badge/license-GPL--3.0%2B-red.svg" alt="Licence">
 	</a>
-	<a href="https://wordpress.org/plugins/cart-rest-api-for-woocommerce/">
-		<img src="https://poser.pugx.org/co-cart/co-cart/v/stable" alt="Latest Stable Version">
-	</a>
-	<a href="https://wordpress.org/plugins/cart-rest-api-for-woocommerce/">
-		<img src="https://img.shields.io/wordpress/plugin/dt/cart-rest-api-for-woocommerce.svg" alt="WordPress Plugin Downloads">
+	<a href="https://polar.sh/cocartheadless/issues">
+		<img src="https://polar.sh/embed/seeks-funding-shield.svg?org=cocartheadless" />
 	</a>
 </p>
 
-> 👋 Looking to [contribute to CoCart](https://github.com/co-cart/co-cart/blob/development/.github/CONTRIBUTING.md)?
+Welcome to the CoCart core repository on GitHub. Here you can browse the source code, [look at open issues](https://github.com/co-cart/co-cart/issues?q=is%3Aopen+is%3Aissue) and keep track of development. We recommend all developers to follow the [CoCart development blog](https://cocart.dev/news/?utm_medium=github.com&utm_source=repository&utm_campaign=readme&utm_content=cocartcore) to stay up to date about everything happening in the project. You can also [follow @cocartapi](https://twitter.com/cocartapi) on Twitter for the latest development updates.
 
-Welcome to the CoCart repository on GitHub. Here you can browse the source, [look at open issues](https://github.com/co-cart/co-cart/issues?q=is%3Aopen+is%3Aissue) and keep track of development. We recommend all developers to follow the [CoCart development blog](https://cocart.dev/?utm_medium=github.com&utm_source=repository&utm_campaign=readme&utm_content=cocartcore) to stay up to date about everything happening in the project. You can also [follow @cocartapi](https://twitter.com/cocartapi) on Twitter for the latest development updates.
+If you are looking for documentation, head over here: [https://docs.cocart.xyz](https://docs.cocart.xyz/?utm_medium=github.com&utm_source=repository&utm_campaign=readme&utm_content=cocartcore)
 
-If you are looking for documentation, head over here: [https://ogdocs.cocartapi.com](https://ogdocs.cocartapi.com/?utm_medium=github.com&utm_source=repository&utm_campaign=readme&utm_content=cocartcore)
+👋 Looking to [contribute to CoCart](https://github.com/co-cart/co-cart/blob/development/.github/CONTRIBUTING.md)?
 
-[Click here to download](https://downloads.wordpress.org/plugin/cart-rest-api-for-woocommerce.zip) the latest release package of CoCart Core.
+🫶 Show some appreciation by [sponsoring](https://github.com/co-cart/co-cart/blob/development/BACKERS.md).
 
 ### Description
 
-Decouple your WooCommerce store with ease with our developer friendly REST API extension.
+Transform your WooCommerce store into a lightning-fast, decoupled shopping experience with CoCart — an open-source REST API designed to set your store free from WordPress's limitations. Build in modern frameworks like Astro, React, Vue, or Next.js, putting full control back in your hands and making complex customizations a breeze.
 
-[CoCart](https://cocartapi.com/?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore) is a **customizable, open-source REST API solution** built for WooCommerce that is ready to decouple away from WordPress, allowing you to design and build without limitations imposed by a WordPress theme that is harder to modify and optimize. Our REST API handles all the server side actions so it can be utilized in **faster and familiar frameworks** that you prefer.
+Built by developers, for developers, [CoCart](https://cocartapi.com/?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore) is more than just an API extension. It’s a suite of tools that make managing a headless WooCommerce store seamless and fast—without the constraints of a traditional WordPress theme. Allowing you to focus on building a unique and seamless shopping experience.
 
-#### Why WooCommerce?
+[Want to try it out?](https://cocartapi.com/try-free-demo/?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore)
 
-WooCommerce provides a **flexible, and efficient** way to build cutting-edge stores with WordPress at it's core. But it was missing a key component to decouple WooCommerce via the REST API which is where CoCart comes in.
+#### Why do I need CoCart?
 
-#### Why CoCart?
+If you are looking to create a great store for your customers that is fast and unrestricted then decoupling your store maybe the way to go. However, decoupling WooCommerce from WordPress is a challenge.
 
-Is your store slow? Looking to decouple away from WordPress? Overwhelmed with getting WooCommerce working the way you want in your own REST API endpoints?
+That's where CoCart comes in. It handles the roadblocks and eliminates the hassle of creating your own REST API endpoints and provides all the essential features for a powerful, headless eCommerce experience.
 
-These are the struggles of web developers trying to decouple a WooCommerce store.
+#### Features
 
-With CoCart, you can overcome these challenges and get straight to utilizing a REST API that is ready for you.
+* **Source of Truth** - CoCart integrates with WooCommerce's Data Stores API and includes WooCommerce hooks, making it compatible with most WooCommerce extensions right out of the box.
+* **Session Control Without Cookies** - CoCart uses a secure session key system, reducing server load and avoiding cookie issues for a smoother experience.
+* **Easy Authentication** - No need for Admin API Keys — customers can log in multiple ways with options like username+password, email+password or phone number+password.
+* **Flexible Domain Control** - CORS problems? No worries. CoCart lets you control origin access to prevent cross-domain issues.
+* **Efficient Product Search** - Search by product name, ID or SKU, filter products quickly without compromising privacy.
+* **Real-Time Cart Validation** - Enjoy up-to-date cart accuracy with automatic stock checks, total calculations, and fee adjustments.
+* **No Headless Checkout?** - Easily load any cart session into the native WooCommerce checkout (if you prefer) and auto-login customers without further user interaction.
+* **Customizable Callbacks** - Register your own cart callbacks without creating new endpoints. CoCart handles the rest, returning responses once complete.
+* **Cart Session Tracking** - Monitor all cart sessions, including expired or expiring carts, to better track customer engagement.
+* **Name Your Price** - Offer customers the option to pay what they want, encourage your audience and increasing conversion rates.
+* **Bulk Requests** - Batch multiple cart requests at once for efficiency and faster responses.
 
-* **Source of Truth** - CoCart sources the WooCommerce's Data Stores API and repeats most WooCommerce hooks to provide a wider array of support for most WooCommerce extensions out of the box.
-* **No Cookie Required** - Our session handler generates a key for the user session in the WordPress database and stores session-related meta data for use on the client without the heavy load.
-* **Basic Authentication** - No Admin API Keys required. Customers can login with their account either with Email+Password, Username+Password, Phone Number+Password.
-* **Domain Dominance** - CORS can be an issue when decoupling so we made sure you have control of the origin.
-* **Your Inventory** - Search products by Name, ID or SKU, filter and return product data you need without authentication or private data exposed. REST shortcuts are readily provided for your next requests.
-* **Reduced Cart Checkups** - We have avoided the hassle of needing multiple requests to verify item and coupon validity in your cart. Our system efficiently checks stock, calculates totals and fees, ensuring real-time accuracy so your responses return up to date every time.
-* **No Headless Checkout?** - Load any cart session via the native site using the generated key, if you feel more comfortable using WooCommerce’s built in payment system.
-* **Need your own cart callback?** - Register custom callbacks without needing to create a whole new endpoint. Cart response returns once the callback is completed.
-* **Want to track your customers?** - Keep watch of all cart sessions, even the ones that are starting to expire or have expired.
-* **Name Your Price Built In** - Give your customers control of the price they pay. Encourage your audience to support you with payment flexibility that widens your paying audience.
-* **Bulk Requests** - Combine many cart requests in bulk to save time.
-
-And this is just the tip of the iceberg.
+And this is just the start. With CoCart, your WooCommerce store can be faster, more flexible, and ready to take on any custom solution you dream up.
 
 ### 📦 Serious about going headless?
 
-Try out more features and unlock your stores potential. Upgrade to complete the API with additional features that help make your store more awesome.
+Transform your WooCommerce store into a lightning-fast, decoupled shopping experience with CoCart and unlock your store’s true potential. Upgrade to access premium features and extend CoCart’s capabilities to take your headless WooCommerce store even further.
 
-[See what we have in store](https://cocartapi.com/pricing/?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore).
+[See what else we have in store](https://cocartapi.com/pricing/?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore).
 
 ## 👍 Add-ons to further enhance CoCart
 
 We also have add-ons that extend CoCart to enhance your development and your customers shopping experience.
 
-* **[CoCart - CORS](https://wordpress.org/plugins/cocart-cors/)** enables support for CORS to allow CoCart to work across multiple domains.
-* **[CoCart - JWT Authentication](https://wordpress.org/plugins/cocart-jwt-authentication/)** allows you to authenticate via a simple JWT Token.
-* **[CoCart - Cart Enhanced](https://wordpress.org/plugins/cocart-get-cart-enhanced/)** enhances the data returned for the cart and the items added to it.
+* **[CoCart - CORS](https://github.com/cocart-headless/cocart-cors)** enables support for CORS to allow CoCart to work across multiple domains.
+* **[CoCart - Rate Limiting](https://github.com/cocart-headless/cocart-rate-limiting)** enables the rate limiting feature for CoCart Plus or higher.
+* **[CoCart - JWT Authentication](https://github.com/cocart-headless/cocart-jwt-authentication)** allows you to authenticate via a simple JWT Token.
+* **[CoCart - Cart Enhanced](https://github.com/cocart-headless/cocart-get-cart-enhanced)** enhances the data returned for the cart and the items added to it.
 * and more add-ons in development.
 
 They work with the core of CoCart already, and these add-ons of course come with support too.
@@ -72,16 +68,18 @@ They work with the core of CoCart already, and these add-ons of course come with
 ## 🧰 Developer Tools
 
 * **[CoCart Beta Tester](https://github.com/co-cart/cocart-beta-tester)** allows you to test with bleeding edge versions of CoCart from the GitHub repo.
-* **[CoCart VSCode](https://github.com/co-cart/cocart-vscode)** extension for Visual Studio Code adds snippets and autocompletion of functions, classes and hooks.
+* **[CoCart VSCode](https://github.com/co-cart/cocart-vscode)** extension for Visual Studio Code adds snippets and auto-completion of functions, classes and hooks.
 * **[CoCart Carts in Session](https://github.com/co-cart/cocart-carts-in-session)** allows you to view all the carts in session via the WordPress admin.
 * **[CoCart Product Support Boilerplate](https://github.com/co-cart/cocart-product-support-boilerplate)** provides a basic boilerplate for supporting a different product type to add to the cart with validation including adding your own parameters.
 * **[CoCart Cart Callback Example](https://github.com/co-cart/cocart-cart-callback-example)** provides you an example of registering a callback that can be triggered when updating the cart.
 
 ## Need Support?
 
-CoCart is not supported via the WooCommerce help desk as the plugin is not sold via Woo.com, the support team at Woo.com is not familiar with it and may not be able to assist.
+We aim to provide regular support for the CoCart plugin via [our Discord community server](https://cocartapi.com/community/?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore). Please understand that we do prioritize support for our [paying customers](https://cocartapi.com/pricing/?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore).
 
-We aim to provide regular support for the CoCart plugin on the WordPress.org forums. But please understand that we do prioritize support for our [paying customers](https://cocartapi.com/pricing/?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore). Support can also be requested with the [community on Discord](https://cocartapi.com/community/?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore).
+| Core | Plus |
+|------|------|
+| <a href="https://buy.polar.sh/polar_cl_jMOIZK9WxNTNmP_VZ6DsC-gTCM1sq38KDYw3MAb3PvM"><img src="https://polar.sh/embed/product.svg?organizationId=d2729179-cce9-479c-96cc-43de492209cc&productId=e954b15c-152a-4dbf-9727-98aadf449a99" alt="CoCart Core 'Early Access'" /></a> | <a href="https://buy.polar.sh/polar_cl_FZ4d7RgIRViEhkyfi5Q0A84N0jirhgoPKbWJKjPSKTA"><img src="https://polar.sh/embed/product.svg?organizationId=d2729179-cce9-479c-96cc-43de492209cc&productId=dada6fe2-0744-4393-a50d-a42c563b4825" alt="CoCart Plus - Single Site" /></a> |
 
 ## 🐞 Bug Reporting
 
@@ -89,9 +87,9 @@ Bug reports for CoCart are welcomed in the [CoCart repository on GitHub](https:/
 
 ## Support CoCart
 
-Please consider starring ✨ and sharing 👍 the project repo! This helps the project get known and grow with the community. 🙏
+Please consider starring ✨ and sharing 👍 the project repo! This helps the project get known and grow with the community. If you like to help further CoCart's development, why not [consider sponsoring](https://github.com/co-cart/co-cart/blob/development/BACKERS.md).
 
-Thank you for your support! 🙌
+Thank you! 🙏
 
 ## Testimonials
 
@@ -113,7 +111,7 @@ Thank you for your support! 🙌
 >
 > **MightyGroup** – Rikard Kling ⭐️⭐️⭐️⭐️⭐️
 
-[See the wall of love](https://cocartapi.com/wall-of-love/?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore) for more testimonials.
+[See the wall of love](https://cocartapi.com/wall-of-love/?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore) for more testimonials. We’d also love to hear what you have to say. [Share your thoughts](https://testimonial.to/cocart) and help others discover if CoCart is for them.
 
 ---
 
@@ -124,7 +122,7 @@ We have different channels at your disposal where you can find information about
 [![Twitter: cocartapi](https://img.shields.io/twitter/follow/cocartapi?style=social)](https://twitter.com/cocartapi) [![CoCart GitHub Stars](https://img.shields.io/github/stars/co-cart/co-cart?style=social)](https://github.com/co-cart/co-cart)
 
 <ul>
-  <li>📖 <strong>Docs</strong>: this is the place to learn how to use CoCart API. <a href="https://ogdocs.cocartapi.com/#getting-started">Get started!</a></li>
+  <li>📖 <strong>Docs</strong>: this is the place to learn how to use CoCart API. <a href="https://docs.cocart.xyz/#getting-started">Get started!</a></li>
   <li>🧰 <strong>Resources</strong>: this is the hub of all CoCart resources to help you build a headless store. <a href="https://cocart.dev/?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore">Get resources!</a></li>
   <li>👪 <strong>Community</strong>: use our Discord chat room to share any doubts, feedback and meet great people. This is your place too to share <a href="https://cocartapi.com/community/?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore">how are you planning to use CoCart!</a></li>
   <li>🐞 <strong>GitHub</strong>: we use GitHub for bugs and pull requests, doubts are solved with the community.</li>
@@ -144,7 +142,7 @@ CoCart also welcomes contributions. There are many ways to support the project! 
 
 ## Credits
 
-Website [cocartapi.com](https://cocartapi.com) &nbsp;&middot;&nbsp;
+Website [cocartapi.com](https://cocartapi.com?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore) &nbsp;&middot;&nbsp;
 GitHub [@co-cart](https://github.com/co-cart) &nbsp;&middot;&nbsp;
 Twitter [@cocartapi](https://twitter.com/cocartapi)
 

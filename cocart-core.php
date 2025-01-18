@@ -1,15 +1,15 @@
 <?php
 /**
- * Plugin Name: CoCart API - Decoupling Made Easy for WooCommerce
+ * Plugin Name: CoCart Core
  * Plugin URI:  https://cocartapi.com
- * Description: Decouple your WooCommerce store with ease with our developer friendly REST API extension.
+ * Description: The core of CoCart helps you get started to decouple your WooCommerce store easy.
  * Author:      CoCart Headless, LLC
  * Author URI:  https://cocartapi.com
- * Version:     4.4.0-beta.5
- * Text Domain: cart-rest-api-for-woocommerce
+ * Version:     5.0.0-beta.10
+ * Text Domain: cocart-core
  * Domain Path: /languages/
  * Requires at least: 5.6
- * Tested up to: 6.6
+ * Tested up to: 6.7
  * Requires PHP: 7.4
  * Requires Plugins: woocommerce
  *
@@ -26,9 +26,15 @@ if ( ! defined( 'COCART_FILE' ) ) {
 	define( 'COCART_FILE', __FILE__ );
 }
 
+if ( ! defined( 'COCART_SLUG' ) ) {
+	define( 'COCART_SLUG', 'cocart-core' );
+}
+
+require_once untrailingslashit( __DIR__ ) . '/class-cocart-integrity-check.php';
+
 // Include the main CoCart class.
 if ( ! class_exists( 'CoCart', false ) ) {
-	include_once untrailingslashit( plugin_dir_path( COCART_FILE ) ) . '/includes/class-cocart.php';
+	include_once untrailingslashit( __DIR__ ) . '/includes/class-cocart.php';
 }
 
 /**

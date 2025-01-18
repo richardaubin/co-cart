@@ -4,7 +4,7 @@
  *
  * @author  Sébastien Dumont
  * @package CoCart\RestApi
- * @since   4.?.? Introduced.
+ * @since   5.X.X Introduced.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * NOTE THAT ONLY CODE RELEVANT FOR MOST ENDPOINTS SHOULD BE INCLUDED INTO THIS CLASS.
  *
- * @since   4.?.? Introduced.
+ * @since   5.X.X Introduced.
  * @extends WP_REST_Controller
  * @see     https://developer.wordpress.org/rest-api/extending-the-rest-api/controller-classes/
  */
@@ -63,7 +63,7 @@ abstract class CoCart_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Constructor.
 	 *
-	 * @since 4.?.?
+	 * @since 5.X.X
 	 */
 	public function __construct() {
 		$this->namespace = $this->namespace . '/' . $this->version;
@@ -74,7 +74,7 @@ abstract class CoCart_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @access protected
 	 *
-	 * @since 4.?.? Introduced.
+	 * @since 5.X.X Introduced.
 	 *
 	 * @param array           $prepared Prepared response array.
 	 * @param WP_REST_Request $request  Full details about the request.
@@ -144,7 +144,7 @@ abstract class CoCart_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @access protected
 	 *
-	 * @since 4.?.? Introduced.
+	 * @since 5.X.X Introduced.
 	 *
 	 * @return string
 	 */
@@ -179,7 +179,7 @@ abstract class CoCart_REST_Controller extends WP_REST_Controller {
 	 *
 	 * Included fields are based on item schema and `_fields=` request argument.
 	 *
-	 * @since 4.?.? Introduced.
+	 * @since 5.X.X Introduced.
 	 *
 	 * @param WP_REST_Request $request The request object.
 	 *
@@ -286,7 +286,7 @@ abstract class CoCart_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @access public
 	 *
-	 * @since 4.?.? Introduced.
+	 * @since 5.X.X Introduced.
 	 *
 	 * @TODO: Submit this function in core.
 	 *
@@ -351,7 +351,7 @@ abstract class CoCart_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @access public
 	 *
-	 * @since 4.?.? Introduced.
+	 * @since 5.X.X Introduced.
 	 *
 	 * @return array Public item schema data.
 	 */
@@ -364,7 +364,7 @@ abstract class CoCart_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @access public
 	 *
-	 * @since 4.?.? Introduced.
+	 * @since 5.X.X Introduced.
 	 *
 	 * @param array           $properties Original properties.
 	 * @param WP_REST_Request $request    The request object.
