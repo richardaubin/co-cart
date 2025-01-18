@@ -44,7 +44,7 @@ class CoCart_REST_Cart_V2_Controller {
 	/**
 	 * Constructor.
 	 *
-	 * @since 4.?.?
+	 * @since 5.X.X
 	 */
 	public function __construct() {
 		$this->namespace = $this->namespace . '/' . $this->version;
