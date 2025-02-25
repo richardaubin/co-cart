@@ -163,7 +163,7 @@ module.exports = function(grunt) {
 				options: {
 					cwd: '',
 					domainPath: 'languages', // Where to save the POT file.
-					exclude: [ 'releases', 'node_modules', 'vendor' ], // List of files or directories to ignore.
+					exclude: [ 'releases', 'node_modules', 'vendor', 'tests' ], // List of files or directories to ignore.
 					mainFile: '<%= pkg.name %>.php', // Main project file.
 					potComments: 'Copyright (c) {year} CoCart Headless, LLC\nThis file is distributed under the same license as the CoCart package.', // The copyright at the beginning of the POT file.
 					potFilename: '<%= pkg.name %>.pot', // Name of the POT file.
@@ -228,7 +228,8 @@ module.exports = function(grunt) {
 					'*.php',
 					'**/*.php', // Include all files
 					'!node_modules/**', // Exclude node_modules/
-					'!vendor/**' // Exclude vendor/
+					'!vendor/**', // Exclude vendor/
+					'!tests/**' // Exclude tests/
 				],
 				expand: true
 			},

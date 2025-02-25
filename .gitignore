@@ -29,9 +29,6 @@ contributors.html
 /cart-rest-api-for-woocommerce-svn/
 /prepping-release/
 
-# Tests
-/tests/
-
 # Various file types to ignore when exporting.
 *.sh
 .gitconfig

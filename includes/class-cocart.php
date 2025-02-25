@@ -103,6 +103,19 @@ final class CoCart {
 	} // END __wakeup()
 
 	/**
+	 * The plugin path.
+	 *
+	 * @access public
+	 *
+	 * @since x.x.x Introduced.
+	 *
+	 * @return string
+	 */
+	public function plugin_path() {
+		return untrailingslashit( plugin_dir_path( COCART_FILE ) );
+	} // END plugin_path()
+
+	/**
 	 * Initiate CoCart.
 	 *
 	 * @access public
