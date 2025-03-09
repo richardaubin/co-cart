@@ -1,11 +1,9 @@
 <?php
 /**
- * CoCart - Update Cart Callback.
- *
- * Allows you to update the cart items in bulk.
+ * Callback: Allows you to update the cart items in bulk.
  *
  * @author  Sébastien Dumont
- * @package CoCart\Callback
+ * @package CoCart\API\Callbacks
  * @since   3.1.0 Introduced.
  * @version 4.1.0
  */
@@ -21,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 3.1.0 Introduced.
  */
-class CoCart_Cart_Update_Callback extends CoCart_Cart_Extension_Callback {
+class CoCart_Cart_Update_Callback extends CoCart_REST_Callback {
 
 	/**
 	 * Callback name.
@@ -117,7 +115,7 @@ class CoCart_Cart_Update_Callback extends CoCart_Cart_Extension_Callback {
 				 */
 				cocart_do_deprecated_action( 'cocart_cart_updated', '4.1.0', 'cocart_update_cart_before_totals', '', array( $request, $controller ) );
 
-				$this->recalculate_totals( $request, $controller );
+				$controller->calculate_totals( $request, true );
 
 				// Only returns success notice if there are no error notices.
 				if ( 0 === wc_notice_count( 'error' ) ) {

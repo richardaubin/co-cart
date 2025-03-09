@@ -1,9 +1,9 @@
 <?php
 /**
- * Callback: CoCart\RestApi\Callbacks\UpdateCustomer.
+ * Callback: Allows you to update the customer.
  *
  * @author  Sébastien Dumont
- * @package CoCart\Callback
+ * @package CoCart\Callbacks
  * @since   4.1.0 Introduced.
  */
 
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 4.1.0 Introduced.
  */
-class CoCart_Update_Customer_Callback extends CoCart_Cart_Extension_Callback {
+class CoCart_Update_Customer_Callback extends CoCart_REST_Callback {
 
 	/**
 	 * Callback name.
@@ -48,7 +48,7 @@ class CoCart_Update_Customer_Callback extends CoCart_Cart_Extension_Callback {
 			}
 
 			if ( $this->update_customer_on_cart( $request, $controller ) ) {
-				$this->recalculate_totals( $request, $controller );
+				$controller->calculate_totals( $request, true );
 
 				// Only returns success notice if there are no error notices.
 				if ( 0 === wc_notice_count( 'error' ) ) {

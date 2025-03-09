@@ -1,11 +1,11 @@
 <?php
 /**
- * Class: CoCart_Cart_Extension
+ * Class: CoCart_Callback_Registry
  *
- * @author  Sébastien Dumont
+ * Manages the registration of callbacks.
+ *
  * @package CoCart\Classes
  * @since   3.1.0 Introduced.
- * @version 4.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -13,13 +13,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * CoCart Cart Extension.
- *
- * Allows developers to extend CoCart by allowing to update the cart via custom callback.
+ * CoCart Callback Registry.
  *
  * @since 3.1.0 Introduced.
  */
-class CoCart_Cart_Extension {
+class CoCart_Callback_Registry {
 
 	/**
 	 * Registered Callbacks.
@@ -28,39 +26,48 @@ class CoCart_Cart_Extension {
 	 *
 	 * @var array $registered_callbacks Registered callbacks.
 	 */
-	protected $registered_callbacks = array();
+	protected static $registered_callbacks = array();
 
 	/**
-	 * Setup class.
+	 * Singleton instance.
+	 *
+	 * @access private
+	 *
+	 * @var CoCart_Callback_Registry
+	 */
+	private static $instance = null;
+
+	/**
+	 * Get the singleton instance.
 	 *
 	 * @access public
 	 *
-	 * @ignore Function ignored when parsed into Code Reference.
+	 * @return CoCart_Callback_Registry
 	 */
-	public function __construct() {
-		$this->init();
-	} // END __construct()
+	public static function get_instance() {
+		if ( self::$instance === null ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
 
 	/**
-	 * Initialize Callbacks.
+	 * Initialize class.
 	 *
-	 * @access protected
-	 *
-	 * @hook cocart_register_extension_callback
+	 * @access public
 	 */
-	protected function init() {
+	public function __construct() {
 		/**
 		 * Hook: cocart_register_extension_callback.
 		 *
 		 * @since 3.1.0 Introduced.
 		 *
-		 * @hooked: register_callback_update_cart - 10
-		 * @hooked: register_callback_update_customer - 10
+		 * @deprecated 5.0.0 No replacement.
 		 *
 		 * @param CoCart_Cart_Extension $cart_extension Instance of the CoCart_Cart_Extension class which exposes the CoCart_Cart_Extension::register() method.
 		 */
-		do_action( 'cocart_register_extension_callback', $this );
-	} // END init()
+		cocart_do_deprecated_action( 'cocart_register_extension_callback', '5.0.0', null );
+	} // END __construct()
 
 	/**
 	 * Registers a callback.
@@ -89,7 +96,7 @@ class CoCart_Cart_Extension {
 			return false;
 		}
 
-		$this->registered_callbacks[ $name ] = $callback;
+		self::$registered_callbacks[ $name ] = $callback;
 
 		return true;
 	} // END register()
@@ -104,7 +111,7 @@ class CoCart_Cart_Extension {
 	 * @return bool True if the callback is registered, false otherwise.
 	 */
 	public function is_registered( $name ) {
-		return isset( $this->registered_callbacks[ $name ] );
+		return isset( self::$registered_callbacks[ $name ] );
 	} // END is_registered()
 
 	/**
@@ -112,11 +119,11 @@ class CoCart_Cart_Extension {
 	 *
 	 * @access public
 	 *
+	 * @static
+	 *
 	 * @return array
 	 */
-	public function get_all_registered_callbacks() {
-		return $this->registered_callbacks;
+	public static function get_all_registered_callbacks() {
+		return self::$registered_callbacks;
 	} // END get_all_registered_callbacks()
 } // END class
-
-return new CoCart_Cart_Extension();

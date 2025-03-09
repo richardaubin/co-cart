@@ -2318,11 +2318,41 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_API_Controller {
 	 * @access public
 	 *
 	 * @since 3.1.0 Introduced.
+	 * @since x.x.x Added parameters for callback support.
+	 *
+	 * @param WP_REST_Request $request          The request object.
+	 * @param bool            $callback_request True if callback is requested. Default is false.
 	 */
-	public function calculate_totals() {
+	public function calculate_totals( $request, $callback_request = false ) {
+		if ( $callback_request ) {
+			/**
+			 * Hook: Fires before the cart has updated via a callback,
+			 * but before cart totals are re-calculated.
+			 *
+			 * @since 4.1.0 Introduced.
+			 *
+			 * @param WP_REST_Request $request    The request object.
+			 * @param object          $controller The cart controller.
+			 */
+			do_action( 'cocart_update_cart_before_totals', $request, $this );
+		}
+
 		$this->get_cart_instance()->calculate_fees();
 		$this->get_cart_instance()->calculate_shipping();
 		$this->get_cart_instance()->calculate_totals();
+
+		if ( $callback_request ) {
+			/**
+			 * Hook: Fires after the cart has updated via a callback and
+			 * the cart totals are re-calculated.
+			 *
+			 * @since 4.1.0 Introduced.
+			 *
+			 * @param WP_REST_Request $request    The request object.
+			 * @param object          $controller The cart controller.
+			 */
+			do_action( 'cocart_update_cart_after_totals', $request, $this );
+		}
 	} // END calculate_totals()
 
 	/**

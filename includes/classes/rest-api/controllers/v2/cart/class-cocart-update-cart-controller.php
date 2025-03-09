@@ -80,8 +80,7 @@ class CoCart_REST_Update_Cart_V2_Controller extends CoCart_REST_Cart_V2_Controll
 	public function get_permissions_check( $request ) {
 		$namespace = wc_clean( sanitize_text_field( wp_unslash( $request['namespace'] ) ) );
 
-		$extension_class  = new CoCart_Cart_Extension();
-		$callback_methods = $extension_class->get_all_registered_callbacks();
+		$callback_methods = CoCart_Callback_Registry::get_all_registered_callbacks();
 
 		try {
 			if ( ! is_string( $namespace ) ) {
@@ -139,18 +138,7 @@ class CoCart_REST_Update_Cart_V2_Controller extends CoCart_REST_Cart_V2_Controll
 	 */
 	public function update_cart( $request ) {
 		try {
-			$namespace = wc_clean( sanitize_text_field( wp_unslash( $request['namespace'] ) ) );
-			$callback  = null;
-
-			$extension_class  = new CoCart_Cart_Extension();
-			$callback_methods = $extension_class->get_all_registered_callbacks();
-
-			$update_cart = $callback_methods[ $namespace ]->callback( $request, $this );
-
-			// Proceed with requested callback.
-			if ( is_callable( array( $callback_methods[ $namespace ], 'callback' ) ) ) {
-				$callback = $update_cart;
-			}
+			$callback = $callback_methods[ wc_clean( sanitize_text_field( wp_unslash( $request['namespace'] ) ) ) ]->callback( $request, $this );
 
 			// Return callback error response if failed to update cart.
 			if ( is_wp_error( $callback ) ) {
@@ -183,7 +171,7 @@ class CoCart_REST_Update_Cart_V2_Controller extends CoCart_REST_Cart_V2_Controll
 				'description' => __( 'Namespace used to ensure the data in the request is routed appropriately.', 'cart-rest-api-for-woocommerce' ),
 				'type'        => 'string',
 			),
-			'data'      => array(
+			'data'     => array(
 				'description' => __( 'Additional data to pass.', 'cart-rest-api-for-woocommerce' ),
 				'type'        => 'object',
 			),

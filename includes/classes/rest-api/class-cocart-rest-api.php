@@ -63,6 +63,9 @@ class CoCart_REST_API {
 		// Register REST routes.
 		$this->register_rest_routes();
 
+		// Register callbacks via registry.
+		$this->register_callbacks();
+
 		// Prevents certain routes from being cached with WP REST API Cache plugin (https://wordpress.org/plugins/wp-rest-api-cache/).
 		add_filter( 'rest_cache_skip', array( $this, 'prevent_cache' ), 10, 2 );
 
@@ -526,6 +529,29 @@ class CoCart_REST_API {
 			'/^cocart\/v1\/products/',
 		);
 	} // END get_cacheable_route_patterns()
+
+	/**
+	 * Register callbacks for the API.
+	 *
+	 * @access protected
+	 */
+	protected function register_callbacks() {
+		$registry = CoCart_Callback_Registry::get_instance();
+
+		// Include callback files.
+		require_once __DIR__ . '/callbacks/update-cart.php';
+		require_once __DIR__ . '/callbacks/update-customer.php';
+
+		// Register callbacks.
+		$callbacks[] = new CoCart_Cart_Update_Callback();
+		$callbacks[] = new CoCart_Update_Customer_Callback();
+
+		$callbacks = apply_filters( 'cocart_rest_callbacks', $callbacks );
+
+		foreach ( $callbacks as $callback ) {
+			$registry->register( $callback );
+		}
+	} // END register_callbacks()
 
 	/*** Deprecated functions ***/
 

@@ -277,9 +277,6 @@ final class CoCart {
 		// Polyfill Functions - Must be included before everything else.
 		include_once __DIR__ . '/cocart-polyfill-functions.php';
 
-		// Abstracts.
-		include_once __DIR__ . '/abstracts/abstract-cocart-extension-callback.php';
-
 		// Important functions.
 		include_once __DIR__ . '/cocart-background-functions.php';
 		include_once __DIR__ . '/cocart-core-functions.php';
@@ -460,12 +457,14 @@ final class CoCart {
 	 * @since 2.6.0  Introduced.
 	 * @since 3.10.0 Added security for added protection.
 	 * @since 4.1.0  Moved REST API classes to load ONLY when the REST API is used.
+	 * @since x.x.x  Moved abstracts to load ONLY when the REST API is used.
 	 */
 	public static function load_rest_api() {
+		include_once __DIR__ . '/classes/rest-api/abstracts/abstract-cocart-rest-callback.php';
+
 		require_once __DIR__ . '/classes/class-cocart-data-exception.php';
 		require_once __DIR__ . '/classes/rest-api/class-cocart-cart-cache.php';
-		require_once __DIR__ . '/classes/rest-api/class-cocart-cart-callbacks.php';
-		require_once __DIR__ . '/classes/rest-api/class-cocart-cart-extension.php';
+		require_once __DIR__ . '/classes/rest-api/class-cocart-callback-registry.php';
 		require_once __DIR__ . '/classes/rest-api/class-cocart-response.php';
 		require_once __DIR__ . '/classes/rest-api/class-cocart-cart-formatting.php';
 		require_once __DIR__ . '/classes/rest-api/class-cocart-cart-validation.php';
