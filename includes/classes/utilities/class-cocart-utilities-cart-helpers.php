@@ -65,25 +65,42 @@ class CoCart_Utilities_Cart_Helpers {
 		}
 
 		/**
-		 * We get the checkout fields so we return the fields the store uses during checkout.
-		 * This is so we ONLY return the customers information for those fields used.
-		 * These fields could be changed either via filter, another plugin or
-		 * based on the conditions of the customers location or cart contents.
+		 * We go through each field and check that we can return it's data as default.
+		 * The field value can be filtered after even if it returned empty.
 		 */
 		$checkout_fields = WC()->checkout->get_checkout_fields( $fields );
 
 		$results = array();
 
 		/**
-		 * We go through each field and check that we can return it's data as set by default.
-		 * If we can't get the data we rely on getting customer data via a filter for that field.
-		 * Any fields that can not return information will be empty.
+		 * We go through each field and check that we can return it's data as default.
+		 * The field value can be filtered after even if it returned empty.
 		 */
 		foreach ( $checkout_fields as $key => $value ) {
 			$field_name = 'get_' . $key; // Name of the default field function. e.g. "get_billing_first_name".
 
-			$results[ $key ] = method_exists( $customer, $field_name ) ? $customer->$field_name() : apply_filters( 'cocart_get_customer_' . $key, '', $customer );
+			$field_value = method_exists( $customer, $field_name ) ? $customer->$field_name() : '';
+
+			/**
+			 * Filter allows you to change the value of a specific field.
+			 *
+			 * @since 3.0.0 Introduced.
+			 *
+			 * @param string           $field_value Value of field.
+			 * @param WC_Customer|null $customer    The customer object or nothing.
+			 */
+			$results[ $key ] = apply_filters( "cocart_get_customer_{$key}", $field_value, $customer ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		}
+
+		/**
+		 * Filter allows you to change the customer fields after they returned.
+		 *
+		 * @since 4.3.22 Introduced.
+		 *
+		 * @param WC_Customer|null $customer        The customer object or nothing.
+		 * @param array            $checkout_fields The checkout fields.
+		 */
+		$results = apply_filters( "cocart_get_after_customer_{$fields}_fields", $results, $customer, $checkout_fields ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 
 		return $results;
 	} // END get_customer_fields()
@@ -403,7 +420,9 @@ class CoCart_Utilities_Cart_Helpers {
 	 *
 	 * @since 3.0.0 Introduced.
 	 * @since 5.0.0 Added Cart class instance as the first parameter.
+	 * @since 5.0.0 Now use `cocart_price_no_html()` function for formatted return.
 	 *
+	 * @see cocart_price_no_html()
 	 * @see cocart_format_money()
 	 *
 	 * @param WC_Cart          $cart      Cart class instance.
@@ -420,7 +439,7 @@ class CoCart_Utilities_Cart_Helpers {
 		$amount = $cart->get_coupon_discount_amount( $coupon->get_code(), $cart->display_cart_ex_tax );
 
 		if ( $formatted ) {
-			$savings = html_entity_decode( wp_strip_all_tags( wc_price( $amount ) ) );
+			$savings = cocart_price_no_html( $amount );
 		} else {
 			$savings = cocart_format_money( $amount );
 		}

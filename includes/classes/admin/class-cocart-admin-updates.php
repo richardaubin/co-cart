@@ -1,6 +1,6 @@
 <?php
 /**
- * CoCart - Plugin Updates.
+ * CoCart - Admin Updates.
  *
  * @author  Sébastien Dumont
  * @package CoCart/Admin/Updates
@@ -39,7 +39,7 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 			add_filter( 'plugins_api', array( $this, 'get_remote_plugin_info' ), 20, 3 );
 
 			// Excludes any CoCart plugins from WP.org updates.
-			add_filter( 'http_request_args', array( $this, 'exclude_plugins_from_update_check' ), 10, 2 );
+			add_filter( 'http_request_args', array( $this, 'exclude_plugins_from_update_check' ), 5, 2 );
 
 			add_action( 'upgrader_process_complete', array( $this, 'purge' ), 10, 2 );
 
@@ -122,8 +122,7 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 		 */
 		public static function refresh_plugins_transient() {
 			delete_site_transient( 'update_plugins' );
-			// delete_transient( self::get_cache_key() );
-			delete_transient( '_cocart_updates_count' );
+			delete_site_transient( '_cocart_updates_count' );
 		} // END refresh_plugins_transient()
 
 		/**
@@ -154,14 +153,13 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 
 			// Check cache if $force_check is not overrided.
 			if ( ! $force_check ) {
-				$remote = get_transient( self::get_cache_key( $product_slug ) );
-				if ( false !== $remote ) {
-					if ( 'error' === $remote ) {
-						return false;
-					}
+				$request = get_site_transient( self::get_cache_key( $product_slug ) );
 
-					return json_decode( $remote );
+				if ( false !== $request ) {
+					return false;
 				}
+
+				return json_decode( $request );
 			}
 
 			if ( wp_doing_cron() ) {
@@ -174,7 +172,7 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 			 * ?Dev note: Replace API request to check all plugins from CoCart instead of individually.
 			 */
 			/*
-			$remote = wp_remote_get(
+			$request = wp_remote_get(
 				add_query_arg(
 					array(
 						'license_key' => $license_key,
@@ -187,7 +185,7 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 				)
 			);*/
 
-			$remote = wp_remote_get(
+			$request = wp_remote_get(
 				add_query_arg(
 					array(
 						'license_key'  => $license_key,
@@ -201,22 +199,77 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 				)
 			);
 
-			if (
-				is_wp_error( $remote )
-				|| 200 !== wp_remote_retrieve_response_code( $remote )
-				|| empty( wp_remote_retrieve_body( $remote ) )
-			) {
-				set_transient( self::get_cache_key( $product_slug ), 'error', MINUTE_IN_SECONDS * 10 );
-
-				return false;
+			if ( is_wp_error( $request ) ) {
+				$request = $this->get_request_error(
+					array(
+						'error_code' => $request->get_error_code(),
+						'response'   => $request->get_error_message(),
+					)
+				);
 			}
 
-			$payload = wp_remote_retrieve_body( $remote );
+			$response = wp_remote_retrieve_body( $request );
+			$code     = wp_remote_retrieve_response_code( $request );
 
-			set_transient( self::get_cache_key( $product_slug ), $payload, HOUR_IN_SECONDS * 12 );
+			if ( 200 !== $code ) {
+				/**
+				 * If the response doesn’t have a status 200: it is an error, or there is no new update.
+				 */
+				$request = $this->get_request_error(
+					array(
+						'http_code' => $code,
+						'response'  => $response,
+					)
+				);
+			}
 
-			return json_decode( $payload );
+			$cache_duration = 12 * HOUR_IN_SECONDS;
+
+			if ( is_wp_error( $response ) ) {
+				if ( ! empty( $error_data['error_code'] ) ) {
+					// `wp_remote_get()` returned an internal error ('error_code' contains a WP_Error code ).
+					$cache_duration = HOUR_IN_SECONDS;
+				} elseif ( ! empty( $error_data['http_code'] ) && $error_data['http_code'] >= 400 ) {
+					// We got a 4xx or 5xx HTTP error.
+					$cache_duration = 2 * HOUR_IN_SECONDS;
+				}
+			}
+
+			set_site_transient( self::get_cache_key( $product_slug ), $response, $cache_duration );
+
+			return json_decode( $response );
 		} // END get_updates()
+
+		/**
+		 * Get a WP_Error object to use when the request to CoCart’s server fails.
+		 *
+		 * @access protected
+		 *
+		 * @param mixed $data Error data to pass along the WP_Error object.
+		 *
+		 * @return WP_Error object.
+		 */
+		protected function get_request_error( $data = array() ) {
+			$logger = new CoCart_Logger();
+
+			if ( ! is_array( $data ) ) {
+				$data = array(
+					'response' => $data,
+				);
+			}
+
+			$logger->log( esc_html__( 'Error when contacting the CoCartAPI.com server.', 'cocart-core' ), 'debug' );
+
+			return new \WP_Error(
+				'cocart_update_failed',
+				sprintf(
+					/* translators: %s is an email address. */
+					__( 'An unexpected error occurred. Something may be wrong with CoCartAPI.com or this server&#8217;s configuration. If you continue to have problems, <a href="%s">contact support</a>.', 'cocart-core' ),
+					'mailto:support@cocartapi.com'
+				),
+				$data
+			);
+		} // END get_request_error()
 
 		/**
 		 * Override the WordPress request to return the correct plugin information.
@@ -241,7 +294,7 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 				return false;
 			}
 
-			if ( ! isset( $args->slug ) || ! $result ) {
+			if ( ! isset( $args->slug ) ) {
 				return false;
 			}
 
@@ -263,15 +316,17 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 
 			// If unable to get response from remote server then just return details of the plugin installed.
 			if ( ! $remote || ! $remote->success || empty( $remote->update ) ) {
-				$result->name                  = $plugin_data['Name'];
-				$result->slug                  = $plugin_data['TextDomain'];
-				$result->description           = $plugin_data['Description'];
-				$result->author                = $plugin_data['Author'];
-				$result->author_homepage       = $plugin_data['PluginURI'];
-				$result->version               = $plugin_data['Version'];
-				$result->requires              = $plugin_data['RequiresWP'];
-				$result->requires_php          = $plugin_data['RequiresPHP'];
-				$result->sections->description = $plugin_data['Description'];
+				$result                          = new stdClass();
+				$result->name                    = $plugin_data['Name'];
+				$result->slug                    = $plugin_data['TextDomain'];
+				$result->description             = $plugin_data['Description'];
+				$result->author                  = $plugin_data['Author'];
+				$result->author_homepage         = $plugin_data['PluginURI'];
+				$result->version                 = $plugin_data['Version'];
+				$result->requires                = $plugin_data['RequiresWP'];
+				$result->requires_php            = $plugin_data['RequiresPHP'];
+				$result->sections                = array( 'description' => '' );
+				$result->sections['description'] = $plugin_data['Description'];
 			} else {
 				// Remote server returned so let's override data for plugin information.
 				$result                  = $remote->update;
@@ -313,6 +368,13 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 
 			$count_updates = 0;
 
+			// If updates are paused then don't check for any updates.
+			$updates_paused = get_site_transient( 'cocart_updates_paused' );
+
+			if ( ! empty( $updates_paused ) ) {
+				return $data;
+			}
+
 			// Force-check (only once).
 			$force_check = ! empty( $_GET['force-check'] ) ? true : false;
 
@@ -351,12 +413,6 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 					'update-supported' => true,
 				);
 
-				$updates_paused = get_transient( 'cocart_updates_paused' );
-
-				if ( ! empty( $updates_paused ) ) {
-					continue;
-				}
-
 				$remote = $this->get_updates( $plugin_slug, $force_check );
 
 				if (
@@ -379,7 +435,7 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 				++$this->checked;
 			}
 
-			set_transient( '_cocart_updates_count', $count_updates, 12 * HOUR_IN_SECONDS );
+			set_site_transient( '_cocart_updates_count', $count_updates, 12 * HOUR_IN_SECONDS );
 
 			if ( ! empty( $data ) ) {
 				// Enable the two lines below once the translations payload API is created.
@@ -516,7 +572,7 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 		 * @return int The number of products with updates.
 		 */
 		public static function get_updates_count() {
-			$count = get_transient( '_cocart_updates_count' );
+			$count = get_site_transient( '_cocart_updates_count' );
 
 			if ( false !== $count ) {
 				return $count;
@@ -545,41 +601,94 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 		} // END get_updates_count_html()
 
 		/**
-		 * Excludes any CoCart plugins from WP.org updates.
+		 * When WP checks plugin versions against the latest versions hosted on WordPress.org, remove any CoCart plugin from the list.
+		 *
+		 * @see wp_update_plugins()
 		 *
 		 * @access public
 		 *
 		 * @since 5.0.0 Introduced.
 		 *
-		 * @param array  $parsed_args An array of HTTP request arguments.
-		 * @param string $url         The request URL.
+		 * @param array  $request An array of HTTP request arguments.
+		 * @param string $url     The request URL.
 		 *
-		 * @return array $parsed_args An array of HTTP request arguments.
+		 * @return array $request Updated array of HTTP request arguments.
 		 */
-		public function exclude_plugins_from_update_check( $parsed_args, $url ) {
-			if ( ( strpos( $url, 'https://api.wordpress.org/plugins/update-check/' ) !== false ) ) {
-				$plugins = isset( $parsed_args['body']['plugins'] ) ? json_decode( $parsed_args['body']['plugins'], true ) : '';
+		public function exclude_plugins_from_update_check( $request, $url ) {
+			if ( ! is_string( $url ) ) { // @phpstan-ignore-line - $url variable may be changed by other plugins to something else other than string.
+				return $request;
+			}
 
-				if ( is_array( $plugins ) ) {
+			if ( ! preg_match( '@^https?://api.wordpress.org/plugins/update-check(/|\?|$)@', $url ) || empty( $request['body']['plugins'] ) ) {
+				// Not a plugin update request. Stop immediately.
+				return $request;
+			}
+
+			/**
+			 * Depending on the API version, the data can have several forms:
+			 * - Can be serialized or JSON encoded,
+			 * - Can be an object of arrays or an object of objects.
+			 */
+			$is_serialized = is_serialized( $request['body']['plugins'] );
+			$edited        = false;
+
+			if ( $is_serialized ) {
+				$plugins = maybe_unserialize( $request['body']['plugins'] );
+			} else {
+				$plugins = json_decode( $request['body']['plugins'], true );
+			}
+
+			if ( ! empty( $plugins->plugins ) ) {
+				if ( is_object( $plugins->plugins ) ) {
 					foreach ( array_keys( $this->get_installed_plugins() ) as $plugin_file ) {
-						$plugin_slug = $this->get_slug_by_plugin_file( $plugin_file );
-
-						unset( $plugins['plugins'][ $plugin_slug ] );
-						unset( $plugins['active'][ array_search( $plugin_slug, $plugins['active'], true ) ] );
+						if ( isset( $plugins->plugins->$plugin_file ) ) {
+							unset( $plugins->plugins->$plugin_file );
+							$edited = true;
+						}
 					}
+				} elseif ( is_array( $plugins->plugins ) ) {
+					foreach ( array_keys( $this->get_installed_plugins() ) as $plugin_file ) {
+						if ( isset( $plugins->plugins[ $plugin_file ] ) ) {
+							unset( $plugins->plugins[ $plugin_file ] );
+							$edited = true;
+						}
+					}
+				}
 
-					// Remove legacy core plugin.
-					unset( $plugins['plugins']['cart-rest-api-for-woocommerce'] );
-					unset( $plugins['active']['cart-rest-api-for-woocommerce'] );
+				// Remove legacy core plugin.
+				unset( $plugins->plugins['cart-rest-api-for-woocommerce/cart-rest-api-for-woocommerce.php'] );
+			}
 
-					// Re-encode the plugins back into the request body.
-					$plugins = wp_json_encode( $plugins );
+			if ( ! empty( $plugins->active ) ) {
+				$active_is_object = is_object( $plugins->active );
 
-					$parsed_args['body']['plugins'] = $plugins;
+				if ( $active_is_object || is_array( $plugins->active ) ) {
+					foreach ( $plugins->active as $key => $plugin_basename ) {
+						if ( ! in_array( $plugin_basename, array_keys( $this->get_installed_plugins() ), true ) ) {
+							continue;
+						}
+
+						if ( $active_is_object ) {
+							unset( $plugins->active->$key );
+						} else {
+							unset( $plugins->active[ $key ] );
+						}
+
+						$edited = true;
+						break;
+					}
 				}
 			}
 
-			return $parsed_args;
+			if ( $edited ) {
+				if ( $is_serialized ) {
+					$request['body']['plugins'] = maybe_serialize( $plugins );
+				} else {
+					$request['body']['plugins'] = wp_json_encode( $plugins );
+				}
+			}
+
+			return $request;
 		} // END exclude_plugins_from_update_check()
 
 		/**
@@ -605,7 +714,7 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 				foreach ( $options['plugins'] as $plugin ) {
 					if ( $plugin === $this->is_cocart_plugin( $plugin ) ) {
 						$plugin_slug = $this->get_slug_by_plugin_file( $plugin );
-						delete_transient( self::get_cache_key( $plugin_slug ) );
+						delete_site_transient( self::get_cache_key( $plugin_slug ) );
 					}
 				}
 				$this->refresh_plugins_transient();
@@ -635,18 +744,29 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 				return;
 			}
 
-			// Display message.
+			if ( ! current_user_can( 'update_plugins' ) ) {
+				return;
+			}
+
+			if ( is_multisite() ) {
+				/* translators: %s = A link to the updates page. */
+				$message           = __( 'Please enter your license key on the <a href="%s">Updates</a> page of the main site.', 'cocart-core' );
+				$updates_page_link = add_query_arg( array( 'page' => 'cocart-updates' ), get_admin_url( get_main_site_id(), 'admin.php' ) );
+			} else {
+				$message           = __( 'Please <a href="%s">enter your license key</a> to enable updates.', 'cocart-core' );
+				$updates_page_link = add_query_arg( array( 'page' => 'cocart-updates' ), admin_url( 'admin.php' ) );
+			}
+
 			printf(
 				wp_kses(
-					/* translators: %s = A link to the updates page. */
-					__( ' Please <a href="%s">enter your license key</a> to enable updates.', 'cocart-core' ),
+					$message,
 					array(
 						'a' => array(
 							'href' => array(),
 						),
 					)
 				),
-				add_query_arg( array( 'page' => 'cocart-updates' ), admin_url( 'admin.php' ) )
+				esc_url( $updates_page_link )
 			);
 		} // END modify_plugin_update_message()
 
@@ -669,6 +789,10 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 				return;
 			}
 
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				return;
+			}
+
 			$wp_list_table = _get_list_table( 'WP_Plugins_List_Table' );
 
 			// If plugin is the legacy core plugin.
@@ -688,8 +812,8 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 					echo '<p>';
 					printf(
 						/* translators: %s = Plugin name. */
-						__( 'This version of %s has not been tested with the core version of CoCart you have installed.', 'cocart-core' ),
-						$plugin_data['Name']
+						esc_html__( 'This version of %s has not been tested with the core version of CoCart you have installed.', 'cocart-core' ),
+						esc_html( $plugin_data['Name'] )
 					);
 					echo '</p></div></td></tr>';
 					return;
@@ -721,24 +845,50 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 				return;
 			}
 
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				return;
+			}
+
 			$license_key = CoCart_Helpers::get_license_key( $plugin_data );
 
 			$wp_list_table = _get_list_table( 'WP_Plugins_List_Table' );
 
 			// Warn users to provide license key to get updates.
-			if ( isset( $plugin_data['slug'] ) && empty( $license_key ) && 'cocart-core' !== $plugin_data['slug'] ) {
+			if ( isset( $plugin_data['slug'] ) && empty( $license_key ) ) {
 				echo '<tr class="plugin-update-tr" id="' . esc_attr( $plugin_data['slug'] . '-update-info' ) . '" data-slug="' . $plugin_data['Name'] . '" data-plugin="' . esc_attr( $file ) . '"><td colspan="' . $wp_list_table->get_column_count() . '" class="plugin-update colspanchange"><div class="notice notice-info notice-alt inline">'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
+				if ( is_multisite() ) {
+					/* translators: %1 = Plugin name, %2 = A link to the updates page. %3 link to the pricing page */
+					$message           = __( 'To enable updates for %1$s, please enter your license key on the <a href="%2$s">Updates</a> page of the main site. If you don\'t have a license key, please consider <a href="%3$s" target="_blank">purchasing one</a> to keep up to date, secure and receive support.', 'cocart-core' );
+					$updates_page_link = add_query_arg( array( 'page' => 'cocart-updates' ), get_admin_url( get_main_site_id(), 'admin.php' ) );
+				} else {
+					$message           = __( 'To enable updates for %1$s, please <a href="%2$s">enter your license key</a>. If you don\'t have a license key, please consider <a href="%3$s" target="_blank">purchasing one</a> to keep up to date, secure and receive support.', 'cocart-core' );
+					$updates_page_link = add_query_arg( array( 'page' => 'cocart-updates' ), admin_url( 'admin.php' ) );
+				}
+
+				$get_license = CoCart_Helpers::build_shortlink( COCART_STORE_URL . 'pricing/' );
+
+				if ( 'cocart-core' === $plugin_data['slug'] ) {
+					$message     = __( 'To enable updates for %1$s, please <a href="%2$s">enter your license key</a>. If you don\'t have a license key, <a href="%3$s" target="_blank">get one here</a> to keep up to date and secure.', 'cocart-core' );
+					$get_license = esc_url( 'https://buy.polar.sh/polar_cl_Zt69TR1nlQ7vIntrCeyPzuiqPcp3oxdULW_kqhQ0xFY' );
+				}
+
 				echo '<p><strong><span class="dashicons dashicons-info"></span></strong> '
-					. wp_kses_post(
+					. wp_kses(
 						sprintf(
 							/* translators: %1 = Plugin name, %2 = A link to the updates page. %3 link to the pricing page */
-							__( 'To enable updates for %1$s, please <a href="%2$s">enter your license key</a>. If you don\'t have a license key, please consider <a href="%3$s" target="_blank">purchasing one</a> to keep up to date, secure and receive support.', 'cocart-core' ),
+							$message,
 							$plugin_data['Name'],
-							add_query_arg( array( 'page' => 'cocart-updates' ), admin_url( 'admin.php' ) ),
-							CoCart_Helpers::build_shortlink( COCART_STORE_URL . 'pricing/' ),
+							$updates_page_link,
+							$get_license,
 							'CoCart upgrade',
 							'updates'
+						),
+						array(
+							'a' => array(
+								'href'   => array(),
+								'target' => array(),
+							),
 						)
 					);
 

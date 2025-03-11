@@ -184,7 +184,7 @@ class CoCart_Update_Customer_Callback extends CoCart_Cart_Extension_Callback {
 
 					// Rename the key so we can use the callable functions to set customer data.
 					if ( 0 === stripos( $key, 's_' ) ) {
-						$key = str_replace( 's_', 'shipping_', $key );
+						$key = preg_replace( '/^s_/', 'shipping_', $key, 1 );
 					}
 
 					// If the prefix is not for shipping, then assume the field is for billing.
@@ -197,6 +197,12 @@ class CoCart_Update_Customer_Callback extends CoCart_Cart_Extension_Callback {
 
 					// Use setters where available.
 					if ( is_callable( array( $customer, "set_{$key}" ) ) ) {
+						// Nullify field if no value is provided to prevent "Undefined array key" error.
+						if ( empty( $details[ $key ] ) ) {
+							$details[ $key ] = null;
+						}
+
+						// Set customer information.
 						$customer->{"set_{$key}"}( $details[ $key ] );
 
 						// Store custom fields prefixed with either `billing_` or `shipping_`.

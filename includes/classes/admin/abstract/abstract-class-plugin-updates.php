@@ -43,7 +43,6 @@ abstract class CoCart_Plugin_Updates {
 		'cocart-core.php'                   => 'cocart-core',
 		'cocart-plus.php'                   => 'cocart-plus',
 		'cocart-pro.php'                    => 'cocart-pro',
-		'cocart-jwt-authentication.php'     => 'cocart-jwt-authentication',
 	);
 
 	/**
@@ -56,11 +55,10 @@ abstract class CoCart_Plugin_Updates {
 	 * @var array
 	 */
 	protected static $slug_to_class_map = array(
-		'cocart-core'                   => 'CoCart', // Legacy core.
-		'cart-rest-api-for-woocommerce' => 'CoCart',
+		'cart-rest-api-for-woocommerce' => 'CoCart', // Legacy core.
+		'cocart-core'                   => 'CoCart',
 		'cocart-plus'                   => 'CoCart_Plus',
 		'cocart-pro'                    => 'CoCart_Pro',
-		'cocart-jwt-authentication'     => 'CoCart\JWTAuthentication\Plugin',
 		'cocart-wpcli-addon'            => 'CoCart\WPCLI\Plugin',
 	);
 
