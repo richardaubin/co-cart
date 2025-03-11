@@ -1,8 +1,6 @@
 <?php
 /**
- * REST API: Products v1 controller.
- *
- * Handles requests to the /products/ endpoint.
+ * REST API: CoCart_Products_Controller class.
  *
  * @author  Sébastien Dumont
  * @package CoCart\RESTAPI\Products\v1
@@ -16,18 +14,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * REST API Product controller class.
+ * Controller for returning products via the REST API (API v1).
  *
- * @extends WP_REST_Controller
+ * This REST API controller handles requests to return product details
+ * via "cocart/v1/products" endpoint.
+ *
+ * @since 3.1.0 Introduced.
+ * @extends CoCart_REST_Posts_Controller
  */
-class CoCart_Products_Controller extends WP_REST_Controller {
-
-	/**
-	 * Endpoint namespace.
-	 *
-	 * @var string
-	 */
-	protected $namespace = 'cocart/v1';
+class CoCart_Products_Controller extends CoCart_REST_Posts_Controller {
 
 	/**
 	 * Route base.
@@ -42,6 +37,13 @@ class CoCart_Products_Controller extends WP_REST_Controller {
 	 * @var string
 	 */
 	protected $post_type = 'product';
+
+	/**
+	 * Controls visibility on frontend.
+	 *
+	 * @var string
+	 */
+	protected $public = true;
 
 	/**
 	 * Register the routes for products.
@@ -245,19 +247,16 @@ class CoCart_Products_Controller extends WP_REST_Controller {
 	protected function prepare_links( $product ) {
 		$links = array(
 			'self'       => array(
-				'permalink' => get_permalink( $product->get_id() ),
-				'href'      => rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $product->get_id() ) ),
+				'href' => rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $product->get_id() ) ),
 			),
 			'collection' => array(
-				'permalink' => wc_get_page_permalink( 'shop' ),
-				'href'      => rest_url( sprintf( '/%s/%s', $this->namespace, $this->rest_base ) ),
+				'href' => rest_url( sprintf( '/%s/%s', $this->namespace, $this->rest_base ) ),
 			),
 		);
 
 		if ( $product->get_parent_id() ) {
 			$links['parent_product'] = array(
-				'permalink' => get_permalink( $product->get_parent_id() ),
-				'href'      => rest_url( sprintf( '/%s/products/%d', $this->namespace, $product->get_parent_id() ) ),
+				'href' => rest_url( sprintf( '/%s/products/%d', $this->namespace, $product->get_parent_id() ) ),
 			);
 		}
 
@@ -267,9 +266,26 @@ class CoCart_Products_Controller extends WP_REST_Controller {
 
 			foreach ( $variations as $variation_product ) {
 				$links['variations'][ $variation_product ] = array(
-					'permalink' => get_permalink( $variation_product ),
-					'href'      => rest_url( sprintf( '/%s/products/%d/variations/%d', $this->namespace, $product->get_id(), $variation_product ) ),
+					'href' => rest_url( sprintf( '/%s/products/%d/variations/%d', $this->namespace, $product->get_id(), $variation_product ) ),
 				);
+			}
+		}
+
+		// If post type is public expose permalinks.
+		if ( $this->public ) {
+			$links['self']['permalink']       = get_permalink( $product->get_id() );
+			$links['collection']['permalink'] = wc_get_page_permalink( 'shop' );
+			if ( isset( $links['parent_product'] ) ) :
+				$links['parent_product']['permalink'] = get_permalink( $product->get_parent_id() );
+endif;
+
+			// If product is a variable product, return links to all variations.
+			if ( $product->is_type( 'variable' ) && $product->has_child() ) {
+				$variations = $product->get_children();
+
+				foreach ( $variations as $variation_product ) {
+					$links['variations'][ $variation_product ]['permalink'] = get_permalink( $variation_product );
+				}
 			}
 		}
 

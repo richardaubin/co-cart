@@ -3,9 +3,9 @@
  * REST API: CoCart_API_Controller class.
  *
  * @author  Sébastien Dumont
- * @package CoCart\API\Cart\v1
+ * @package CoCart\RestApi\Cart\v1
  * @since   2.0.0 Introduced.
- * @version 4.0.0
+ * @version 5.X.X
  * @license GPL-3.0
  */
 
@@ -19,15 +19,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Handles the requests to get the cart via /get-cart endpoint.
  *
  * @since 2.0.0 Introduced.
+ * @since 5.X.X Extends `CoCart_REST_Controller` abstract.
+ * @extends CoCart_REST_Controller
  */
-class CoCart_API_Controller {
-
-	/**
-	 * Endpoint namespace.
-	 *
-	 * @var string
-	 */
-	protected $namespace = 'cocart/v1';
+class CoCart_API_Controller extends CoCart_REST_Controller {
 
 	/**
 	 * Route base.
