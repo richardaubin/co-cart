@@ -1,6 +1,24 @@
 // Variables
 @import '../variables';
 
+body.cocart-plugin-install {
+	.plugin-card {
+		border: 1px solid $cocart;
+
+		h3 {
+			margin: 0 0 4px;
+		}
+
+		.plugin-card-top {
+			min-height: 150px;
+		}
+
+		.plugin-card-bottom {
+			min-height: 36px;
+		}
+	}
+}
+
 .plugin-card {
 	.plugin-card-bottom {
 		.plugin-requirement {
@@ -17,11 +35,7 @@
 			margin: 0 0 4px;
 		}
 	}
-
-	&.cocart-plugin {
-		.plugin-card-top {
-			min-height: 150px;
-		}
+}
 
 		.plugin-card-bottom {
 			min-height: 36px;
@@ -38,24 +52,11 @@
 			margin-right: 20px;
 		}
 
-		.action-links {
-			overflow: auto;
-			position: relative;
-			top: 0;
-			right: 0;
-			margin-left: 9rem;
-		}
-
-		.plugin-action-buttons {
-			margin: 0;
-			width: 100%;
-			text-align: left;
-			white-space: nowrap;
-		}
-
-		.plugin-card-bottom {
-			display: none;
-		}
+	.plugin-action-buttons {
+		margin: 0;
+		width: 100%;
+		text-align: left;
+		white-space: nowrap;
 	}
 }
 
@@ -77,14 +78,14 @@
 
 		.cocart-plugin-primary {
 			background: $cocart;
-			border-color: #9b50e3;
+			border-color: $cocart-border-color;
 			color: $white;
 			box-shadow: 0 1px 0 #d8c3e2;
 		}
 
 		.cocart-plugin-primary:hover {
-			background:#9b50e3;
-			border-color: #422479;
+			background:$cocart-hover;
+			border-color: $cocart-border-color-hover;
 			color: $white;
 		}
 	}
@@ -97,8 +98,8 @@
 	align-content: space-between;
 	clear: both;
 	padding: 12px 20px;
-	background-color: #fafafa;
-	border-top: 1px solid #ddd;
+	background-color: $smoke-white;
+	border-top: 1px solid $light-grey;
 	overflow: hidden;
 }
 
