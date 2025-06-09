@@ -42,7 +42,7 @@
             "path": "/wordpress/wp-content/mu-plugins/dashboard.php",
             "data": {
                 "resource": "url",
-                "url": "https://github.com/co-cart/co-cart/blob/trunk/.wordpress/blueprints/dashboard.php"
+                "url": "https://github.com/co-cart/co-cart/blob/trunk/.wordpress-org/blueprints/dashboard.php"
             }
         },
         {
