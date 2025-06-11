@@ -26,7 +26,7 @@ CoCart chose to support WooCommerce because it was missing a key component to de
 
 #### 🔧 Built to Solve Real Headless Challenges
 
-If you’ve struggled to decouple WooCommerce, CoCart is your solution:
+If your finding it hard to decouple WooCommerce from WordPress due to hitting roadblocks. CoCart can help by providing all the essential features you need to start building a headless eCommerce experience.
 
 - ✅ **Source of Truth**  
   Built on WooCommerce’s native Data Stores API and mirrors Woo hooks. Broad compatibility from the start.
@@ -61,8 +61,6 @@ If you’ve struggled to decouple WooCommerce, CoCart is your solution:
 
 - 📦 **Bulk Cart Requests**  
   Combine multiple API calls into one for better performance.
-
-And this is just the start. With CoCart, your WooCommerce store can be faster, more flexible, and ready to take on any custom solution you dream up.
 
 ## 💼 Upgrade to CoCart Plus
 
