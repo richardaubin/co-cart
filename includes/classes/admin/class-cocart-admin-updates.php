@@ -151,7 +151,7 @@ if ( ! class_exists( 'CoCart_Admin_Updates' ) ) {
 				return false;
 			}
 
-			// Check cache if $force_check is not overrided.
+			// Check cache if $force_check is not overridden.
 			if ( ! $force_check ) {
 				$request = get_site_transient( self::get_cache_key( $product_slug ) );
 
