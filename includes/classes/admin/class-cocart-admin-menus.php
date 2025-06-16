@@ -110,7 +110,7 @@ if ( ! class_exists( 'CoCart_Admin_Menus' ) ) {
 					if ( 'cocart-setup' !== $submenu_page['data']['menu_slug'] ) {
 						wc_admin_connect_page(
 							array(
-								'id'        => 'cocart',
+								'id'        => $submenu_page['data']['menu_slug'],
 								'screen_id' => 'cocart_page_' . $submenu_page['data']['menu_slug'],
 								'title'     => array(
 									'CoCart',
