@@ -146,6 +146,18 @@ ul.cocart-next-steps {
 		display: flex;
 		align-items: center;
 
+		.column {
+			display: grid;
+			gap: 0;
+			width: 100%;
+			margin: 0 1rem auto;
+
+			.button {
+				margin: 1em 0 !important;
+				width: fit-content;
+			}
+		}
+
 		.button {
 			margin: 1em 1.5em !important;
 		}

@@ -16,6 +16,10 @@
 			background: #fff url("../../images/brand/cocart-logo.svg") no-repeat left center;	
 			margin-left: 1.2rem;
 			text-indent: 8.6rem;
+
+			@media screen and (max-width: 784px) {
+				text-indent: 9999px;
+			}
 		}
 	}
 
