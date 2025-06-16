@@ -36,13 +36,6 @@ body.cocart-pagestyles .wp-header-end {
 	max-width: 700px;
 	padding: 60px 0;
 
-	.cocart-logo {
-		border: 0;
-		margin: 0;
-		padding: 0;
-		text-align: center;
-	}
-
 	.cocart-content {
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.13);
 		padding: 2em;
@@ -111,11 +104,5 @@ body:not(.rtl).cocart-pagestyles {
 	button:focus,
 	.button-primary:focus {
 		text-decoration-thickness: 4px;
-	}
-}
-
-@media only screen and (max-width: 400px) {
-	.cocart-logo img {
-		max-width: 80%;
 	}
 }
