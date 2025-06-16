@@ -37,13 +37,6 @@ $campaign_args = CoCart_Helpers::cocart_campaign( // phpcs:ignore: WordPress.Nam
 		'utm_content' => 'next-steps',
 	)
 );
-
-$docs_url  = 'https://cocart.dev/'; // phpcs:ignore: WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-$help_text = sprintf( // phpcs:ignore: WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-	/* translators: %1$s: link to docs */
-	__( 'Visit CoCart.dev to access <a href="%1$s" target="_blank" rel="noopener noreferrer">developer resources</a>.', 'cart-rest-api-for-woocommerce' ),
-	$docs_url
-);
 ?>
 <div class="cocart-newsletter">
 	<p><?php esc_html_e( 'Get product updates, tutorials and more straight to your inbox.', 'cart-rest-api-for-woocommerce' ); ?></p>
@@ -79,7 +72,7 @@ $help_text = sprintf( // phpcs:ignore: WordPress.NamingConventions.PrefixAllGlob
 		</div>
 		<div class="cocart-next-step-action">
 			<p class="cocart-actions step">
-				<a class="button button-primary button-large cocart-button" href="<?php echo esc_url( CoCart_Helpers::build_shortlink( add_query_arg( $campaign_args, esc_url( COCART_DOCUMENTATION_URL ) ) ) ); ?>" target="_blank" rel="noopener noreferrer">
+				<a class="button button-primary button-large cocart-button" href="<?php echo esc_url( COCART_DOCUMENTATION_URL ); ?>" target="_blank" rel="noopener noreferrer">
 					<?php esc_html_e( 'View Documentation', 'cart-rest-api-for-woocommerce' ); ?>
 				</a>
 			</p>
@@ -126,5 +119,3 @@ $help_text = sprintf( // phpcs:ignore: WordPress.NamingConventions.PrefixAllGlob
 <p class="tweet-share">
 	<a href="https://twitter.com/share" class="twitter-share-button" data-size="large" data-text="<?php echo esc_html( $tweets[ $tweet ] ); ?>" data-url="https://cocartapi.com/" data-hashtags="withcocart" data-related="WooCommerce" data-show-count="false">Tweet</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script><?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript ?>
 </p>
-
-<p class="next-steps-help-text"><?php echo wp_kses_post( $help_text ); ?></p>
