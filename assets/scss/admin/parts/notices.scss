@@ -13,12 +13,13 @@
 		border-color: variables.$cocart;
 
 		p.cart::before {
-			color: variables.$cocart;
-			content: '\f174';
+			content: '';
 			display: inline-block;
-			font: normal 20px/1 'dashicons';
-			-webkit-font-smoothing: antialiased;
-			-moz-osx-font-smoothing: grayscale;
+			width: 20px;
+			height: 20px;
+			background-image: url('../../images/brand/cocart-icon.svg');
+			background-size: contain;
+			background-repeat: no-repeat;
 			vertical-align: top;
 		}
 	}

@@ -98,12 +98,13 @@ body:not(.rtl).cocart-pagestyles #wpbody {
   border-color: #6032b0;
 }
 .notice.inline.notice-cocart p.cart::before {
-  color: #6032b0;
-  content: "\f174";
+  content: "";
   display: inline-block;
-  font: normal 20px/1 "dashicons";
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  width: 20px;
+  height: 20px;
+  background-image: url("../../images/brand/cocart-icon.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
   vertical-align: top;
 }
 .notice.cocart-notice {
