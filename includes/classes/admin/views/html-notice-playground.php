@@ -26,13 +26,7 @@ $campaign_args['utm_content']  = 'plugin-link'; // phpcs:ignore: WordPress.Namin
 
 		<div class="cocart-notice-content">
 			<p>
-				<?php
-				printf(
-					/* translators: %s: CoCart */
-					esc_html__( 'WordPress Playground is not compatible with the %s plugin. Recommend requesting a demo instead.', 'cart-rest-api-for-woocommerce' ),
-					'CoCart'
-				);
-				?>
+				<?php esc_html_e( 'If WordPress Playground is having any issues. You can request a demo site instead.', 'cart-rest-api-for-woocommerce' ); ?>
 			</p>
 		</div>
 
