@@ -7,12 +7,6 @@ body.cocart-pagestyles .wp-header-end {
   max-width: 700px;
   padding: 60px 0;
 }
-.cocart-wrapped .cocart-logo {
-  border: 0;
-  margin: 0;
-  padding: 0;
-  text-align: center;
-}
 .cocart-wrapped .cocart-content {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.13);
   padding: 2em;
@@ -36,15 +30,6 @@ body:not(.rtl).cocart-pagestyles #wpbody {
 
 .cocart-pagestyles #wpfooter {
   display: initial;
-}
-.cocart-pagestyles .woocommerce-layout__header-breadcrumbs {
-  margin: 0;
-}
-.cocart-pagestyles .woocommerce-layout__header-breadcrumbs span:first-child {
-  display: none;
-}
-.cocart-pagestyles .woocommerce-layout__header-breadcrumbs span:nth-child(2)::before {
-  content: none;
 }
 .cocart-pagestyles a.button-large,
 .cocart-pagestyles button.button-large {
@@ -86,6 +71,27 @@ body:not(.rtl).cocart-pagestyles #wpbody {
 .cocart-pagestyles button:focus,
 .cocart-pagestyles .button-primary:focus {
   text-decoration-thickness: 4px;
+}
+
+.cocart-pagestyles .woocommerce-layout__header-breadcrumbs {
+  margin: 0;
+}
+.cocart-pagestyles .woocommerce-layout__header-breadcrumbs span:first-child {
+  display: none;
+}
+.cocart-pagestyles .woocommerce-layout__header-breadcrumbs span:nth-child(2)::before {
+  content: none;
+}
+.cocart-pagestyles .woocommerce-layout__header .woocommerce-layout__header-heading {
+  background: #fff url("../../images/brand/cocart-logo.svg") no-repeat right center;
+  margin-right: 1.2rem;
+  text-indent: 8.6rem;
+}
+.cocart-pagestyles .woocommerce-layout__header .woocommerce-layout__header-heading .has-woocommerce-navigation header.has-sections {
+  top: 4px;
+}
+.cocart-pagestyles .woocommerce-layout__header .woocommerce-layout__header-heading .has-woocommerce-navigation header.no-sections {
+  top: 8px;
 }
 
 .notice.inline.notice-cocart {
