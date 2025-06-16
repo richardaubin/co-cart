@@ -1,0 +1,121 @@
+// Variables
+@use "sass:meta";
+@use "../../variables";
+
+@mixin button {
+	color: variables.$white !important;
+	min-width: fit-content !important;
+}
+
+@mixin button-alt {
+	color: variables.$cocart !important;
+}
+
+@mixin button-large {
+	border-radius: 32px !important;
+	padding: 1em !important;
+}
+
+@mixin button-hover {
+	background-color: variables.$cocart-button-hover !important;
+	border-color: variables.$cocart-button-hover !important;
+	color: variables.$white !important;
+}
+
+@mixin button-alt-hover {
+	border-color: variables.$cocart-button-hover !important;
+	color: variables.$black !important;
+}
+
+body.cocart-pagestyles .wp-header-end {
+	clear: both;
+}
+
+.cocart-wrapped {
+	margin: 0 auto;
+	max-width: 700px;
+	padding: 60px 0;
+
+	.cocart-logo {
+		border: 0;
+		margin: 0;
+		padding: 0;
+		text-align: center;
+	}
+
+	.cocart-content {
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.13);
+		padding: 2em;
+		margin: 0 0 20px;
+		background: variables.$white;
+		overflow: hidden;
+		zoom: 1;
+		text-align: left;
+
+		&.inner {
+			padding: 0;
+
+			form {
+				padding: 24px;
+			}
+		}
+	}
+}
+
+body:not(.rtl).cocart-pagestyles {
+	#wpbody {
+		color: variables.$black;
+		font-weight: 400;
+	}
+}
+
+.cocart-pagestyles {
+	#wpfooter {
+		display: initial;
+	}
+
+	a.button-large,
+	button.button-large {
+		@include button-large;
+	}
+
+	a.cocart-button,
+	button.cocart-button {
+		background-color: variables.$cocart-button;
+		border-color: variables.$cocart-button;
+		@include button;
+	}
+
+	a.cocart-button-alt,
+	button.cocart-button-alt {
+		border-color: variables.$cocart;
+		@include button;
+		@include button-alt;
+	}
+
+	a.cocart-button:hover,
+	a.cocart-button:focus,
+	button.cocart-button:hover,
+	button.cocart-button:focus {
+		@include button-hover;
+	}
+
+	a.cocart-button-alt:hover,
+	a.cocart-button-alt:focus,
+	button.cocart-button-alt:hover,
+	button.cocart-button-alt:focus {
+		@include button-alt-hover;
+	}
+
+	a.button:focus,
+	button:focus,
+	.button-primary:focus {
+		text-decoration-thickness: 4px;
+	}
+}
+
+@media only screen and (max-width: 400px) {
+	.cocart-logo img {
+		max-width: 80%;
+	}
+}

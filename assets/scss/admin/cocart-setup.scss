@@ -1,8 +1,11 @@
 // Variables
 @use '../variables';
 
-// CoCart
-@use 'cocart';
+// Common
+@use 'parts/common';
+
+// Admin Notices
+@use "parts/notices";
 
 .cocart-setup-wizard {
 	text-align: center;
