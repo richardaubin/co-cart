@@ -1,5 +1,5 @@
 {
-	"title": "CoCart API - Headless WooCommerce Made Easy with CoCart",
+	"title": "CoCart API - Headless WooCommerce Made Easy",
 	"name": "cart-rest-api-for-woocommerce",
 	"version": "4.5.0",
 	"private": false,
@@ -42,7 +42,7 @@
 	"wc_tested_up_to": "9.9",
 	"license": "GPL-3.0",
 	"copyright": "Copyright (c) 2025, CoCart Headless, LLC",
-	"description": "Decouple your WooCommerce store with ease with our developer friendly REST API extension.",
+	"description": "Build modern headless stores with WooCommerce faster — with the REST API purpose-built for developers.",
 	"tags": "",
 	"keywords": [
 		"wordpress",
