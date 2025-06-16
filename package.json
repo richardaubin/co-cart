@@ -1,5 +1,5 @@
 {
-	"title": "CoCart API - Decoupling Made Easy for WooCommerce",
+	"title": "CoCart API - Headless WooCommerce Made Easy with CoCart",
 	"name": "cart-rest-api-for-woocommerce",
 	"version": "4.5.0",
 	"private": false,
@@ -28,7 +28,6 @@
 	"author": "CoCart Headless, LLC",
 	"author_uri": "https://cocartapi.com",
 	"homepage": "https://cocartapi.com",
-	"main": "Gruntfile.js",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/co-cart/co-cart.git"
