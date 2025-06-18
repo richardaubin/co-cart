@@ -91,6 +91,17 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		);
 
 		/**
+		 * Basic authentication pattern.
+		 *
+		 * @access private
+		 *
+		 * @since 4.6.0 Introduced.
+		 *
+		 * @var string
+		 */
+		private const BASIC_AUTH_PATTERN = '/^Basic\s/';
+
+		/**
 		 * Constructor.
 		 *
 		 * @access public
@@ -190,7 +201,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 * @since 4.1.0 Introduced.
 		 * @since 4.2.0 Changed access from protected to public.
 		 *
-		 * @return string $auth_header
+		 * @return string $auth_header Authorization header value.
 		 */
 		public static function get_auth_header() {
 			$auth_header = ! empty( $_SERVER['HTTP_AUTHORIZATION'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_AUTHORIZATION'] ) ) : '';
@@ -219,6 +230,21 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 			 */
 			return apply_filters( 'cocart_auth_header', $auth_header );
 		} // END get_auth_header()
+
+		/**
+		 * Check if the authorization header contains Basic authentication.
+		 *
+		 * @access private
+		 *
+		 * @since 4.6.0 Introduced.
+		 *
+		 * @param string $auth Authorization header value.
+		 *
+		 * @return bool
+		 */
+		private function is_basic_auth( string $auth ): bool {
+			return ! empty( $auth ) && preg_match( self::BASIC_AUTH_PATTERN, $auth );
+		} // END is_basic_auth()
 
 		/**
 		 * Authenticate user.
@@ -384,8 +410,13 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 
 			$auth_header = self::get_auth_header();
 
+			// Exit early if basic authentication is not detected.
+			if ( ! $this->is_basic_auth( $auth_header ) ) {
+				return false;
+			}
+
 			// Look up authorization header and check it's a valid.
-			if ( ! empty( $auth_header ) && 0 === stripos( $auth_header, 'basic ' ) ) {
+			if ( ! empty( $auth_header ) && $this->is_basic_auth( $auth_header ) ) {
 				$exploded = explode( ':', base64_decode( substr( $auth_header, 6 ) ), 2 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
 				// If valid return username and password.
