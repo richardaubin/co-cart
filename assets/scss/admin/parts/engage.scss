@@ -76,9 +76,9 @@ p {
 
 	&.next-step-heading {
 		margin: 0 !important;
-		font-size: 0.95em;
+		font-size: 1em;
 		font-weight: 400;
-		font-variant: all-petite-caps;
+		font-variant: all-small-caps;
 	}
 
 	&.next-step-extra-info {
@@ -163,14 +163,10 @@ ul.cocart-next-steps {
 		}
 
 		.button-large {
-			font-weight: 400;
-			font-size: 16px;
-			padding: 1em 2em;
 			box-shadow: none;
 			min-width: 12em;
 			line-height: 1;
 			height: auto;
-			border-radius: 4px;
 
 			&:focus,
 			&:hover,
@@ -212,10 +208,6 @@ ul.cocart-next-steps {
 }
 
 @media only screen and (max-width: 400px) {
-	.cocart-logo img {
-		max-width: 80%;
-	}
-
 	.cocart-newsletter {
 		.newsletter-form-container {
 			display: block;
