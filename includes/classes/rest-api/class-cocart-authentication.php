@@ -457,6 +457,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 			if ( empty( $username ) && empty( $password ) ) {
 				return false;
 			} elseif ( empty( $username ) || empty( $password ) ) {
+				\CoCart_Logger::log( esc_html__( 'Authentication attempted but did not find valid login details.', 'cart-rest-api-for-woocommerce' ), 'error' );
 				// If either username or password is missing then return error.
 				$this->set_error( new WP_Error( 'cocart_authentication_error', __( 'Authentication invalid!', 'cart-rest-api-for-woocommerce' ), array( 'status' => 401 ) ) );
 				return false;
@@ -465,6 +466,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 			$user = get_user_by( 'login', $username );
 
 			if ( empty( $user ) ) {
+				\CoCart_Logger::log( esc_html__( 'User was not found when authenticating.', 'cart-rest-api-for-woocommerce' ), 'error' );
 				$this->set_error( new WP_Error( 'cocart_authentication_error', __( 'Authentication is invalid. Please check your login details are correct and try again.', 'cart-rest-api-for-woocommerce' ), array( 'status' => 401 ) ) );
 				return false;
 			}
