@@ -410,11 +410,6 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 
 			$auth_header = self::get_auth_header();
 
-			// Exit early if basic authentication is not detected.
-			if ( ! $this->is_basic_auth( $auth_header ) ) {
-				return false;
-			}
-
 			// Look up authorization header and check it's a valid.
 			if ( ! empty( $auth_header ) && $this->is_basic_auth( $auth_header ) ) {
 				$exploded = explode( ':', base64_decode( substr( $auth_header, 6 ) ), 2 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
