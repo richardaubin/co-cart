@@ -99,7 +99,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 *
 		 * @var string
 		 */
-		private const BASIC_AUTH_PATTERN = '/^Basic\s/';
+		private const BASIC_AUTH_PATTERN = '/^Basic ([a-zA-Z0-9+\/=]+)$/';
 
 		/**
 		 * Constructor.
@@ -245,6 +245,25 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		private function is_basic_auth( string $auth ): bool {
 			return ! empty( $auth ) && preg_match( self::BASIC_AUTH_PATTERN, $auth );
 		} // END is_basic_auth()
+
+		/**
+		 * Extract Basic login from authorization header.
+		 *
+		 * @access private
+		 *
+		 * @since 4.6.0 Introduced.
+		 *
+		 * @param string $auth Authorization header value.
+		 *
+		 * @return string|null Login if found, null otherwise.
+		 */
+		private static function extract_basic_auth( string $auth ): ?string {
+			if ( preg_match( self::BASIC_AUTH_PATTERN, $auth, $matches ) ) {
+				return $matches[1];
+			}
+
+			return null;
+		} // END extract_basic_auth()
 
 		/**
 		 * Authenticate user.
@@ -412,7 +431,9 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 
 			// Look up authorization header and check it's a valid.
 			if ( ! empty( $auth_header ) && $this->is_basic_auth( $auth_header ) ) {
-				$exploded = explode( ':', base64_decode( substr( $auth_header, 6 ) ), 2 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+				$auth_str = self::extract_basic_auth( $auth_header );
+
+				$exploded = explode( ':', base64_decode( $auth_str ), 2 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
 				// If valid return username and password.
 				if ( 2 === \count( $exploded ) ) {
