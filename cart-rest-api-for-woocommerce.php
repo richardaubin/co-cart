@@ -2,7 +2,7 @@
 /**
  * Plugin Name: CoCart API - Headless WooCommerce Made Easy
  * Plugin URI:  https://cocartapi.com
- * Description: Build modern headless stores with WooCommerce faster — with the REST API purpose-built for developers.
+ * Description: The best REST-API to decouple your WooCommerce store with. Fast, secure, customizable, easy.
  * Author:      CoCart Headless, LLC
  * Author URI:  https://cocartapi.com
  * Version:     4.5.0
