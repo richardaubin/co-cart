@@ -22,6 +22,37 @@ body.cocart-pagestyles .wp-header-end {
 .cocart-wrapped .cocart-content.inner form {
   padding: 24px;
 }
+.cocart-wrapped .column-container {
+  align-self: flex-start;
+  box-sizing: border-box;
+  clear: both;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-areas: "col1 col2" "wide wide";
+  gap: 1rem;
+  justify-content: center;
+  padding: 0.5em;
+  width: 100%;
+  z-index: 1;
+}
+.cocart-wrapped .column {
+  display: grid;
+  gap: 0;
+  margin: 0 1rem auto;
+}
+.cocart-wrapped .column.wide {
+  grid-area: wide;
+}
+.cocart-wrapped .column.wide.has-background {
+  background-color: #fff;
+  padding: 2em;
+  margin: -8px;
+}
+.cocart-wrapped .column .button {
+  margin: 1em 0 !important;
+  width: -moz-fit-content;
+  width: fit-content;
+}
 
 body:not(.rtl).cocart-pagestyles #wpbody {
   color: #212023;
@@ -34,6 +65,7 @@ body:not(.rtl).cocart-pagestyles #wpbody {
 .cocart-pagestyles a.button-large,
 .cocart-pagestyles button.button-large {
   border-radius: 32px !important;
+  font-weight: 600;
   padding: 1em !important;
 }
 .cocart-pagestyles a.cocart-button,
@@ -73,6 +105,19 @@ body:not(.rtl).cocart-pagestyles #wpbody {
   text-decoration-thickness: 4px;
 }
 
+@media screen and (max-width: 782px) {
+  .cocart-wrapped .column-container {
+    grid-template-columns: 1fr;
+    grid-template-areas: "col1" "col2" "wide";
+    gap: 2rem;
+  }
+  .cocart-wrapped .column-container .column {
+    text-align: left;
+  }
+  .cocart-wrapped .column-container .column .button {
+    margin: 1em auto !important;
+  }
+}
 .notice.inline.notice-cocart {
   border-color: #6032b0;
 }
@@ -196,6 +241,183 @@ body.cocart-pagestyles .error:not(.cocart-notice) {
     margin-left: 15px;
   }
 }
+.founder-row {
+  height: 60px;
+  margin-bottom: 2rem;
+}
+.founder-row .founder-image {
+  width: 4.6rem;
+  float: left;
+}
+.founder-row .founder-details {
+  float: left;
+  width: calc(100% - 4.6rem);
+}
+.founder-row .founder-details p {
+  margin: 0;
+}
+
+.cocart-newsletter {
+  padding: 24px 24px 0;
+  overflow: hidden;
+  background: #f5f5f5;
+  clear: both;
+}
+.cocart-newsletter p {
+  padding: 0;
+  margin: 0 0 12px;
+}
+.cocart-newsletter form,
+.cocart-newsletter p:last-child {
+  margin: 0 0 24px;
+}
+.cocart-newsletter .newsletter-form-container {
+  display: flex;
+}
+.cocart-newsletter .newsletter-form-container .newsletter-form-email {
+  border: 1px solid #aaa;
+  border-color: #ddd;
+  border-radius: 4px;
+  height: 42px;
+  padding: 0 8px;
+  font-size: 16px;
+  color: #72777c;
+  background-color: #fff;
+  display: inline-block;
+  margin-right: 6px;
+  flex-grow: 1;
+}
+.cocart-newsletter .newsletter-form-container .newsletter-form-button-container {
+  flex-grow: 0;
+}
+.cocart-newsletter .newsletter-form-container .newsletter-form-button-container .button.newsletter-form-button {
+  height: 42px;
+  padding: 0 1em;
+  margin: 0;
+}
+
+p.next-steps-help-text {
+  color: #9f9f9f !important;
+  padding: 0 2em;
+  text-align: center;
+  font-size: 0.9em !important;
+}
+p.next-step-heading {
+  margin: 0 !important;
+  font-size: 1em;
+  font-weight: 400;
+  font-variant: all-small-caps;
+}
+p.next-step-extra-info {
+  margin: 0 !important;
+}
+
+ul.cocart-next-steps {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none outside;
+}
+ul.cocart-next-steps h2 {
+  margin-bottom: 12px;
+}
+ul.cocart-next-steps h3.next-step-description {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+ul.cocart-next-steps li {
+  padding: 0;
+}
+ul.cocart-next-steps li a {
+  display: block;
+  padding: 0 0 0.75em;
+}
+ul.cocart-next-steps li a::before {
+  color: #82878c;
+  font: 400 20px/1 dashicons; /* stylelint-disable-line font-family-no-missing-generic-family-keyword */
+  speak: none;
+  display: inline-block;
+  padding: 0 10px 0 0;
+  top: 1px;
+  position: relative;
+  text-decoration: none !important;
+  vertical-align: top;
+}
+ul.cocart-next-steps .cocart-next-step-item {
+  display: flex;
+  border-top: 1px solid #eee;
+}
+ul.cocart-next-steps .cocart-next-step-item:first-child {
+  border-top: 0;
+}
+ul.cocart-next-steps .cocart-next-step-description {
+  flex-grow: 1;
+  margin: 1.5em;
+}
+ul.cocart-next-steps .cocart-next-step-action {
+  flex-grow: 0;
+  display: flex;
+  align-items: center;
+}
+ul.cocart-next-steps .cocart-next-step-action .cocart-button {
+  margin: 1em 1.5em !important;
+}
+ul.cocart-next-steps .cocart-next-step-action .button-large {
+  box-shadow: none;
+  min-width: 12em;
+  line-height: 1;
+  height: auto;
+}
+ul.cocart-next-steps .cocart-next-step-action .button-large:focus, ul.cocart-next-steps .cocart-next-step-action .button-large:hover, ul.cocart-next-steps .cocart-next-step-action .button-large:active {
+  box-shadow: none;
+}
+ul.cocart-next-steps .cocart-next-step-action .button-large.button-primary {
+  margin: 0;
+  opacity: 1;
+}
+ul.cocart-next-steps .cocart-additional-steps .cocart-next-step-description {
+  margin-bottom: 0;
+}
+ul.cocart-next-steps .cocart-additional-steps .cocart-actions {
+  margin: 0 0 1.5em;
+}
+ul.cocart-next-steps .cocart-additional-steps .cocart-actions .button {
+  font-size: 15px;
+  margin: 1em 0 1em 1.5em;
+}
+
+.tweet-share {
+  display: flex;
+  padding: 0;
+  align-items: center;
+  place-content: center center;
+  flex-wrap: nowrap;
+}
+
+@media only screen and (max-width: 400px) {
+  .cocart-newsletter .newsletter-form-container {
+    display: block;
+  }
+  .cocart-newsletter .newsletter-form-container .newsletter-form-email {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .cocart-newsletter .newsletter-form-container .button.newsletter-form-button {
+    float: left;
+  }
+  .cocart-next-steps .cocart-next-step-item {
+    flex-wrap: wrap;
+  }
+  .cocart-next-steps .cocart-next-step-item .cocart-next-step-description {
+    margin-bottom: 0;
+  }
+  .cocart-next-steps .cocart-next-step-item .cocart-next-step-action p {
+    margin: 0;
+  }
+}
 .cocart-setup-wizard {
   text-align: center;
 }
@@ -203,9 +425,6 @@ body.cocart-pagestyles .error:not(.cocart-notice) {
   display: none;
 }
 
-.cocart-content h1,
-.cocart-content h2,
-.cocart-content h3,
 .cocart-content table {
   margin: 0 0 20px;
   border: 0;
@@ -215,8 +434,6 @@ body.cocart-pagestyles .error:not(.cocart-notice) {
   font-weight: 500;
 }
 .cocart-content p {
-  margin: 20px 0;
-  font-size: 1em;
   line-height: 1.75;
   color: #666;
 }

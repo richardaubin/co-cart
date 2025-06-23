@@ -87,8 +87,6 @@ p {
 }
 
 ul.cocart-next-steps {
-	border: 1px solid #eee;
-	border-radius: 4px;
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
@@ -146,19 +144,7 @@ ul.cocart-next-steps {
 		display: flex;
 		align-items: center;
 
-		.column {
-			display: grid;
-			gap: 0;
-			width: 100%;
-			margin: 0 1rem auto;
-
-			.button {
-				margin: 1em 0 !important;
-				width: fit-content;
-			}
-		}
-
-		.button {
+		.cocart-button {
 			margin: 1em 1.5em !important;
 		}
 
@@ -182,8 +168,6 @@ ul.cocart-next-steps {
 	}
 
 	.cocart-additional-steps {
-		border-top: 1px solid #eee;
-
 		.cocart-next-step-description {
 			margin-bottom: 0;
 		}

@@ -22,6 +22,37 @@ body.cocart-pagestyles .wp-header-end {
 .cocart-wrapped .cocart-content.inner form {
   padding: 24px;
 }
+.cocart-wrapped .column-container {
+  align-self: flex-start;
+  box-sizing: border-box;
+  clear: both;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-areas: "col1 col2" "wide wide";
+  gap: 1rem;
+  justify-content: center;
+  padding: 0.5em;
+  width: 100%;
+  z-index: 1;
+}
+.cocart-wrapped .column {
+  display: grid;
+  gap: 0;
+  margin: 0 1rem auto;
+}
+.cocart-wrapped .column.wide {
+  grid-area: wide;
+}
+.cocart-wrapped .column.wide.has-background {
+  background-color: #fff;
+  padding: 2em;
+  margin: -8px;
+}
+.cocart-wrapped .column .button {
+  margin: 1em 0 !important;
+  width: -moz-fit-content;
+  width: fit-content;
+}
 
 body:not(.rtl).cocart-pagestyles #wpbody {
   color: #212023;
@@ -34,6 +65,7 @@ body:not(.rtl).cocart-pagestyles #wpbody {
 .cocart-pagestyles a.button-large,
 .cocart-pagestyles button.button-large {
   border-radius: 32px !important;
+  font-weight: 600;
   padding: 1em !important;
 }
 .cocart-pagestyles a.cocart-button,
@@ -73,6 +105,19 @@ body:not(.rtl).cocart-pagestyles #wpbody {
   text-decoration-thickness: 4px;
 }
 
+@media screen and (max-width: 782px) {
+  .cocart-wrapped .column-container {
+    grid-template-columns: 1fr;
+    grid-template-areas: "col1" "col2" "wide";
+    gap: 2rem;
+  }
+  .cocart-wrapped .column-container .column {
+    text-align: left;
+  }
+  .cocart-wrapped .column-container .column .button {
+    margin: 1em auto !important;
+  }
+}
 .cocart-pagestyles .woocommerce-layout__header-breadcrumbs {
   margin: 0;
 }
@@ -285,17 +330,15 @@ p.next-steps-help-text {
 }
 p.next-step-heading {
   margin: 0 !important;
-  font-size: 0.95em;
+  font-size: 1em;
   font-weight: 400;
-  font-variant: all-petite-caps;
+  font-variant: all-small-caps;
 }
 p.next-step-extra-info {
   margin: 0 !important;
 }
 
 ul.cocart-next-steps {
-  border: 1px solid #eee;
-  border-radius: 4px;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -343,29 +386,14 @@ ul.cocart-next-steps .cocart-next-step-action {
   display: flex;
   align-items: center;
 }
-ul.cocart-next-steps .cocart-next-step-action .column {
-  display: grid;
-  gap: 0;
-  width: 100%;
-  margin: 0 1rem auto;
-}
-ul.cocart-next-steps .cocart-next-step-action .column .button {
-  margin: 1em 0 !important;
-  width: -moz-fit-content;
-  width: fit-content;
-}
-ul.cocart-next-steps .cocart-next-step-action .button {
+ul.cocart-next-steps .cocart-next-step-action .cocart-button {
   margin: 1em 1.5em !important;
 }
 ul.cocart-next-steps .cocart-next-step-action .button-large {
-  font-weight: 400;
-  font-size: 16px;
-  padding: 1em 2em;
   box-shadow: none;
   min-width: 12em;
   line-height: 1;
   height: auto;
-  border-radius: 4px;
 }
 ul.cocart-next-steps .cocart-next-step-action .button-large:focus, ul.cocart-next-steps .cocart-next-step-action .button-large:hover, ul.cocart-next-steps .cocart-next-step-action .button-large:active {
   box-shadow: none;
@@ -373,9 +401,6 @@ ul.cocart-next-steps .cocart-next-step-action .button-large:focus, ul.cocart-nex
 ul.cocart-next-steps .cocart-next-step-action .button-large.button-primary {
   margin: 0;
   opacity: 1;
-}
-ul.cocart-next-steps .cocart-additional-steps {
-  border-top: 1px solid #eee;
 }
 ul.cocart-next-steps .cocart-additional-steps .cocart-next-step-description {
   margin-bottom: 0;
@@ -397,9 +422,6 @@ ul.cocart-next-steps .cocart-additional-steps .cocart-actions .button {
 }
 
 @media only screen and (max-width: 400px) {
-  .cocart-logo img {
-    max-width: 80%;
-  }
   .cocart-newsletter .newsletter-form-container {
     display: block;
   }

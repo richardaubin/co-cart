@@ -1,4 +1,5 @@
 // Variables
+@use "sass:meta";
 @use '../variables';
 
 // Common
@@ -6,6 +7,9 @@
 
 // Admin Notices
 @use "parts/notices";
+
+// Engage
+@use "parts/engage";
 
 .cocart-setup-wizard {
 	text-align: center;
@@ -16,9 +20,6 @@
 }
 
 .cocart-content {
-	h1,
-	h2,
-	h3,
 	table {
 		margin: 0 0 20px;
 		border: 0;
@@ -29,8 +30,6 @@
 	}
 
 	p {
-		margin: 20px 0;
-		font-size: 1em;
 		line-height: 1.75;
 		color: #666;
 	}
