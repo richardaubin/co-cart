@@ -33,6 +33,7 @@ body.cocart-pagestyles .wp-header-end {
 }
 
 .cocart-wrapped {
+	clear: both;
 	margin: 0 auto !important;
 	max-width: 700px;
 	padding: 60px 0 !important;
@@ -101,10 +102,6 @@ body:not(.rtl).cocart-pagestyles {
 }
 
 .cocart-pagestyles {
-	#wpfooter {
-		display: initial;
-	}
-
 	a.button-large,
 	button.button-large {
 		@include button-large;
@@ -145,8 +142,23 @@ body:not(.rtl).cocart-pagestyles {
 	}
 }
 
+@media screen and (min-width: 783px) {
+	.cocart-pagestyles {
+		#wpfooter {
+			display: inherit;
+			position: relative;
+		}
+	}
+}
+
 @media screen and (max-width: 782px) {
+	#wpbody-content {
+		padding-bottom: 30px !important;
+	}
+
 	.cocart-wrapped {
+		padding: 30px 0 0 !important;
+
 		.column-container {
 			grid-template-columns: 1fr;
 			grid-template-areas: 

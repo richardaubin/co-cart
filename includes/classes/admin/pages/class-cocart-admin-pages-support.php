@@ -46,6 +46,7 @@ class CoCart_Admin_Support_Page extends CoCart_Submenu_Page {
 			?>
 			</div>
 		</div>
+		<div class="clear"></div>
 		<?php
 	} // END output()
 
