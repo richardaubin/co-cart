@@ -39,7 +39,7 @@ class CoCart_Admin_Support_Page extends CoCart_Submenu_Page {
 		);
 		$store_url     = CoCart_Helpers::build_shortlink( add_query_arg( $campaign_args, COCART_STORE_URL ) );
 		?>
-		<div class="wrap cocart-wrapped">
+		<div class="wrap cocart-wrapped" role="main">
 			<div class="cocart-content">
 			<?php
 			include_once COCART_ABSPATH . 'includes/classes/admin/views/html-next-steps.php';

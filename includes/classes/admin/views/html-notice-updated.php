@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 ?>
-<div class="notice notice-info cocart-notice is-dismissible">
+<div class="notice notice-info cocart-notice is-dismissible" role="alert">
 	<p>
 		<?php
 		printf(

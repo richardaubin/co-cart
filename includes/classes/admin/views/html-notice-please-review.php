@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $current_user = wp_get_current_user(); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 ?>
-<div class="notice cocart-notice">
+<div class="notice cocart-notice" role="alert">
 	<div class="cocart-notice-inner cocart-step cocart-review-step-1">
 		<div class="cocart-notice-content">
 			<p>
@@ -32,8 +32,8 @@ $current_user = wp_get_current_user(); // phpcs:ignore WordPress.WP.GlobalVariab
 		</div>
 
 		<div class="cocart-action review-actions">
-			<button class="button-primary cocart-review-switch-step" data-step="3" aria-label="<?php echo esc_html__( 'Yes', 'cart-rest-api-for-woocommerce' ); ?>"><?php echo esc_html__( 'Yes', 'cart-rest-api-for-woocommerce' ); ?></button>
-			<button class="button cocart-review-switch-step" data-step="2" aria-label="<?php echo esc_html__( 'Not Really', 'cart-rest-api-for-woocommerce' ); ?>"><?php echo esc_html__( 'Not Really', 'cart-rest-api-for-woocommerce' ); ?></button>
+			<button class="button-primary cocart-review-switch-step" data-step="3"><?php echo esc_html__( 'Yes', 'cart-rest-api-for-woocommerce' ); ?></button>
+			<button class="button cocart-review-switch-step" data-step="2"><?php echo esc_html__( 'Not Really', 'cart-rest-api-for-woocommerce' ); ?></button>
 		</div>
 	</div>
 
@@ -77,8 +77,8 @@ $current_user = wp_get_current_user(); // phpcs:ignore WordPress.WP.GlobalVariab
 		</div>
 
 		<div class="cocart-action review-actions">
-			<a href="<?php echo esc_url( COCART_REVIEW_URL ); ?>" class="button button-primary cocart-notice-dismiss" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Ok, you deserve it!', 'cart-rest-api-for-woocommerce' ); ?></a>
-			<a href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'cocart-hide-notice', 'plugin_review', CoCart_Helpers::cocart_get_current_admin_url() ), 'cocart_hide_notices_nonce', '_cocart_notice_nonce' ) ); ?>" class="no-thanks" aria-label="<?php echo esc_html__( 'Hide this notice forever.', 'cart-rest-api-for-woocommerce' ); ?>"><?php echo esc_html__( 'No thank you', 'cart-rest-api-for-woocommerce' ); ?></a>
+			<a href="<?php echo esc_url( COCART_REVIEW_URL ); ?>" class="button button-primary cocart-notice-dismiss" target="_blank" rel="noopener noreferrer" role="button"><?php esc_html_e( 'Ok, you deserve it!', 'cart-rest-api-for-woocommerce' ); ?></a>
+			<a href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'cocart-hide-notice', 'plugin_review', CoCart_Helpers::cocart_get_current_admin_url() ), 'cocart_hide_notices_nonce', '_cocart_notice_nonce' ) ); ?>" class="no-thanks" aria-label="<?php echo esc_html__( 'Hide this notice forever.', 'cart-rest-api-for-woocommerce' ); ?>" role="button"><?php echo esc_html__( 'No thank you', 'cart-rest-api-for-woocommerce' ); ?></a>
 		</div>
 	</div>
 </div>

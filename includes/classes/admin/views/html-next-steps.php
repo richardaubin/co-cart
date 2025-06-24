@@ -42,6 +42,7 @@ $campaign_args = CoCart_Helpers::cocart_campaign( // phpcs:ignore: WordPress.Nam
 	<p><?php esc_html_e( 'Get product updates, tutorials and more straight to your inbox.', 'cart-rest-api-for-woocommerce' ); ?></p>
 	<form action="https://xyz.us1.list-manage.com/subscribe/post?u=48ead612ad85b23fe2239c6e3&amp;id=d462357844&amp;SIGNUPPAGE=plugin" method="post" target="_blank" rel="noopener noreferrer" novalidate>
 		<div class="newsletter-form-container">
+			<label for="newsletter-email" class="screen-reader-text"><?php esc_html_e( 'Email address', 'cart-rest-api-for-woocommerce' ); ?></label>
 			<input
 				class="newsletter-form-email"
 				type="email"
@@ -72,7 +73,7 @@ $campaign_args = CoCart_Helpers::cocart_campaign( // phpcs:ignore: WordPress.Nam
 		</div>
 		<div class="cocart-next-step-action">
 			<p class="cocart-actions step">
-				<a class="button button-primary button-large cocart-button" href="<?php echo esc_url( COCART_DOCUMENTATION_URL ); ?>" target="_blank" rel="noopener noreferrer">
+				<a class="button button-primary button-large cocart-button" href="<?php echo esc_url( COCART_DOCUMENTATION_URL ); ?>" target="_blank" rel="noopener noreferrer" role="button">
 					<?php esc_html_e( 'View Documentation', 'cart-rest-api-for-woocommerce' ); ?>
 				</a>
 			</p>
@@ -86,7 +87,7 @@ $campaign_args = CoCart_Helpers::cocart_campaign( // phpcs:ignore: WordPress.Nam
 		</div>
 		<div class="cocart-next-step-action">
 			<p class="cocart-actions step">
-				<a class="button button-large cocart-button" href="<?php echo esc_url( admin_url( 'plugin-install.php?tab=cocart' ) ); ?>" target="_blank">
+				<a class="button button-large cocart-button" href="<?php echo esc_url( admin_url( 'plugin-install.php?tab=cocart' ) ); ?>" target="_blank" role="button">
 					<?php esc_html_e( 'View Plugin Suggestions', 'cart-rest-api-for-woocommerce' ); ?>
 				</a>
 			</p>
@@ -108,7 +109,7 @@ $campaign_args = CoCart_Helpers::cocart_campaign( // phpcs:ignore: WordPress.Nam
 					printf(
 						/* translators: %1$s: Hyperlink opening, %2$s: Hyperlink closing, %3$s: CoCart */
 						esc_html__( 'Is %3$s not translated in your language or do you spot errors with the current translations? Helping out is easy!', 'cart-rest-api-for-woocommerce' ),
-						'<a href="' . esc_url( COCART_TRANSLATION_URL ) . '" aria-label="' . esc_html__( 'Help translate', 'cart-rest-api-for-woocommerce' ) . '" title="' . esc_html__( 'Help translate', 'cart-rest-api-for-woocommerce' ) . ' "target="_blank" rel="noopener noreferrer">',
+						'<a href="' . esc_url( COCART_TRANSLATION_URL ) . '" title="' . esc_html__( 'Help translate', 'cart-rest-api-for-woocommerce' ) . ' "target="_blank" rel="noopener noreferrer">',
 						'</a>',
 						'CoCart'
 					);
@@ -130,7 +131,7 @@ $campaign_args = CoCart_Helpers::cocart_campaign( // phpcs:ignore: WordPress.Nam
 					);
 					?>
 					</p>
-					<a class="button cocart-button-alt" href="<?php echo esc_url( CoCart_Helpers::build_shortlink( add_query_arg( $campaign_args, esc_url( COCART_STORE_URL . 'community/' ) ) ) ); ?>" target="_blank"><?php esc_html_e( 'Join Community', 'cart-rest-api-for-woocommerce' ); ?></a>
+					<a class="button cocart-button-alt" href="<?php echo esc_url( CoCart_Helpers::build_shortlink( add_query_arg( $campaign_args, esc_url( COCART_STORE_URL . 'community/' ) ) ) ); ?>" target="_blank" role="button"><?php esc_html_e( 'Join Community', 'cart-rest-api-for-woocommerce' ); ?></a>
 				</div>
 				<?php
 				// Only show upgrade option if neither CoCart Plus, Pro or above is found.
@@ -165,7 +166,7 @@ $campaign_args = CoCart_Helpers::cocart_campaign( // phpcs:ignore: WordPress.Nam
 						<span id="minutes"></span>:<span id="seconds"></span> <?php echo esc_html_e( 'left to upgrade with a 20% discount!', 'cart-rest-api-for-woocommerce' ); ?>
 					</div>
 
-					<a class="button button-large cocart-button-alt" id="upgrade-button" href="<?php echo 0 === $time_left ? esc_url( CoCart_Helpers::build_shortlink( add_query_arg( $campaign_args, esc_url( COCART_STORE_URL . 'pricing/' ) ) ) ) : esc_url( CoCart_Helpers::build_shortlink( add_query_arg( $campaign_args, esc_url( COCART_STORE_URL . 'why-upgrade/' ) ) ) ); ?>" target="_blank" rel="noopener noreferrer">
+					<a class="button button-large cocart-button-alt" id="upgrade-button" href="<?php echo 0 === $time_left ? esc_url( CoCart_Helpers::build_shortlink( add_query_arg( $campaign_args, esc_url( COCART_STORE_URL . 'pricing/' ) ) ) ) : esc_url( CoCart_Helpers::build_shortlink( add_query_arg( $campaign_args, esc_url( COCART_STORE_URL . 'why-upgrade/' ) ) ) ); ?>" target="_blank" rel="noopener noreferrer" role="button">
 					<?php
 					echo 0 === $time_left ?
 					esc_html__( 'View Pricing', 'cart-rest-api-for-woocommerce' ) :

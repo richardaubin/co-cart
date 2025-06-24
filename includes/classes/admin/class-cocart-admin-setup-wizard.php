@@ -196,7 +196,7 @@ class CoCart_Admin_Setup_Wizard extends CoCart_Submenu_Page {
 
 		set_current_screen( 'cocart-setup-wizard' );
 		?>
-		<div class="wrap cocart-wrapped cocart-setup-wizard <?php echo esc_attr( 'cocart-setup-step__' . $this->step ); ?>">
+		<div class="wrap cocart-wrapped cocart-setup-wizard <?php echo esc_attr( 'cocart-setup-step__' . $this->step ); ?>" role="main">
 			<h1>
 				<a href="<?php echo esc_url( $store_url ); ?>" target="_blank" rel="noopener noreferrer">
 					<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/cocart-logo.svg' ); ?>" alt="CoCart Logo" style="margin-bottom: 1em;" /><?php // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
@@ -313,7 +313,7 @@ class CoCart_Admin_Setup_Wizard extends CoCart_Submenu_Page {
 			<p><?php esc_html_e( 'If you don’t want to go through the wizard right now, you can skip it and come back anytime if you change your mind!', 'cart-rest-api-for-woocommerce' ); ?></p>
 
 			<label for="multiple_domains"><?php esc_html_e( 'Will your headless setup use multiple domains?', 'cart-rest-api-for-woocommerce' ); ?></label>
-			<select id="multiple_domains" name="multiple_domains" aria-label="<?php esc_attr_e( 'Multiple Domains', 'cart-rest-api-for-woocommerce' ); ?>" class="select-input dropdown">
+			<select id="multiple_domains" name="multiple_domains" class="select-input dropdown">
 				<option value="no"><?php echo esc_html__( 'No', 'cart-rest-api-for-woocommerce' ); ?></option>
 				<option value="yes"><?php echo esc_html__( 'Yes', 'cart-rest-api-for-woocommerce' ); ?></option>
 			</select>
@@ -321,7 +321,7 @@ class CoCart_Admin_Setup_Wizard extends CoCart_Submenu_Page {
 			<span><?php esc_html_e( 'If you are using multiple domains for your headless setup, installing support for CORS is recommended.', 'cart-rest-api-for-woocommerce' ); ?> <a href="<?php echo esc_url( 'https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'What is CORS?', 'cart-rest-api-for-woocommerce' ); ?></a></span>
 
 			<label for="jwt_authentication"><?php esc_html_e( 'Do you require support for JWT Authentication?', 'cart-rest-api-for-woocommerce' ); ?></label>
-			<select id="jwt_authentication" name="jwt_authentication" aria-label="<?php esc_attr_e( 'JWT Authentication', 'cart-rest-api-for-woocommerce' ); ?>" class="select-input dropdown">
+			<select id="jwt_authentication" name="jwt_authentication" class="select-input dropdown">
 				<option value="no"><?php echo esc_html__( 'No', 'cart-rest-api-for-woocommerce' ); ?></option>
 				<option value="yes"><?php echo esc_html__( 'Yes', 'cart-rest-api-for-woocommerce' ); ?></option>
 			</select>

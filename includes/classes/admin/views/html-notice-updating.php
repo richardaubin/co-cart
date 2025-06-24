@@ -18,7 +18,7 @@ $pending_actions_url = admin_url( 'admin.php?page=wc-status&tab=action-scheduler
 $cron_disabled       = ! defined( 'DISABLE_WP_CRON' ) ? false : true; // phpcs:ignore: WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $cron_cta            = $cron_disabled ? __( 'You can manually run queued updates here.', 'cart-rest-api-for-woocommerce' ) : __( 'View progress &rarr;', 'cart-rest-api-for-woocommerce' ); // phpcs:ignore: WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 ?>
-<div class="notice notice-info cocart-notice is-dismissible">
+<div class="notice notice-info cocart-notice is-dismissible" role="alert">
 	<p>
 		<?php
 		printf(
