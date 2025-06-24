@@ -183,6 +183,15 @@ ul.cocart-next-steps {
 	}
 }
 
+#countdown-timer {
+	color: variables.$yellow;
+	font-size: 1.2em;
+	font-weight: bold;
+	margin: 10px 0;
+	text-align: center;
+	transition: opacity 0.5s ease-out;
+}
+
 .tweet-share {
 	display: flex;
 	padding: 0;

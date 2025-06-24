@@ -46,8 +46,16 @@ body.cocart-pagestyles .wp-header-end {
 }
 .cocart-wrapped .column.wide.has-background {
   background-color: #fff;
+  background: linear-gradient(-135deg, #1f1e30 0%, #3d2e5c 40%, #5a3a85 70%, #804e9b 100%);
+  color: #fff;
   padding: 2em;
   margin: -8px;
+}
+.cocart-wrapped .column.wide.has-background h3 {
+  color: #fff;
+  line-height: 0;
+  margin: 1em auto;
+  text-align: right;
 }
 .cocart-wrapped .column .button {
   margin: 1em 0 !important;
@@ -94,6 +102,7 @@ body:not(.rtl).cocart-pagestyles #wpbody {
 .cocart-pagestyles a.cocart-button-alt:focus,
 .cocart-pagestyles button.cocart-button-alt:hover,
 .cocart-pagestyles button.cocart-button-alt:focus {
+  background-color: #f0f0f1;
   border-color: #5329c4 !important;
   color: #212023 !important;
 }
@@ -101,6 +110,14 @@ body:not(.rtl).cocart-pagestyles #wpbody {
 .cocart-pagestyles button:focus,
 .cocart-pagestyles .button-primary:focus {
   text-decoration-thickness: 4px;
+}
+.cocart-pagestyles #upgrade-button {
+  border: 2px solid #fff;
+  box-shadow: -2px 2px 6px -4px #151515 !important;
+  grid-area: inherit;
+  height: -moz-fit-content;
+  height: fit-content;
+  margin: 0 auto !important;
 }
 
 @media screen and (min-width: 783px) {
@@ -395,6 +412,15 @@ ul.cocart-next-steps .cocart-additional-steps .cocart-actions {
 ul.cocart-next-steps .cocart-additional-steps .cocart-actions .button {
   font-size: 15px;
   margin: 1em 1.5em 1em 0;
+}
+
+#countdown-timer {
+  color: #f1e865;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 10px 0;
+  text-align: center;
+  transition: opacity 0.5s ease-out;
 }
 
 .tweet-share {
