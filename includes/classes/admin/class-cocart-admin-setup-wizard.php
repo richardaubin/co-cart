@@ -199,7 +199,7 @@ class CoCart_Admin_Setup_Wizard extends CoCart_Submenu_Page {
 		<div class="wrap cocart-wrapped cocart-setup-wizard <?php echo esc_attr( 'cocart-setup-step__' . $this->step ); ?>">
 			<h1>
 				<a href="<?php echo esc_url( $store_url ); ?>" target="_blank" rel="noopener noreferrer">
-					<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/cocart-logo.svg' ); ?>" alt="CoCart Logo" /><?php // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
+					<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/cocart-logo.svg' ); ?>" alt="CoCart Logo" style="margin-bottom: 1em;" /><?php // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
 				</a>
 			</h1>
 		<?php

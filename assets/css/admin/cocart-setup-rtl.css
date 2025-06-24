@@ -1,3 +1,7 @@
+.hide {
+  display: none;
+}
+
 body.cocart-pagestyles .wp-header-end {
   clear: both;
 }
@@ -23,6 +27,35 @@ body.cocart-pagestyles .wp-header-end {
 .cocart-wrapped .cocart-content.inner form {
   padding: 24px;
 }
+.cocart-wrapped .cocart-content a {
+  color: #6032b0;
+}
+.cocart-wrapped .cocart-content a:hover, .cocart-wrapped .cocart-content a:focus {
+  color: #151515;
+}
+.cocart-wrapped .cocart-content p {
+  color: #72777c;
+  font-size: 14px;
+  line-height: 1.75;
+}
+.cocart-wrapped .cocart-content p:first-of-type {
+  margin-top: 0;
+}
+.cocart-wrapped .cocart-content p:last-child {
+  margin-bottom: 0;
+}
+.cocart-wrapped .cocart-content label {
+  color: #72777c;
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 0.5em;
+  margin-top: 0.85em;
+}
+.cocart-wrapped .cocart-content span {
+  display: inline-block;
+  margin-top: 1rem;
+}
 .cocart-wrapped .column-container {
   align-self: flex-start;
   box-sizing: border-box;
@@ -45,8 +78,8 @@ body.cocart-pagestyles .wp-header-end {
   grid-area: wide;
 }
 .cocart-wrapped .column.wide.has-background {
-  background-color: #fff;
   background: linear-gradient(-135deg, #1f1e30 0%, #3d2e5c 40%, #5a3a85 70%, #804e9b 100%);
+  background-color: #fff;
   color: #fff;
   padding: 2em;
   margin: -8px;
@@ -56,6 +89,10 @@ body.cocart-pagestyles .wp-header-end {
   line-height: 0;
   margin: 1em auto;
   text-align: right;
+}
+.cocart-wrapped .column.wide.has-background p {
+  color: #fff;
+  margin-top: 1em;
 }
 .cocart-wrapped .column .button {
   margin: 1em 0 !important;
@@ -117,7 +154,7 @@ body:not(.rtl).cocart-pagestyles #wpbody {
   grid-area: inherit;
   height: -moz-fit-content;
   height: fit-content;
-  margin: 0 auto !important;
+  margin: 1.4em auto !important;
 }
 
 @media screen and (min-width: 783px) {
@@ -285,7 +322,7 @@ body.cocart-pagestyles .error:not(.cocart-notice) {
 }
 
 .cocart-newsletter {
-  padding: 24px 24px 0;
+  padding: 2em;
   overflow: hidden;
   background: #f5f5f5;
   clear: both;
@@ -296,7 +333,7 @@ body.cocart-pagestyles .error:not(.cocart-notice) {
 }
 .cocart-newsletter form,
 .cocart-newsletter p:last-child {
-  margin: 0 0 24px;
+  margin: 0;
 }
 .cocart-newsletter .newsletter-form-container {
   display: flex;
@@ -419,7 +456,7 @@ ul.cocart-next-steps .cocart-additional-steps .cocart-actions .button {
   font-size: 1.2em;
   font-weight: bold;
   margin: 10px 0;
-  text-align: center;
+  text-align: right;
   transition: opacity 0.5s ease-out;
 }
 
@@ -462,67 +499,39 @@ ul.cocart-next-steps .cocart-additional-steps .cocart-actions .button {
 }
 
 .cocart-content table {
-  margin: 0 0 20px;
   border: 0;
-  padding: 0;
-  color: #666;
   clear: none;
+  color: #72777c;
   font-weight: 500;
-}
-.cocart-content p {
-  line-height: 1.75;
-  color: #666;
-}
-.cocart-content p:first-of-type {
-  margin-top: 0;
-}
-.cocart-content p:last-child {
-  margin-bottom: 0;
-}
-.cocart-content label {
-  color: #666;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 0.5em;
-  margin-top: 0.85em;
-  display: inline-block;
+  margin: 0 0 20px;
+  padding: 0;
 }
 .cocart-content .select-input {
+  background-color: #fff;
   border: 1px solid #aaa;
   border-color: #ddd;
   border-radius: 4px;
+  color: #444;
+  display: block;
+  font-size: 16px;
   height: 30px;
-  width: calc(100% - 8px - 8px - 2px);
   padding-right: 8px;
   padding-left: 8px;
-  font-size: 16px;
-  color: #444;
-  background-color: #fff;
-  display: block;
+  width: calc(100% - 8px - 8px - 2px);
 }
 .cocart-content .select-input.dropdown {
-  width: 100%;
   max-width: 100%;
-}
-.cocart-content span {
-  display: inline-block;
-  margin-top: 1rem;
+  width: 100%;
 }
 .cocart-content table {
+  color: #72777c;
   font-size: 1em;
   line-height: 1.75;
-  color: #666;
-}
-.cocart-content a {
-  color: #6032b0;
-}
-.cocart-content a:hover, .cocart-content a:focus {
-  color: #151515;
 }
 .cocart-content .form-table th {
-  width: 35%;
-  vertical-align: top;
   font-weight: 400;
+  vertical-align: top;
+  width: 35%;
 }
 .cocart-content .form-table td {
   vertical-align: top;
@@ -644,10 +653,6 @@ ul.cocart-next-steps .cocart-additional-steps .cocart-actions .button {
   margin: 1.18em auto;
   display: flow-root;
   text-align: center;
-}
-
-.hide {
-  display: none;
 }
 
 .step {

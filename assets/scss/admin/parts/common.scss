@@ -29,6 +29,10 @@
 	color: variables.$black !important;
 }
 
+.hide {
+	display: none;
+}
+
 body.cocart-pagestyles .wp-header-end {
 	clear: both;
 }
@@ -55,6 +59,44 @@ body.cocart-pagestyles .wp-header-end {
 				padding: 24px;
 			}
 		}
+
+		a {
+			color: variables.$cocart;
+
+			&:hover,
+			&:focus {
+				color: variables.$shadow;
+			}
+		}
+
+		p {
+			color: variables.$grey;
+			font-size: 14px;
+			line-height: 1.75;
+		}
+
+		p:first-of-type {
+			margin-top: 0;
+		}
+
+		p:last-child {
+			margin-bottom: 0;
+		}
+
+		label {
+			color: variables.$grey;
+			display: inline-block;
+			font-size: 14px;
+			font-weight: 600;
+			margin-bottom: 0.5em;
+			margin-top: 0.85em;
+		}
+
+		span {
+			display: inline-block;
+			margin-top: 1rem;
+		}
+
 	}
 
 	.column-container {
@@ -82,8 +124,8 @@ body.cocart-pagestyles .wp-header-end {
 			grid-area: wide;
 
 			&.has-background {
-				background-color: variables.$white;
 				background: linear-gradient( 135deg, #1f1e30 0%, #3d2e5c 40%, #5a3a85 70%, #804e9b 100% );
+				background-color: variables.$white;
 				color: variables.$white;
 				padding: 2em;
 				margin: -8px;
@@ -93,6 +135,11 @@ body.cocart-pagestyles .wp-header-end {
 					line-height: 0;
 					margin: 1em auto;
 					text-align: left;
+				}
+
+				p {
+					color: variables.$white;
+					margin-top: 1em;
 				}
 			}
 		}
@@ -156,7 +203,7 @@ body:not(.rtl).cocart-pagestyles {
 		box-shadow: 2px 2px 6px -4px variables.$shadow !important;
 		grid-area: inherit;
 		height: fit-content;
-		margin: 0 auto !important;
+		margin: 1.4em auto !important;
 	}
 }
 
