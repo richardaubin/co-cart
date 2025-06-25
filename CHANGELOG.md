@@ -15,8 +15,12 @@
 
 * REST API: Basic authentication is detected much better.
 * REST API: Authentication failures now has debug logs.
-* WordPress Dashboard: Screen reader support has been applied 100%.
+* WordPress Dashboard: Semantic markup overhaul for better screen reader interpretation.
 * WordPress Dashboard: Setup wizard and Support pages have been updated.
+
+## Compatibility
+
+* Tested with WooCommerce v10
 
 ## v4.5.0 - 31st May, 2025
 
