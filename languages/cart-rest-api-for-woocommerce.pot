@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CoCart API - Headless WooCommerce Made Easy 4.6.0\n"
 "Report-Msgid-Bugs-To: https://github.com/co-cart/co-cart/issues\n"
-"POT-Creation-Date: 2025-06-24 17:44:54+00:00\n"
+"POT-Creation-Date: 2025-06-25 03:34:45+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -789,68 +789,46 @@ msgstr ""
 msgid "Install WooCommerce"
 msgstr ""
 
-#: includes/classes/admin/views/html-setup-ready.php:19
-#. translators: %1$s: link to developers resources
-msgid ""
-"Visit CoCart.dev to access <a href=\"%1$s\" target=\"_blank\" "
-"rel=\"noopener noreferrer\">developer resources</a>."
-msgstr ""
-
-#: includes/classes/admin/views/html-setup-ready.php:23
+#: includes/classes/admin/views/html-setup-ready.php:17
 msgid "You're ready!"
 msgstr ""
 
-#: includes/classes/admin/views/html-setup-ready.php:29
+#: includes/classes/admin/views/html-setup-ready.php:23
 #. translators: %s: CoCart
 msgid ""
-"Now that you have %1$s installed, your ready to start developing your "
-"headless store."
+"Now that you have %s installed, your ready to start developing your "
+"headless store in modern and scalable storefront with confidence "
+"independent of WordPress using frameworks like Astro, React, Vue, or "
+"Next.js, gaining complete control over your customers experience no matter "
+"what your store sells."
 msgstr ""
 
-#: includes/classes/admin/views/html-setup-ready.php:40
-#. translators: %1$s: CoCart, %2$s: GitHub repository link
+#: includes/classes/admin/views/html-setup-ready.php:34
+#. translators: %1$s: link to frequently asked questions, %2$s: link to contact
+#. support
 msgid ""
-"In the documentation you will find references to the API routes available "
-"with some examples. If you want to modify or extend %1$s in any way, there "
-"are over 100+ action hooks and filters for developers to use that can "
-"customize %1$s to your specific needs, which you can <a href=\"%2$s\" "
-"target=\"_blank\" rel=\"noopener noreferrer\">search in the GitHub "
-"repository</a>."
+"If you have questions, please check out our most <a href=\"%1$s\" "
+"target=\"_blank\" rel=\"noopener noreferrer\">frequently asked "
+"questions</a>. If you don't find the answer your looking for, <a "
+"href=\"%2$s\">contact support</a>."
 msgstr ""
 
-#: includes/classes/admin/views/html-setup-ready.php:53
-#. translators: %1$s: CoCart, %2$s: Developers Hub link
-msgid ""
-"There is also a <a href=\"%2$s\" target=\"_blank\" rel=\"noopener "
-"noreferrer\">developers hub</a> where you can find all the resources you "
-"need to be productive with %1$s and keep track of everything that is "
-"happening with the plugin including development decisions and scoping of "
-"future versions."
-msgstr ""
-
-#: includes/classes/admin/views/html-setup-ready.php:63
-msgid ""
-"If in need of help, most common questions are answered and guides are "
-"provided on the developers hub. This is best place to look at first before "
-"contacting support."
-msgstr ""
-
-#: includes/classes/admin/views/html-setup-ready.php:71
+#: includes/classes/admin/views/html-setup-ready.php:46
 #. translators: %1$s: CoCart, %2$s: Discord
 msgid ""
 "Want to talk to someone about converting your WooCommerce store headless? "
 "Come join the %1$s community on %2$s."
 msgstr ""
 
-#: includes/classes/admin/views/html-setup-ready.php:78
+#: includes/classes/admin/views/html-setup-ready.php:53
 msgid "Thank you and enjoy!"
 msgstr ""
 
-#: includes/classes/admin/views/html-setup-ready.php:80
+#: includes/classes/admin/views/html-setup-ready.php:55
 msgid "Regards,"
 msgstr ""
 
-#: includes/classes/admin/views/html-setup-ready.php:92
+#: includes/classes/admin/views/html-setup-ready.php:67
 #. translators: %s: CoCart Headless, LLC
 msgid "Founder of %s"
 msgstr ""
