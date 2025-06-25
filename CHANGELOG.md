@@ -1,5 +1,23 @@
 # Changelog for CoCart Core
 
+## v4.6.0 - ?? June, 2025
+
+### What's new?
+
+* WordPress dot ORG: Added a Playground blueprint.
+
+### Changes
+
+* Plugin: Branding for CoCart has been updated.
+* Plugin: Styling for CoCart pages have been improved and more consistent on all pages by reducing conflicts with WordPress and WooCommerce styling.
+
+### Improvements
+
+* REST API: Basic authentication is detected much better.
+* REST API: Authentication failures now has debug logs.
+* WordPress Dashboard: Screen reader support has been applied 100%.
+* WordPress Dashboard: Setup wizard and Support pages have been updated.
+
 ## v4.5.0 - 31st May, 2025
 
 This release will most likely be the last update released on the WordPress plugin directory with anything NEW added.
