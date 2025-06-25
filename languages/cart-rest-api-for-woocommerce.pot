@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CoCart API - Headless WooCommerce Made Easy 4.6.0\n"
 "Report-Msgid-Bugs-To: https://github.com/co-cart/co-cart/issues\n"
-"POT-Creation-Date: 2025-06-25 03:34:45+00:00\n"
+"POT-Creation-Date: 2025-06-25 05:02:22+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -1477,12 +1477,12 @@ msgstr ""
 msgid "Request returned nothing for \"%s\"! Please seek assistance."
 msgstr ""
 
-#: includes/classes/rest-api/class-cocart-rest-api.php:545
-#: includes/classes/rest-api/class-cocart-rest-api.php:590
+#: includes/classes/rest-api/class-cocart-rest-api.php:551
+#: includes/classes/rest-api/class-cocart-rest-api.php:596
 msgid "User switching is now deprecated."
 msgstr ""
 
-#: includes/classes/rest-api/class-cocart-rest-api.php:566
+#: includes/classes/rest-api/class-cocart-rest-api.php:572
 #. translators: %1$s is previous ID, %2$s is current ID.
 msgid "User has changed! Was %1$s before and is now %2$s"
 msgstr ""

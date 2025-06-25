@@ -27,7 +27,7 @@ function cocart_pg_welcome() {
 	if ( ! in_array( $screen_id, array( 'dashboard' ) ) ) {
 		return;
 	}
-?>
+	?>
 	<div id="welcome-panel" class="welcome-panel" style="background-color: #6032b0; width: 99%;">
 		<div class="welcome-panel-content">
 			<div class="welcome-panel-header">
@@ -37,7 +37,7 @@ function cocart_pg_welcome() {
 						<path stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.066 4.75H14.25l-1.566 5.088a2 2 0 0 1-1.911 1.412H6.55a2 2 0 0 1-1.99-1.79l-.623-5.92A2 2 0 0 0 1.95 1.75H1.75"/>
 					</svg> <?php _e( 'Welcome to your CoCart Playground!' ); ?></h2>
 				<p>
-					<a href="<?php echo esc_url( 'https://cocartapi.com/?ref=wpplayground'); ?>" target="_blank">
+					<a href="<?php echo esc_url( 'https://cocartapi.com/?ref=wpplayground' ); ?>" target="_blank">
 						<?php _e( 'Learn more about CoCart.' ); ?>
 					</a>
 				</p>
@@ -51,7 +51,7 @@ function cocart_pg_welcome() {
 						<h3><?php _e( 'Base URL' ); ?></h3>
 						<p><?php _e( 'The base URL is where your WordPress is installed. All requests made to the CoCart API is via your WordPress site url.' ); ?></p>
 						<p><?php _e( 'Use the base URL below for this playground.' ); ?></p>
-						<code><?php echo get_rest_url() ?></code>
+						<code><?php echo get_rest_url(); ?></code>
 					</div>
 				</div>
 				<div class="welcome-panel-column">
