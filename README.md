@@ -22,7 +22,7 @@ Build modern headless stores with WooCommerce faster — with the REST API purpo
 
 #### Why our API makes sense
 
-CoCart chose to support WooCommerce because it was missing a key component to decouple WooCommerce via the REST API efficiently. CoCart provides a **flexible and efficient** way to build cutting-edge stores with WooCommerce at its core.
+CoCart chose to support WooCommerce because it provides a more efficient way to decouple WooCommerce via the REST API. Our intuitive API handles management, calculations, and processing, delivering optimal performance across any configuration.
 
 #### 🔧 Built to Solve Real Headless Challenges
 
