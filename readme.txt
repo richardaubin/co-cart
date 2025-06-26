@@ -14,7 +14,7 @@ The best REST-API to decouple your WooCommerce store with. Fast, secure, customi
 
 == Description ==
 
-**CoCart: Headless API for developers**
+**CoCart: Headless API for Developers**
 
 With [CoCart](https://cocartapi.com/?utm_medium=website&utm_source=wpplugindirectory&utm_campaign=readme&utm_content=readmelink), you get the best REST-API to decouple your WooCommerce store. **Fast, secure, customizable, easy.**
 
