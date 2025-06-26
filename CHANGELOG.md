@@ -20,7 +20,7 @@ This release is a compatibility release for the next WooCommerce release.
 * WordPress Dashboard: Semantic markup overhaul for better screen reader interpretation.
 * WordPress Dashboard: Setup wizard and Support pages have been updated.
 
-## Compatibility
+### Compatibility
 
 * Tested with WooCommerce v10.0
 
