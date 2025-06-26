@@ -1,6 +1,8 @@
 # Changelog for CoCart Core
 
-## v4.6.0 - ?? June, 2025
+## v4.6.0 - 26th June, 2025
+
+This release is a compatibility release for the next WooCommerce release.
 
 ### What's new?
 
@@ -20,7 +22,7 @@
 
 ## Compatibility
 
-* Tested with WooCommerce v10
+* Tested with WooCommerce v10.0
 
 ## v4.5.0 - 31st May, 2025
 

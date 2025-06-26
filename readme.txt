@@ -6,7 +6,7 @@ Requires PHP: 7.4
 Tested up to: 6.8
 Stable tag: 4.6.0
 WC requires at least: 7.0
-WC tested up to: 9.9
+WC tested up to: 10.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -297,6 +297,30 @@ We’d love to hear what you have to say. [Share your experience](https://testim
 
 📢 Only bug and security updates will be provided here on WordPress dot ORG. Any new major updates starting with v5.0 will be provided [directly from us](https://cocartapi.com?utm_medium=website&utm_source=wpplugindirectory&utm_campaign=readme&utm_content=readmelink).
 
+= v4.6.0 - 26th June, 2025 =
+
+This release is a compatibility release for the next WooCommerce release.
+
+### What's new?
+
+* WordPress dot ORG: Added a Playground blueprint.
+
+### Changes
+
+* Plugin: Branding for CoCart has been updated.
+* Plugin: Styling for CoCart pages have been improved and more consistent on all pages by reducing conflicts with WordPress and WooCommerce styling.
+
+### Improvements
+
+* REST API: Basic authentication is detected much better.
+* REST API: Authentication failures now has debug logs.
+* WordPress Dashboard: Semantic markup overhaul for better screen reader interpretation.
+* WordPress Dashboard: Setup wizard and Support pages have been updated.
+
+## Compatibility
+
+* Tested with WooCommerce v10.0
+
 = v4.5.0 - 31st May, 2025 =
 
 This release will most likely be the last update released on the WordPress plugin directory with anything NEW added.
@@ -520,6 +544,6 @@ add_filter( 'cocart_get_customer_billing_country', function( $value ) {
 
 == Upgrade Notice ==
 
-= 4.5.0 =
+= 4.6.0 =
 
-This release will most likely be the last update released on the WordPress plugin directory with anything NEW added.
+This release is a compatibility release for the next WooCommerce release.
