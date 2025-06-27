@@ -849,7 +849,7 @@ class CoCart_Utilities_Cart_Helpers {
 	 *
 	 * @param int|WC_Product $product   The product ID or object.
 	 * @param array          $cart_item The cart item data.
-	 * @param string         $item_key  The item key generated based on the details of the item.
+	 * @param string         $item_key  Generated ID based on the product information when added to the cart.
 	 *
 	 * @return array $item Basic item details.
 	 */
@@ -877,7 +877,7 @@ class CoCart_Utilities_Cart_Helpers {
 		 * @param string     $product_name Product name.
 		 * @param WC_Product $product      The product object.
 		 * @param array      $cart_item    The cart item data.
-		 * @param string     $item_key     The item key generated based on the details of the item.
+		 * @param string     $item_key     Generated ID based on the product information when added to the cart.
 		 */
 		$item['name'] = apply_filters( 'cocart_cart_item_name', $product->get_name(), $product, $cart_item, $item_key );
 
