@@ -5,7 +5,7 @@
  * @author  Sébastien Dumont
  * @package CoCart\Classes
  * @since   2.1.2 Introduced.
- * @version 4.0.0
+ * @version 5.0.0
  * @license GPL-3.0
  */
 
@@ -47,6 +47,12 @@ class CoCart_WooCommerce {
 
 		// Delete user data.
 		add_action( 'delete_user', array( $this, 'delete_user_data' ) );
+
+		// Restore unset default address fields.
+		add_filter( 'woocommerce_default_address_fields', array( $this, 'restore_unset_default_address_fields' ), 99 );
+
+		// Override address fields.
+		add_filter( 'woocommerce_billing_fields', array( $this, 'override_address_fields' ), 99 );
 	} // END __construct()
 
 	/**
@@ -163,6 +169,65 @@ class CoCart_WooCommerce {
 			)
 		);
 	} // END delete_user_data()
+
+	/**
+	 * This ensures that any fields removed by WooCommerce blocks is restored during
+	 * a CoCart REST API request but remains hidden.
+	 *
+	 * @access public
+	 *
+	 * @since 5.0.0 Introduced.
+	 *
+	 * @param array $fields Default fields.
+	 *
+	 * @return array $fields Default fields.
+	 */
+	public function restore_unset_default_address_fields( $fields ) {
+		if ( ! CoCart::is_rest_api_request() ) {
+			return $fields;
+		}
+
+		$fields['company'] = array(
+			'label'        => __( 'Company name', 'cocart-core' ),
+			'class'        => array( 'form-row-wide' ),
+			'autocomplete' => 'organization',
+			'priority'     => 30,
+			'required'     => 'hidden',
+		);
+
+		return $fields;
+	} // END restore_unset_default_address_fields()
+
+	/**
+	 * This ensures that specific fields are not removed during a CoCart REST API request.
+	 *
+	 * @access public
+	 *
+	 * @since 5.0.0 Introduced.
+	 *
+	 * @param array $address_fields Address fields.
+	 *
+	 * @return array $address_fields Address fields.
+	 */
+	public function override_address_fields( $address_fields ) {
+		if ( ! CoCart::is_rest_api_request() ) {
+			return $address_fields;
+		}
+
+		if ( ! in_array( 'billing_phone', $address_fields, true ) ) {
+			$address_fields['billing_phone'] = array(
+				'label'        => __( 'Phone', 'cocart-core' ),
+				'required'     => 'hidden',
+				'type'         => 'tel',
+				'class'        => array( 'form-row-wide' ),
+				'validate'     => array( 'phone' ),
+				'autocomplete' => 'tel',
+				'priority'     => 100,
+			);
+		}
+
+		return $address_fields;
+	} // END override_address_fields()
 } // END class
 
 return new CoCart_WooCommerce();
