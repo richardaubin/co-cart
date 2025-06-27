@@ -55,7 +55,7 @@ final class CoCart {
 	 *
 	 * @var string
 	 */
-	public static $tested_up_to_wp = '6.7';
+	public static $tested_up_to_wp = '6.8';
 
 	/**
 	 * Required WordPress version.
