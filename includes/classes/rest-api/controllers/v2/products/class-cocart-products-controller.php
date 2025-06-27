@@ -144,7 +144,10 @@ class CoCart_REST_Products_V2_Controller extends CoCart_Products_Controller {
 		);
 
 		$response = rest_ensure_response( $results );
-		$response->header( 'X-WP-Total', $query_results['total'] );
+		$response = ( new CoCart_REST_Utilities_Pagination() )->add_headers( $response, $request, $total_items, $max_pages );
+
+		/*
+		$response->header( 'X-WP-Total', $total_items );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
 		$base          = $this->rest_base;
@@ -193,7 +196,7 @@ class CoCart_REST_Products_V2_Controller extends CoCart_Products_Controller {
 				)
 			);
 			$response->link_header( 'next', $next_link );
-		}
+		}*/
 
 		return $response;
 	} // END get_items()
