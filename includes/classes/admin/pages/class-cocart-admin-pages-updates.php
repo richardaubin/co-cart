@@ -76,11 +76,7 @@ class CoCart_Admin_Updates_Page extends CoCart_Submenu_Page {
 
 		$license_error = get_option( 'cocart_license_error' );
 		?>
-		<div class="wrap cocart-wrapped">
-			<h1 class="cocart-logo">
-				<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/header-logo.png' ); ?>" alt="CoCart Logo" />
-			</h1>
-
+		<div class="wrap cocart-wrapped" role="main">
 			<?php settings_errors(); ?>
 
 			<div class="cocart-content inner" id="cocart-license-information">
@@ -153,6 +149,7 @@ class CoCart_Admin_Updates_Page extends CoCart_Submenu_Page {
 				?>
 			</div>
 		</div>
+		<div class="clear"></div>
 		<?php
 	} // END output()
 
@@ -483,8 +480,8 @@ class CoCart_Admin_Updates_Page extends CoCart_Submenu_Page {
 						<?php echo esc_html( $item->get_title() ); ?>
 					</a>
 					<?php
-					//$desc = html_entity_decode( $item->get_description(), ENT_QUOTES, get_option( 'blog_charset' ) );
-					//echo esc_attr( wp_trim_words( $desc, 60, ' ...' ) );
+					// $desc = html_entity_decode( $item->get_description(), ENT_QUOTES, get_option( 'blog_charset' ) );
+					// echo esc_attr( wp_trim_words( $desc, 60, ' ...' ) );
 					?>
 				</li>
 				<?php
