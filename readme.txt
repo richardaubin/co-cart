@@ -217,9 +217,7 @@ You will first need WooCommerce installed and set up to your configurations. The
 
 = Why use CoCart and not WooCommerce’s Store API? =
 
-WooCommerce’s Store API is designed for the Gutenberg blocks which only requires a fixed format and is used on native storefronts. A lot of valuable information and abilities that developers require to help them are also unavailable.
-
-CoCart's API is designed for decoupling away from WordPress with ease while the Store API is not. CoCart is a plug-and-play solution that just works out of the box. Also, improvements are always made to CoCart to ensure you get the best decoupled experience.
+To better answer this question in detail, please read [our comparison article](https://cocartapi.com/cocart-vs-woocommerces-store-api/?utm_medium=website&utm_source=wpplugindirectory&utm_campaign=readme&utm_content=readmelink).
 
 = Do I need to have coding skills to use CoCart? =
 

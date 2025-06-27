@@ -24,7 +24,7 @@ Build modern headless stores with WooCommerce faster — with the REST API purpo
 
 CoCart chose to support WooCommerce because it provides a more efficient way to decouple WooCommerce via the REST API. Our intuitive API handles management, calculations, and processing, delivering optimal performance across any configuration.
 
-[See comparison](#comparison-table)
+[Compare CoCart vs Woo Store API](https://cocartapi.com/cocart-vs-woocommerces-store-api/?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore)
 
 #### 🔧 Built to Solve Real Headless Challenges
 
@@ -160,39 +160,6 @@ We have different channels at your disposal where you can find information about
   <li>🐞 <strong>GitHub</strong>: we use GitHub for bugs and pull requests, doubts are solved with the community.</li>
   <li>🐦 <strong>Social media</strong>: a more informal place to interact with CoCart users, reach out to us on <a href="https://twitter.com/cocartapi">Twitter.</a></li>
 </ul>
-
-## Comparison Table
-
-Here is a comparison between WooCommerce Store API and CoCart API.
-
-| Feature | Store API | CoCart |
-| ------- | --------- | ------ |
-| Cart API | 90% Only | 100%¹ (with cart fees) |
-| Products API | Yes | Yes (with pagination) |
-| Checkout API | Yes | No (not yet) |
-| Name Your Price | No | Yes (built in) |
-| Nonce Required | Yes | No² |
-| Basic Auth | No | Yes |
-| JWT Auth | No | Yes (with add-on) |
-| Marketing Supported | No | Yes |
-| Load Cart Native | No | Yes |
-| CORS Supported | No | Yes |
-| Rate Limiting | Yes | Yes¹ |
-| Batch Requests | Yes (standard) | Yes (standard in core) (premium with CoCart Plus) |
-| Restrict Route Access | No | Yes |
-| Monitor Cart Sessions | No | Yes |
-| Action Hooks and Filters | Some | Lost count (100+) |
-| Cache Support | No | Yes³ |
-| WP-CLI | No | Yes (coming soon) |
-| OpenAPI Spec | No | Yes (coming soon) |
-
-¹ This feature or other API's are provided with CoCart Plus.
-
-² Not required as it doesn't support authentication or decoupling. This has to be manually disabled with Store API for headless support.
-
-³ CoCart is pre-configured with most popular cache plugins to prevent conflicts for a smooth experience.
-
-> ⚠️ The checkout API with Store API is not intuitive and they do not comprehensively list all expected requests for all payment gateways, which is not really a great help. CoCart is working on making a checkout API that is intuitive. Contact support for a hack trick for now.
 
 ---
 
