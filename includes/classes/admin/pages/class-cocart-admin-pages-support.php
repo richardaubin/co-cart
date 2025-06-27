@@ -39,18 +39,14 @@ class CoCart_Admin_Support_Page extends CoCart_Submenu_Page {
 		);
 		$store_url     = CoCart_Helpers::build_shortlink( add_query_arg( $campaign_args, COCART_STORE_URL ) );
 		?>
-		<div class="wrap cocart-wrapped">
-			<h1 class="cocart-logo">
-				<a href="<?php echo esc_url( $store_url ); ?>" target="_blank" rel="noopener noreferrer">
-					<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/header-logo.png' ); ?>" alt="CoCart Logo" /><?php // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
-				</a>
-			</h1>
+		<div class="wrap cocart-wrapped" role="main">
 			<div class="cocart-content">
 			<?php
 			include_once COCART_ABSPATH . 'includes/classes/admin/views/html-next-steps.php';
 			?>
 			</div>
 		</div>
+		<div class="clear"></div>
 		<?php
 	} // END output()
 

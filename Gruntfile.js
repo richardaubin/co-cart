@@ -34,7 +34,7 @@ module.exports = function(grunt) {
 						cwd: '<%= dirs.scss %>/admin/',
 						src: [
 							'**/*.scss',
-							'!cocart-updates.scss'
+							'!parts/*.scss', // Exclude partials.
 						],
 						dest: '<%= dirs.css %>/admin/',
 						ext: '.css'
@@ -185,7 +185,12 @@ module.exports = function(grunt) {
 				options: {
 					cwd: '',
 					domainPath: 'languages', // Where to save the POT file.
-					exclude: [ 'releases', 'node_modules', 'vendor' ], // List of files or directories to ignore.
+					exclude: [ // List of files or directories to ignore.
+						'.wordpress-org',
+						'releases',
+						'node_modules',
+						'vendor'
+					],
 					mainFile: '<%= pkg.name %>.php', // Main project file.
 					potComments: 'Copyright (c) {year} CoCart Headless, LLC\nThis file is distributed under the same license as the CoCart package.', // The copyright at the beginning of the POT file.
 					potFilename: '<%= pkg.name %>.pot', // Name of the POT file.
@@ -254,6 +259,7 @@ module.exports = function(grunt) {
 				src:  [
 					'*.php',
 					'**/*.php', // Include all files
+					'!.wordpress-org/**', // Exclude .wordpress-org/
 					'!node_modules/**', // Exclude node_modules/
 					'!vendor/**' // Exclude vendor/
 				],
@@ -270,6 +276,10 @@ module.exports = function(grunt) {
 				],
 				overwrite: true,
 				replacements: [
+					{
+						from: /Plugin Name:.*$/m,
+						to: "Plugin Name: <%= pkg.title %>"
+					},
 					{
 						from: /Description:.*$/m,
 						to: "Description: <%= pkg.description %>"

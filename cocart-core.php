@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: CoCart Core
+ * Plugin Name: CoCart API - Headless WooCommerce Made Easy
  * Plugin URI:  https://cocartapi.com
- * Description: The core of CoCart helps you get started to decouple your WooCommerce store easy.
+ * Description: The best REST-API to decouple your WooCommerce store with. Fast, secure, customizable, easy.
  * Author:      CoCart Headless, LLC
  * Author URI:  https://cocartapi.com
  * Version:     5.0.0-beta.10

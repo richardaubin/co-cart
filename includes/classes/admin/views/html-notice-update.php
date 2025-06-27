@@ -20,7 +20,7 @@ $update_url = wp_nonce_url( // phpcs:ignore: WordPress.NamingConventions.PrefixA
 	'cocart_db_update_nonce'
 );
 ?>
-<div class="notice notice-info cocart-notice">
+<div class="notice notice-info cocart-notice" role="alert">
 	<div class="cocart-notice-inner">
 		<div class="cocart-notice-icon">
 			<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/icon-logo.png' ); ?>" alt="CoCart Logo" /><?php // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
@@ -53,7 +53,7 @@ $update_url = wp_nonce_url( // phpcs:ignore: WordPress.NamingConventions.PrefixA
 		</div>
 
 		<div class="cocart-action">
-			<a href="<?php echo esc_url( $update_url ); ?>" class="button button-primary cocart-button">
+			<a href="<?php echo esc_url( $update_url ); ?>" class="button button-primary cocart-button" role="button">
 				<?php
 				printf(
 					/* translators: %s: CoCart */

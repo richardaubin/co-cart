@@ -11,20 +11,10 @@
 
 	&.plugin-card-cocart-suggestion,
 	&.cocart-plugin {
-		border: 2px solid $cocart;
+		border: 2px solid variables.$cocart;
 
 		h3 {
 			margin: 0 0 4px;
-		}
-	}
-
-	&.cocart-plugin {
-		.plugin-card-top {
-			min-height: 150px;
-		}
-
-		.plugin-card-bottom {
-			min-height: 36px;
 		}
 	}
 
@@ -83,7 +73,7 @@
 		}
 
 		.cocart-plugin-primary:hover {
-			background:variables.$cocart-hover;
+			background: variables.$cocart-hover;
 			border-color: variables.$cocart-border-color-hover;
 			color: variables.$white;
 		}

@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<div class="notice notice-info cocart-notice">
+<div class="notice notice-info cocart-notice" role="alert">
 	<div class="cocart-notice-inner">
 		<div class="cocart-notice-icon">
 			<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/icon-logo.png' ); ?>" alt="CoCart Logo" /><?php // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
@@ -48,9 +48,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 				),
 				'upgrade-plugin_woocommerce'
 			);
-			$upgrade_url = wp_nonce_url( add_query_arg( 'cocart-hide-notice', 'check_wc', $upgrade_url ), 'cocart_hide_notices_nonce', '_cocart_notice_nonce' ); // phpcs:ignore: WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+			$upgrade_url = wp_nonce_url( add_query_arg( 'cocart-hide-notice', 'check_wc', $upgrade_url ), 'cocart_hide-notices_nonce', '_cocart_notice_nonce' ); // phpcs:ignore: WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			?>
-			<a href="<?php echo esc_url( $upgrade_url ); ?>" class="button button-primary cocart-button" aria-label="<?php echo esc_html__( 'Update WooCommerce', 'cocart-core' ); ?>"><?php echo esc_html__( 'Update WooCommerce', 'cocart-core' ); ?></a>
+			<a href="<?php echo esc_url( $upgrade_url ); ?>" class="button button-primary cocart-button" role="button"><?php echo esc_html__( 'Update WooCommerce', 'cocart-core' ); ?></a>
 			<a class="no-thanks" href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'cocart-hide-notice', 'check_wc', esc_url( CoCart_Helpers::cocart_get_current_admin_url() ) ), 'cocart_hide_notices_nonce', '_cocart_notice_nonce' ) ); ?>"><?php esc_html_e( 'Dismiss', 'cocart-core' ); ?></a>
 		</div>
 		<?php } ?>

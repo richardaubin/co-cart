@@ -14,6 +14,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<div class="notice notice-error">
+<div class="notice notice-error" role="alert">
 	<p><?php echo esc_html( CoCart_Helpers::get_environment_message() ); ?></p>
 </div>

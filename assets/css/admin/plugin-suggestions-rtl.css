@@ -8,12 +8,6 @@
 .plugin-card.plugin-card-cocart-suggestion h3, .plugin-card.cocart-plugin h3 {
   margin: 0 0 4px;
 }
-.plugin-card.cocart-plugin .plugin-card-top {
-  min-height: 150px;
-}
-.plugin-card.cocart-plugin .plugin-card-bottom {
-  min-height: 36px;
-}
 .plugin-card.plugin-card-cocart-suggestion .desc > p {
   width: 70%;
 }
@@ -66,7 +60,7 @@
   align-content: space-between;
   clear: both;
   padding: 12px 20px;
-  background-color: #fafafa;
+  background-color: #f0f0f1;
   border-top: 1px solid #e5e5e5;
   overflow: hidden;
 }

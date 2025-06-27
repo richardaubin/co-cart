@@ -1,5 +1,5 @@
 {
-	"title": "CoCart Core",
+	"title": "CoCart API - Headless WooCommerce Made Easy",
 	"name": "cocart-core",
 	"version": "5.0.0-beta.10",
 	"private": false,
@@ -39,10 +39,10 @@
 	"requires_php": "7.4",
 	"tested_up_to": "6.8",
 	"wc_requires": "7.0",
-	"wc_tested_up_to": "9.9",
+	"wc_tested_up_to": "10.0",
 	"license": "GPL-3.0",
 	"copyright": "Copyright (c) 2025, CoCart Headless, LLC",
-	"description": "The core of CoCart helps you get started to decouple your WooCommerce store easy.",
+	"description": "The best REST-API to decouple your WooCommerce store with. Fast, secure, customizable, easy.",
 	"tags": "",
 	"keywords": [
 		"wordpress",
@@ -70,9 +70,6 @@
 	"scripts": {
 		"packages:update": "npm install -g npm-check-updates & ncu -u & npm update & npm install",
 		"fix:textdomain": "node ./bin/package-update-textdomain.js"
-	},
-	"dependencies": {
-		"grunt-cli": "^1.5.0"
 	},
 	"devDependencies": {
 		"@lodder/grunt-postcss": "^3.1.1",

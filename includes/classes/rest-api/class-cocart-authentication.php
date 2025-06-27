@@ -93,6 +93,17 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		);
 
 		/**
+		 * Basic authentication pattern.
+		 *
+		 * @access private
+		 *
+		 * @since 4.6.0 Introduced.
+		 *
+		 * @var string
+		 */
+		private const BASIC_AUTH_PATTERN = '/^Basic ([a-zA-Z0-9+\/=]+)$/';
+
+		/**
 		 * Constructor.
 		 *
 		 * @access public
@@ -192,7 +203,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 * @since 4.1.0 Introduced.
 		 * @since 4.2.0 Changed access from protected to public.
 		 *
-		 * @return string $auth_header
+		 * @return string $auth_header Authorization header value.
 		 */
 		public static function get_auth_header() {
 			$auth_header = ! empty( $_SERVER['HTTP_AUTHORIZATION'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_AUTHORIZATION'] ) ) : '';
@@ -221,6 +232,40 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 			 */
 			return apply_filters( 'cocart_auth_header', $auth_header );
 		} // END get_auth_header()
+
+		/**
+		 * Check if the authorization header contains Basic authentication.
+		 *
+		 * @access private
+		 *
+		 * @since 4.6.0 Introduced.
+		 *
+		 * @param string $auth Authorization header value.
+		 *
+		 * @return bool
+		 */
+		private function is_basic_auth( string $auth ): bool {
+			return ! empty( $auth ) && preg_match( self::BASIC_AUTH_PATTERN, $auth );
+		} // END is_basic_auth()
+
+		/**
+		 * Extract Basic login from authorization header.
+		 *
+		 * @access private
+		 *
+		 * @since 4.6.0 Introduced.
+		 *
+		 * @param string $auth Authorization header value.
+		 *
+		 * @return string|null Login if found, null otherwise.
+		 */
+		private static function extract_basic_auth( string $auth ): ?string {
+			if ( preg_match( self::BASIC_AUTH_PATTERN, $auth, $matches ) ) {
+				return $matches[1];
+			}
+
+			return null;
+		} // END extract_basic_auth()
 
 		/**
 		 * Authenticate user.
@@ -387,8 +432,10 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 			$auth_header = self::get_auth_header();
 
 			// Look up authorization header and check it's a valid.
-			if ( ! empty( $auth_header ) && 0 === stripos( $auth_header, 'basic ' ) ) {
-				$exploded = explode( ':', base64_decode( substr( $auth_header, 6 ) ), 2 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+			if ( ! empty( $auth_header ) && $this->is_basic_auth( $auth_header ) ) {
+				$auth_str = self::extract_basic_auth( $auth_header );
+
+				$exploded = explode( ':', base64_decode( $auth_str ), 2 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
 				// If valid return username and password.
 				if ( 2 === \count( $exploded ) ) {
@@ -412,6 +459,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 			if ( empty( $username ) && empty( $password ) ) {
 				return false;
 			} elseif ( empty( $username ) || empty( $password ) ) {
+				\CoCart_Logger::log( esc_html__( 'Authentication attempted but did not find valid login details.', 'cocart-core' ), 'error' );
 				// If either username or password is missing then return error.
 				$this->set_error( new WP_Error( 'cocart_authentication_error', __( 'Authentication invalid!', 'cocart-core' ), array( 'status' => 401 ) ) );
 				return false;
@@ -420,6 +468,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 			$user = get_user_by( 'login', $username );
 
 			if ( empty( $user ) ) {
+				\CoCart_Logger::log( esc_html__( 'User was not found when authenticating.', 'cocart-core' ), 'error' );
 				$this->set_error( new WP_Error( 'cocart_authentication_error', __( 'Authentication is invalid. Please check your login details are correct and try again.', 'cocart-core' ), array( 'status' => 401 ) ) );
 				return false;
 			}

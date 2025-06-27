@@ -1,10 +1,14 @@
 {
     "$schema": "https://playground.wordpress.net/blueprint-schema.json",
-    "landingPage": "/wp-admin/admin.php?page=cocart-setup&step=ready",
+    "landingPage": "/wp-admin/?welcome=0",
     "meta": {
         "title": "CoCart API Playground",
-        "description": "Lets you setup a WooCommerce store demo with CoCart to play around with the core features.",
-        "author": "seb86"
+        "description": "WooCommerce store demo with CoCart to play around with the core features.",
+        "author": "seb86",
+        "categories": [
+            "demo",
+            "plugin"
+        ]
     },
     "preferredVersions": {
         "php": "8.2",
@@ -29,8 +33,21 @@
         },
         {
             "step": "writeFile",
+            "path": "/wordpress/wp-content/mu-plugins/dash-widgets.php",
+            "data": "<?php /* Hide Dashboard Widgets */ add_action('wp_dashboard_setup', function() {\n  // Core Widgets\n  remove_meta_box('dashboard_activity', 'dashboard', 'normal');\n  remove_meta_box('dashboard_right_now', 'dashboard', 'normal');\n  remove_meta_box('dashboard_quick_press', 'dashboard', 'side');\n  remove_meta_box('dashboard_primary', 'dashboard', 'side');\n  remove_meta_box('dashboard_site_health', 'dashboard', 'normal');\n\n  // For multisite installs\n  remove_meta_box('dashboard_network', 'dashboard', 'normal');\n});"
+        },
+        {
+            "step": "writeFile",
             "path": "/wordpress/wp-content/mu-plugins/playground-notice.php",
-            "data": "<?php add_action( 'admin_notices', function() { echo '<div class=\"notice notice-info is-dismissible\"><p>You are now using a WooCommerce store demo with <strong>CoCart</strong>, powered by <a href=\"https://wordpress.org/playground/\" target=\"_blank\">WordPress Playground</a>.</p></div>'; } );"
+            "data": "<?php add_action( is_network_admin() ? 'network_admin_notices' : 'admin_notices', function() { $screen = get_current_screen(); $screen_id = $screen ? $screen->id : ''; if ( in_array( $screen_id, array( 'dashboard' ) ) ) { return; } echo '<div class=\"notice notice-info is-dismissible\"><p>You are using a WooCommerce store demo with <strong>CoCart</strong>, powered by <a href=\"https://wordpress.org/playground/\" target=\"_blank\">WordPress Playground</a>.</p></div>'; } );"
+        },
+        {
+            "step": "writeFile",
+            "path": "/wordpress/wp-content/mu-plugins/dashboard.php",
+            "data": {
+                "resource": "url",
+                "url": "https://github.com/co-cart/co-cart/blob/trunk/.wordpress-org/blueprints/dashboard.php"
+            }
         },
         {
             "step": "installPlugin",
@@ -91,8 +108,17 @@
         },
         {
             "step": "installPlugin",
-            "pluginData":
-            {
+            "pluginData": {
+                "resource": "wordpress.org/plugins",
+                "slug": "wp-mail-logging"
+            },
+            "options": {
+                "activate": true
+            }
+        },
+        {
+            "step": "installPlugin",
+            "pluginData": {
                 "resource": "wordpress.org/plugins",
                 "slug": "leira-letter-avatar"
             },
@@ -102,8 +128,7 @@
         },
         {
             "step": "installPlugin",
-            "pluginData":
-            {
+            "pluginData": {
                 "resource": "wordpress.org/plugins",
                 "slug": "safe-svg"
             },
@@ -143,7 +168,15 @@
         {
             "step": "updateUserMeta",
             "meta": {
-                "dismissed_cocart_setup_wizard_notice": true
+                "admin_color": "modern",
+                "show_welcome_panel": false,
+                "dismissed_cocart_setup_wizard_notice": true,
+                "dismissed_cocart_plugin_review_notice": true,
+                "cocart_plus_hide_review_notice": "1",
+                "woocommerce_admin_homepage_layout": "two_columns",
+                "woocommerce_admin_homepage_stats": {
+                    "installJetpackDismissed": true
+                }
             },
             "userId": 1
         },
@@ -155,6 +188,16 @@
             },
             "options": {
                 "activate": true
+            }
+        },
+        {
+            "step": "defineWpConfigConsts",
+            "consts": {
+                "WP_DEBUG": "true",
+                "WP_DEBUG_LOG": true,
+                "WP_DEBUG_DISPLAY": false,
+                "WP_DISABLE_FATAL_ERROR_HANDLER": false,
+                "WP_ENVIRONMENT_TYPE": "development"
             }
         }
     ]

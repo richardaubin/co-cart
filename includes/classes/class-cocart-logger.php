@@ -55,11 +55,11 @@ class CoCart_Logger {
 			'name'    => 'CoCart Core',
 			'version' => 'COCART_VERSION',
 		),
-		'cocart-plus'                   => array(
+		'cocart-plus' => array(
 			'name'    => 'CoCart Plus',
 			'version' => 'COCART_PLUS_VERSION',
 		),
-		'cocart-pro'                    => array(
+		'cocart-pro'  => array(
 			'name'    => 'CoCart Pro',
 			'version' => 'COCART_PRO_VERSION',
 		),
@@ -177,10 +177,10 @@ class CoCart_Logger {
 
 		// Try to find the plugin file.
 		$plugin_dir  = WP_PLUGIN_DIR;
-		$plugin_file = $plugin_dir . '/' . $plugin . '.php';
+		$plugin_file = $plugin_dir . '/' . $plugin . '/' . $plugin . '.php';
 
 		if ( ! file_exists( $plugin_file ) ) {
-			$plugin_file = $plugin_dir . '/index.php';
+			$plugin_file = $plugin_dir . '/' . $plugin . '/index.php';
 		}
 
 		if ( file_exists( $plugin_file ) ) {
