@@ -1031,6 +1031,27 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 				array( FILTER_FLAG_NO_RES_RANGE, FILTER_FLAG_IPV6 )
 			);
 		} // END validate_ip()
+
+		/**
+		 * Check for localhost and private networks.
+		 *
+		 * @access public
+		 *
+		 * @static
+		 *
+		 * @since 5.0.0 Introduced.
+		 *
+		 * @param string $ip ipv4 or ipv6 ip string.
+		 *
+		 * @return string
+		 */
+		public static function is_ip_private( $ip ) {
+			return filter_var(
+				$ip,
+				FILTER_VALIDATE_IP,
+				FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+			) === false;
+		} // END is_ip_private()
 	} // END class.
 } // END if class exists.
 
