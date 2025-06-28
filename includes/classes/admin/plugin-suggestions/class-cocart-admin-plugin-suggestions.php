@@ -7,7 +7,7 @@
  * @author  Sébastien Dumont
  * @package CoCart\Admin
  * @since   3.5.0
- * @license GPL-2.0+
+ * @license GPL-3.0
  */
 
 // Exit if accessed directly.
@@ -39,9 +39,7 @@ class CoCart_Admin_Plugin_Suggestions_Updater {
 	 * @static
 	 */
 	public static function init() {
-		if ( ! defined( 'REST_REQUEST' ) ) {
-			add_action( 'cocart_update_plugin_suggestions', array( __CLASS__, 'update_plugin_suggestions' ) );
-		}
+		add_action( 'cocart_update_plugin_suggestions', array( __CLASS__, 'update_plugin_suggestions' ) );
 	} // END init()
 
 	/**
@@ -109,5 +107,4 @@ class CoCart_Admin_Plugin_Suggestions_Updater {
 	} // END retry()
 } // END class
 
-$suggestions = new CoCart_Admin_Plugin_Suggestions_Updater(); // phpcs:ignore: WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-$suggestions::load();
+CoCart_Admin_Plugin_Suggestions_Updater::load();

@@ -5,7 +5,8 @@
  * @author  Sébastien Dumont
  * @package CoCart\API\v2
  * @since   3.0.0 Introduced.
- * @version 4.0.0
+ * @version 5.0.0
+ * @license GPL-3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -25,18 +26,66 @@ class_alias( 'CoCart_REST_Login_V2_Controller', 'CoCart_Login_V2_Controller' );
 class CoCart_REST_Login_V2_Controller {
 
 	/**
-	 * Endpoint namespace.
+	 * Route namespace. - Remove once new route registry is completed.
 	 *
 	 * @var string
 	 */
 	protected $namespace = 'cocart/v2';
 
 	/**
-	 * Route base.
+	 * Route base. - Replaced with `get_path()`
 	 *
 	 * @var string
 	 */
 	protected $rest_base = 'login';
+
+	/**
+	 * Version of route.
+	 */
+	protected $version = 'v2';
+
+	/**
+	 * Get version of route. - Remove once route abstract is created to extend from.
+	 */
+	public function get_version() {
+		return $this->version;
+	}
+
+	/**
+	 * Get the path of this REST route.
+	 *
+	 * @return string
+	 */
+	public function get_path() {
+		return self::get_path_regex();
+	}
+
+	/**
+	 * Get the path of this rest route.
+	 *
+	 * @return string
+	 */
+	public static function get_path_regex() {
+		return '/login';
+	}
+
+	/**
+	 * Get method arguments for this REST route.
+	 *
+	 * @return array An array of endpoints.
+	 */
+	public function get_args() {
+		return array(
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'login' ),
+				'permission_callback' => array( $this, 'get_permission_callback' ),
+				'args'                => $this->get_collection_params(),
+			),
+			'allow_batch' => array( 'v1' => true ),
+			'schema'      => array( $this, 'get_public_item_schema' ),
+		);
+	} // END get_args()
 
 	/**
 	 * Register routes.
@@ -45,22 +94,18 @@ class CoCart_REST_Login_V2_Controller {
 	 *
 	 * @since 3.0.0 Introduced.
 	 * @since 3.1.0 Added schema information.
+	 * @since 5.0.0 Added arguments.
 	 *
 	 * @ignore Function ignored when parsed into Code Reference.
 	 */
 	public function register_routes() {
+		cocart_deprecated_function( __FUNCTION__, '5.0.0' );
+
 		// Login user - cocart/v2/login (POST).
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base,
-			array(
-				array(
-					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'login' ),
-					'permission_callback' => array( $this, 'get_permission_callback' ),
-				),
-				'schema' => array( $this, 'get_public_item_schema' ),
-			)
+			$this->get_path(),
+			$this->get_args()
 		);
 	} // END register_routes()
 
@@ -73,7 +118,7 @@ class CoCart_REST_Login_V2_Controller {
 	 */
 	public function get_permission_callback() {
 		if ( strval( get_current_user_id() ) <= 0 ) {
-			return new WP_Error( 'cocart_rest_not_authorized', __( 'Sorry, you are not authorized.', 'cart-rest-api-for-woocommerce' ), array( 'status' => rest_authorization_required_code() ) );
+			return new \WP_Error( 'cocart_rest_not_authorized', __( 'Sorry, you are not authorized.', 'cocart-core' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
@@ -87,10 +132,13 @@ class CoCart_REST_Login_V2_Controller {
 	 * @since 3.0.0 Introduced.
 	 * @since 3.1.0 Added avatar URLS and users email address.
 	 * @since 3.8.1 Added users first and last name.
+	 * @since 5.0.0 Avatars only return if requested.
+	 *
+	 * @param WP_REST_Request $request The request object.
 	 *
 	 * @return WP_REST_Response The returned response.
 	 */
-	public function login() {
+	public function login( $request ) {
 		$current_user = get_userdata( get_current_user_id() );
 
 		$user_roles = $current_user->roles;
@@ -107,19 +155,24 @@ class CoCart_REST_Login_V2_Controller {
 			'last_name'    => $current_user->last_name,
 			'display_name' => esc_html( $current_user->display_name ),
 			'role'         => implode( ', ', $display_user_roles ),
-			'avatar_urls'  => rest_get_avatar_urls( trim( $current_user->user_email ) ),
+			'avatar_urls'  => array(),
 			'email'        => trim( $current_user->user_email ),
 			/**
 			 * Filter allows you to add extra information based on the current user.
 			 *
 			 * @since 3.8.1 Introduced.
 			 *
-			 * @param array $extra_information The extra information.
-			 * @param object $current_user The current user.
+			 * @param array  $extra_information The extra information.
+			 * @param object $current_user      The current user.
 			 */
 			'extras'       => apply_filters( 'cocart_login_extras', array(), $current_user ),
-			'dev_note'     => __( "Don't forget to store the users login information in order to authenticate all other routes with CoCart.", 'cart-rest-api-for-woocommerce' ),
+			'dev_note'     => __( "Don't forget to store the users login information in order to authenticate all other routes with CoCart.", 'cocart-core' ),
 		);
+
+		// Returns avatars if requested.
+		if ( $request->get_param( 'avatars' ) ) {
+			$response['avatar_urls'] = rest_get_avatar_urls( trim( $current_user->user_email ) );
+		}
 
 		return CoCart_Response::get_response( $response, $this->namespace, $this->rest_base );
 	} // END login()
@@ -140,57 +193,57 @@ class CoCart_REST_Login_V2_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'user_id'      => array(
-					'description' => __( 'Unique ID to the user on the site.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Unique ID to the user on the site.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'first_name'   => array(
-					'description' => __( 'The first name of the user (if any).', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'The first name of the user (if any).', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'last_name'    => array(
-					'description' => __( 'The last name of the user (if any).', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'The last name of the user (if any).', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'display_name' => array(
-					'description' => __( 'The display name of the user (if any).', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'The display name of the user (if any).', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'role'         => array(
-					'description' => __( 'The role type assigned to the user.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'The role type assigned to the user.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'avatar_urls'  => array(
-					'description' => __( 'The avatar URLs of the user for each avatar size registered.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'The avatar URLs of the user for each avatar size registered.', 'cocart-core' ),
 					'type'        => 'object',
 					'context'     => array( 'view' ),
 					'properties'  => array(),
 					'readonly'    => true,
 				),
 				'email'        => array(
-					'description' => __( 'The email address of the user.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'The email address of the user.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
 				),
 				'extras'       => array(
-					'description' => __( 'Extra details added via the filter.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'Extra details added via the filter.', 'cocart-core' ),
 					'type'        => 'object',
 					'context'     => array( 'view' ),
 					'properties'  => array(),
 					'readonly'    => true,
 				),
 				'dev_note'     => array(
-					'description' => __( 'A message to developers.', 'cart-rest-api-for-woocommerce' ),
+					'description' => __( 'A message to developers.', 'cocart-core' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
@@ -198,4 +251,28 @@ class CoCart_REST_Login_V2_Controller {
 			),
 		);
 	} // END get_public_item_schema()
+
+	/**
+	 * Get the query params for login.
+	 *
+	 * @access public
+	 *
+	 * @since 5.0.0 Introduced.
+	 *
+	 * @return array $params The query params.
+	 */
+	public function get_collection_params() {
+		$params = array(
+			'avatars' => array(
+				'description'       => __( 'True if you want to return the avatars for the user.', 'cocart-core' ),
+				'default'           => false,
+				'type'              => 'boolean',
+				'required'          => false,
+				'sanitize_callback' => 'rest_sanitize_boolean',
+				'validate_callback' => 'rest_validate_request_arg',
+			),
+		);
+
+		return $params;
+	} // END get_collection_params()
 } // END class

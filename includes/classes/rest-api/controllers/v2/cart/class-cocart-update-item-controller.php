@@ -5,7 +5,8 @@
  * @author  Sébastien Dumont
  * @package CoCart\API\Cart\v2
  * @since   3.0.0 Introduced.
- * @version 4.2.0
+ * @version 5.0.0
+ * @license GPL-3.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -27,11 +28,46 @@ class_alias( 'CoCart_REST_Update_Item_V2_Controller', 'CoCart_Update_Item_V2_Con
 class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controller {
 
 	/**
-	 * Route base.
+	 * Route base. - Replaced with `get_path()`
 	 *
 	 * @var string
 	 */
 	protected $rest_base = 'cart/item';
+
+	/**
+	 * Get the path of this REST route.
+	 *
+	 * @return string
+	 */
+	public function get_path() {
+		return $this->get_path_regex();
+	}
+
+	/**
+	 * Get the path of this rest route.
+	 *
+	 * @return string
+	 */
+	public function get_path_regex() {
+		return '/cart/item/(?P<item_key>[\w]+)';
+	}
+
+	/**
+	 * Get method arguments for this REST route.
+	 *
+	 * @return array An array of endpoints.
+	 */
+	public function get_args() {
+		return array(
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'update_item' ),
+				'permission_callback' => '__return_true',
+				'args'                => $this->get_collection_params(),
+			),
+			'allow_batch' => array( 'v1' => true ),
+		);
+	} // END get_args()
 
 	/**
 	 * Register routes.
@@ -43,19 +79,13 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 	 * @ignore Function ignored when parsed into Code Reference.
 	 */
 	public function register_routes() {
+		cocart_deprecated_function( __FUNCTION__, '5.0.0' );
+
 		// Update Item - cocart/v2/cart/item/6364d3f0f495b6ab9dcf8d3b5c6e0b01 (POST).
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<item_key>[\w]+)',
-			array(
-				array(
-					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'update_item' ),
-					'permission_callback' => '__return_true',
-					'args'                => $this->get_collection_params(),
-				),
-				'allow_batch' => array( 'v1' => true ),
-			)
+			$this->get_path(),
+			$this->get_args()
 		);
 	} // END register_routes()
 
@@ -67,21 +97,23 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 	 * @access public
 	 *
 	 * @since   1.0.0 Introduced.
-	 * @version 4.2.0
+	 * @version 5.0.0
 	 *
 	 * @param WP_REST_Request $request The request object.
 	 *
 	 * @return WP_REST_Response The returned response.
 	 */
-	public function update_item( $request = array() ) {
+	public function update_item( $request ) {
 		try {
 			$item_key = ! isset( $request['item_key'] ) ? 0 : wc_clean( sanitize_text_field( wp_unslash( $request['item_key'] ) ) );
 			$quantity = ! isset( $request['quantity'] ) ? 1 : wc_stock_amount( wp_unslash( $request['quantity'] ) );
 
 			$item_key = CoCart_Utilities_Cart_Helpers::throw_missing_item_key( $item_key, 'update' );
 
+			$cart = $this->get_cart_instance();
+
 			// Ensure we have calculated before we handle any data.
-			$this->get_cart_instance()->calculate_totals();
+			$cart->calculate_totals();
 
 			// Allows removing of items if quantity is zero should for example the item was with a product bundle.
 			if ( 0 === $quantity ) {
@@ -95,7 +127,7 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 
 			// If item does not exist in cart return response.
 			if ( empty( $current_data ) ) {
-				$message = __( 'Item specified does not exist in cart.', 'cart-rest-api-for-woocommerce' );
+				$message = __( 'Item specified does not exist in cart.', 'cocart-core' );
 
 				/**
 				 * Filters message about cart item key required.
@@ -152,7 +184,7 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 			if ( $product->is_sold_individually() && $quantity > 1 ) {
 				$message = sprintf(
 					/* translators: %s Product name. */
-					__( 'You can only have 1 "%s" in your cart.', 'cart-rest-api-for-woocommerce' ),
+					__( 'You can only have 1 "%s" in your cart.', 'cocart-core' ),
 					$product->get_name()
 				);
 
@@ -178,7 +210,7 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 					$variation_id = ! isset( $new_data['variation_id'] ) ? 0 : absint( wp_unslash( $new_data['variation_id'] ) );
 					$product      = wc_get_product( $variation_id ? $variation_id : $product_id );
 
-					if ( $this->get_cart_instance()->set_quantity( $item_key, $quantity ) ) {
+					if ( $cart->set_quantity( $item_key, $quantity ) ) {
 						/**
 						 * Hook: cocart_item_quantity_changed
 						 *
@@ -197,7 +229,7 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 						 */
 						$this->calculate_totals();
 					} else {
-						$message = __( 'Unable to update item quantity in cart.', 'cart-rest-api-for-woocommerce' );
+						$message = __( 'Unable to update item quantity in cart.', 'cocart-core' );
 
 						/**
 						 * Filters message about can not update item.
@@ -212,7 +244,17 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 					}
 				}
 
-				$response = $this->get_cart_contents( $request );
+				/**
+				 * Hook: cocart_item_updated
+				 *
+				 * @since 5.0.0 Introduced.
+				 *
+				 * @param WP_REST_Request $request The request object.
+				 */
+				do_action( 'cocart_item_updated', $request );
+
+				$request['dont_check'] = true;
+				$response              = $this->get_cart( $request );
 
 				// Was it requested to return status once item updated?
 				if ( $request['return_status'] ) {
@@ -223,7 +265,7 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 						$response = array(
 							'message'  => sprintf(
 								/* translators: 1: product name, 2: new quantity */
-								__( 'The quantity for "%1$s" has increased to "%2$s".', 'cart-rest-api-for-woocommerce' ),
+								__( 'The quantity for "%1$s" has increased to "%2$s".', 'cocart-core' ),
 								$product->get_name(),
 								$new_data['quantity']
 							),
@@ -233,7 +275,7 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 						$response = array(
 							'message'  => sprintf(
 								/* translators: 1: product name, 2: new quantity */
-								__( 'The quantity for "%1$s" has decreased to "%2$s".', 'cart-rest-api-for-woocommerce' ),
+								__( 'The quantity for "%1$s" has decreased to "%2$s".', 'cocart-core' ),
 								$product->get_name(),
 								$new_data['quantity']
 							),
@@ -243,7 +285,7 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 						$response = array(
 							'message'  => sprintf(
 								/* translators: %s: product name */
-								__( 'The quantity for "%s" has not changed.', 'cart-rest-api-for-woocommerce' ),
+								__( 'The quantity for "%s" has not changed.', 'cocart-core' ),
 								$product->get_name()
 							),
 							'quantity' => $quantity,
@@ -263,10 +305,13 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 					$response = apply_filters( 'cocart_update_item', $response, $new_data, $quantity, $product );
 				}
 
-				return CoCart_Response::get_response( $response, $this->namespace, $this->rest_base );
+				$response = rest_ensure_response( $response );
+				$response = ( new CoCart_REST_Utilities_Cart_Response() )->add_headers( $response, $request );
+
+				return $response;
 			}
 		} catch ( CoCart_Data_Exception $e ) {
-			return CoCart_Response::get_error_response( $e->getErrorCode(), $e->getMessage(), $e->getCode(), $e->getAdditionalData() );
+			return new \WP_Error( $e->getErrorCode(), $e->getMessage(), array( 'status' => $e->getCode() ), $e->getAdditionalData() );
 		}
 	} // END update_item()
 
@@ -287,21 +332,22 @@ class CoCart_REST_Update_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 		// Update item query parameters.
 		$params += array(
 			'item_key'      => array(
-				'description'       => __( 'Unique identifier for the item in the cart.', 'cart-rest-api-for-woocommerce' ),
+				'description'       => __( 'Unique identifier for the item in the cart.', 'cocart-core' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
 			'quantity'      => array(
-				'description'       => __( 'Quantity of this item to update to.', 'cart-rest-api-for-woocommerce' ),
+				'description'       => __( 'Quantity of this item to update to.', 'cocart-core' ),
 				'type'              => 'string',
 				'required'          => true,
-				'validate_callback' => array( $this, 'rest_validate_quantity_arg' ),
+				'validate_callback' => 'rest_validate_quantity_arg',
 			),
 			'return_status' => array(
-				'description'       => __( 'Returns a message and quantity value after updating item in cart.', 'cart-rest-api-for-woocommerce' ),
+				'description'       => __( 'Returns a message and quantity value after updating item in cart.', 'cocart-core' ),
 				'default'           => false,
 				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
 		);

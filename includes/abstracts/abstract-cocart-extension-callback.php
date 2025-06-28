@@ -52,13 +52,13 @@ abstract class CoCart_Cart_Extension_Callback {
 				'cocart_no_callback_found',
 				sprintf(
 					/* translators: %s: Class name */
-					esc_html__( 'A "callback" function must be registered when extending class "%s"', 'cart-rest-api-for-woocommerce' ),
+					esc_html__( 'A "callback" function must be registered when extending class "%s"', 'cocart-core' ),
 					__CLASS__
 				),
 				400
 			);
 		} catch ( CoCart_Data_Exception $e ) {
-			return CoCart_Response::get_error_response( $e->getErrorCode(), $e->getMessage(), $e->getCode(), $e->getAdditionalData() );
+			return new \WP_Error( $e->getErrorCode(), $e->getMessage(), array( 'status' => $e->getCode() ), $e->getAdditionalData() );
 		}
 	} // END callback()
 
