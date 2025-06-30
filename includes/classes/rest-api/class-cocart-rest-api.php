@@ -880,8 +880,6 @@ class CoCart_REST_API {
 		if ( is_wp_error( $response ) && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			$error_data = array(
 				'error_data' => array(
-					'status'  => $response->get_error_code(),
-					'details' => $response->get_error_data(),
 					'trace'   => array_map(
 						function ( $item ) {
 							return array(
@@ -899,7 +897,7 @@ class CoCart_REST_API {
 			return new \WP_Error(
 				$response->get_error_code(),
 				$response->get_error_message(),
-				$error_data
+				array_merge( $response->get_error_data(), $error_data )
 			);
 		}
 
@@ -913,14 +911,15 @@ class CoCart_REST_API {
 		 */
 		$response = apply_filters( 'cocart_rest_response', $response, $request ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
-		if ( empty( $response ) || ! $response instanceof WP_REST_Response ) {
-			return new CoCart_Data_Exception(
+		if ( empty( $response->get_data() ) || ! $response instanceof WP_REST_Response ) {
+			return new \WP_Error(
 				'cocart_response_returned_empty',
 				sprintf(
 					/* translators: %s: REST API URL */
 					__( 'Request returned nothing for "%s"!', 'cocart-core' ),
 					rest_url( $request->get_route() )
-				)
+				),
+				404
 			);
 		}
 
