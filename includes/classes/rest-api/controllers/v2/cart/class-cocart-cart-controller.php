@@ -1065,7 +1065,6 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 	 *
 	 * @since 3.0.0 Introduced.
 	 *
-	 * @see cocart_format_money()
 	 * @see CoCart_Utilities_Cart_Helpers::get_tax_display_mode()
 	 * @see CoCart_Utilities_Product_Helpers::get_price_from_tax_display_mode()
 	 * @see CoCart_Utilities_Product_Helpers::get_product_slug()
@@ -1115,12 +1114,11 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 			 *
 			 * @since 3.0.0 Introduced.
 			 *
-			 * @param string     $product_price Product price.
-			 * @param array      $cart_item     The cart item data.
-			 * @param string     $item_key      The item key generated based on the details of the item.
-			 * @param WC_Product $product       The product object.
+			 * @param string $product_price Product price.
+			 * @param array  $cart_item     The cart item data.
+			 * @param string $item_key      The item key generated based on the details of the item.
 			 */
-			'price'          => apply_filters( 'cocart_cart_item_price', cocart_format_money( $price_function( $product ) ), $cart_item, $item_key, $product ),
+			'price'          => apply_filters( 'cocart_cart_item_price', $price_function( $product ), $cart_item, $item_key ),
 			'quantity'       => array(
 				/**
 				 * Filter allows the quantity of the item to change.
@@ -1150,7 +1148,7 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 				 * @param array  $cart_item     The cart item data.
 				 * @param string $item_key      The item key generated based on the details of the item.
 				 */
-				'subtotal'     => apply_filters( 'cocart_cart_item_subtotal', cocart_format_money( $cart_item['line_subtotal'] ), $cart_item, $item_key ),
+				'subtotal'     => apply_filters( 'cocart_cart_item_subtotal', $cart_item['line_subtotal'], $cart_item, $item_key ),
 				/**
 				 * Filter allows the subtotal tax of the item to change.
 				 *
@@ -1269,6 +1267,13 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 			 * @param WC_Product $product   The product object.
 			 */
 			$item['cart_item_data'] = apply_filters( 'cocart_cart_item_data', $cart_item, $item_key, $product );
+		}
+
+		// Format monetary values.
+		$item['price'] = CoCart_REST_Utilities_Monetary_Formatting::format_money( $item['price'], $request );
+
+		foreach ( $item['totals'] as $key => $value ) {
+			$item['totals'][ $key ] = CoCart_REST_Utilities_Monetary_Formatting::format_money( $value, $request );
 		}
 
 		return $item;
