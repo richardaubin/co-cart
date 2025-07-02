@@ -2762,22 +2762,27 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 	 * @return array $params The query params.
 	 */
 	public function get_collection_params() {
-		$params = array(
-			'cart_key' => array(
-				'description'       => __( 'Unique identifier for the cart.', 'cocart-core' ),
-				'type'              => 'string',
-				'required'          => false,
-				'sanitize_callback' => 'sanitize_key',
-				'validate_callback' => 'rest_validate_request_arg',
-			),
-			'fields'   => array(
+		// Cart query parameters.
+		$params = parent::get_collection_params();
+
+		// Get cart query parameters.
+		$params += array(
+			'fields'    => array(
 				'description'       => __( 'Specify each parent field you want to request separated by (,) in the response before the data is fetched.', 'cocart-core' ),
 				'type'              => 'string',
 				'required'          => false,
 				'sanitize_callback' => 'sanitize_text_field',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
-			'thumb'    => array(
+			'formatted' => array(
+				'description'       => __( 'True if you want to return the price values formatted.', 'cocart-core' ),
+				'default'           => false,
+				'type'              => 'boolean',
+				'required'          => false,
+				'sanitize_callback' => 'rest_sanitize_boolean',
+				'validate_callback' => 'rest_validate_request_arg',
+			),
+			'thumb'     => array(
 				'description'       => __( 'True if you want to return the URL of the featured product image for each item in the cart.', 'cocart-core' ),
 				'default'           => true,
 				'type'              => 'boolean',
@@ -2785,8 +2790,8 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 				'sanitize_callback' => 'rest_sanitize_boolean',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
-			'default'  => array(
-				'description'       => __( 'Return the default cart data if set to true.', 'cocart-core' ),
+			'default'   => array(
+				'description'       => __( 'Returns the default cart data if set to true.', 'cocart-core' ),
 				'default'           => false,
 				'type'              => 'boolean',
 				'required'          => false,
@@ -2795,14 +2800,7 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 			),
 		);
 
-		/**
-		 * Extend the query parameters for the cart.
-		 *
-		 * This filter allows you to extend the query parameters without removing any default parameters.
-		 *
-		 * @since 3.1.0 Introduced.
-		 */
-		$params += apply_filters( 'cocart_cart_query_parameters', array() );
+		$params = $this->add_additional_params_to_cart( $params );
 
 		return $params;
 	} // END get_collection_params()
