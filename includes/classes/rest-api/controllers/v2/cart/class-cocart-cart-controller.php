@@ -1090,6 +1090,7 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 			 * @param string     $item_key      The item key generated based on the details of the item.
 			 */
 			'title'          => apply_filters( 'cocart_cart_item_title', $product->get_title(), $product, $cart_item, $item_key ),
+			'variation'      => array(),
 			/**
 			 * Filter allows the price of the item to change.
 			 *
@@ -1196,7 +1197,7 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 		if ( ! isset( $cart_item['variation'] ) ) {
 			$cart_item['variation'] = array();
 		}
-		$item['meta']['variation'] = cocart_format_variation_data( $cart_item['variation'], $product );
+		$item['variation'] = cocart_format_variation_data( $cart_item['variation'], $product );
 
 		// Backorder notification.
 		if ( $product->backorders_require_notification() && $product->is_on_backorder( $cart_item['quantity'] ) ) {
@@ -1955,6 +1956,12 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
+							'variation'      => array(
+								'description' => __( 'The variation attributes of the item in the cart (if item is a variation of a variable product).', 'cocart-core' ),
+								'type'        => 'object',
+								'context'     => array( 'view' ),
+								'properties'  => array(),
+							),
 							'price'          => array(
 								'description' => __( 'The price of the item in the cart.', 'cocart-core' ),
 								'type'        => 'string',
@@ -2079,12 +2086,6 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 										'type'        => 'string',
 										'context'     => array( 'view' ),
 										'readonly'    => true,
-									),
-									'variation'    => array(
-										'description' => __( 'The variation attributes of the item in the cart (if item is a variation of a variable product).', 'cocart-core' ),
-										'type'        => 'object',
-										'context'     => array( 'view' ),
-										'properties'  => array(),
 									),
 								),
 							),
@@ -2471,6 +2472,12 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 								'context'     => array( 'view' ),
 								'readonly'    => true,
 							),
+							'variation'      => array(
+								'description' => __( 'The variation attributes of the item (if item is a variation of a variable product).', 'cocart-core' ),
+								'type'        => 'object',
+								'context'     => array( 'view' ),
+								'properties'  => array(),
+							),
 							'price'          => array(
 								'description' => __( 'The price of the item.', 'cocart-core' ),
 								'type'        => 'string',
@@ -2575,12 +2582,6 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 										'type'        => 'string',
 										'context'     => array( 'view' ),
 										'readonly'    => true,
-									),
-									'variation'    => array(
-										'description' => __( 'The variation attributes of the item (if item is a variation of a variable product).', 'cocart-core' ),
-										'type'        => 'object',
-										'context'     => array( 'view' ),
-										'properties'  => array(),
 									),
 								),
 							),
