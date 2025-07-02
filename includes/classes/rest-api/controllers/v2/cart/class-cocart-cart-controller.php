@@ -2198,7 +2198,7 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 							'readonly'    => true,
 						),
 						'has_calculated_shipping' => array(
-							'description' => __( 'True if the cart meets the criteria for showing shipping costs, and rates have been calculated and included in the totals.', 'cocart-core' ),
+							'description' => __( 'True if the cart meets the criteria for showing shipping packages and rates have been calculated.', 'cocart-core' ),
 							'type'        => 'boolean',
 							'context'     => array( 'view' ),
 							'readonly'    => true,
