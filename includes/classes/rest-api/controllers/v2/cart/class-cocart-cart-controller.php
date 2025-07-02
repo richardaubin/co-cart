@@ -1294,7 +1294,6 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 	 *
 	 * @param WP_REST_Request $request The request object.
 	 *
-	 * @see cocart_format_money()
 	 * @see CoCart_Utilities_Product_Helpers::get_product_slug()
 	 *
 	 * @return array $cross_sells Returns cross sells.
@@ -1324,9 +1323,9 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 				'name'           => $cross_sell->get_name(),
 				'title'          => $cross_sell->get_title(),
 				'slug'           => CoCart_Utilities_Product_Helpers::get_product_slug( $cross_sell ),
-				'price'          => cocart_format_money( $cross_sell->get_price() ),
-				'regular_price'  => cocart_format_money( $cross_sell->get_regular_price() ),
-				'sale_price'     => cocart_format_money( $cross_sell->get_sale_price() ),
+				'price'          => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cross_sell->get_price(), $request ),
+				'regular_price'  => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cross_sell->get_regular_price(), $request ),
+				'sale_price'     => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cross_sell->get_sale_price(), $request ),
 				'image'          => esc_url( $thumbnail_src ),
 				'average_rating' => $cross_sell->get_average_rating() > 0 ? sprintf(
 					/* translators: %s: average rating */
@@ -1336,10 +1335,6 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 				'on_sale'        => $cross_sell->is_on_sale() ? true : false,
 				'type'           => $cross_sell->get_type(),
 			);
-
-			$cross_sells[ $id ]['price']         = CoCart_REST_Utilities_Monetary_Formatting::format_money( $cross_sells[ $id ]['price'], $request );
-			$cross_sells[ $id ]['sale_price']    = CoCart_REST_Utilities_Monetary_Formatting::format_money( $cross_sells[ $id ]['sale_price'], $request );
-			$cross_sells[ $id ]['regular_price'] = CoCart_REST_Utilities_Monetary_Formatting::format_money( $cross_sells[ $id ]['regular_price'], $request );
 		}
 
 		$cross_sells = array_values( $cross_sells );
