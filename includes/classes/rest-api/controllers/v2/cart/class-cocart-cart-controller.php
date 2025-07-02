@@ -1319,7 +1319,7 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 			$thumbnail_src = wp_get_attachment_image_src( $thumbnail_id, apply_filters( 'cocart_cross_sell_item_thumbnail_size', 'woocommerce_thumbnail' ) );
 			$thumbnail_src = apply_filters( 'cocart_cross_sell_item_thumbnail_src', $thumbnail_src[0] );
 
-			$cross_sells[] = array(
+			$cross_sells[ $id ] = array(
 				'id'             => $id,
 				'name'           => $cross_sell->get_name(),
 				'title'          => $cross_sell->get_title(),
@@ -1336,7 +1336,13 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 				'on_sale'        => $cross_sell->is_on_sale() ? true : false,
 				'type'           => $cross_sell->get_type(),
 			);
+
+			$cross_sells[ $id ]['price']         = CoCart_REST_Utilities_Monetary_Formatting::format_money( $cross_sells[ $id ]['price'], $request );
+			$cross_sells[ $id ]['sale_price']    = CoCart_REST_Utilities_Monetary_Formatting::format_money( $cross_sells[ $id ]['sale_price'], $request );
+			$cross_sells[ $id ]['regular_price'] = CoCart_REST_Utilities_Monetary_Formatting::format_money( $cross_sells[ $id ]['regular_price'], $request );
 		}
+
+		$cross_sells = array_values( $cross_sells );
 
 		/**
 		 * Filters the cross sell items.
