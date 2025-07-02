@@ -878,6 +878,11 @@ class CoCart_REST_API {
 	 */
 	public function handle_rest_response( $response, $handler, $request ) {
 		if ( is_wp_error( $response ) && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			// Ignore 'rest_invalid_param' error code as it is expected when a parameter is missing.
+			if ( $response->get_error_code() === 'rest_invalid_param' ) {
+				return $response;
+			}
+
 			$error_data = array(
 				'error_data' => array(
 					'trace'   => array_map(
