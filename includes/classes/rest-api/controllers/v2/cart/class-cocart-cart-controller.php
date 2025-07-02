@@ -1343,8 +1343,11 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 		 * Filters the cross sell items.
 		 *
 		 * @since 3.0.0 Introduced.
+		 * @since 5.0.0 Added the request object as parameter.
+		 *
+		 * @param WP_REST_Request $request The request object.
 		 */
-		$cross_sells = apply_filters( 'cocart_cross_sells', $cross_sells );
+		$cross_sells = apply_filters( 'cocart_cross_sells', $cross_sells, $request );
 
 		return $cross_sells;
 	} // END get_cross_sells()
