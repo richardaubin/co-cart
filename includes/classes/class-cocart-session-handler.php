@@ -179,7 +179,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 			// Get cart.
 			$this->_data = $this->get_session_data();
 
-			// If the user logs in, and there is a requested cart that is not a customer then update session configuration.
+			// If the user logs in, and there is a requested cart that is not a customer, then update session configuration.
 			if ( is_user_logged_in() && ! empty( $this->_customer_id ) && ! $this->is_user_customer( $this->cart_key ) && $current_user_id !== $this->cart_key ) {
 				$guest_session_id = $this->cart_key;
 				$this->cart_key   = $current_user_id;
@@ -187,7 +187,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 			}
 
 			// Update cart if its close to expiring.
-			if ( time() > $this->cart_expiring || empty( $this->cart_expiring ) ) {
+			if ( $this->is_session_expiring() ) {
 				$this->set_cart_expiration();
 				$this->update_cart_timestamp( $this->cart_key, $this->cart_expiration );
 			}
@@ -258,7 +258,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 * @return bool Whether session is expiring.
 	 */
 	private function is_session_expiring() {
-		return time() > $this->cart_expiration;
+		return time() > $this->cart_expiration || empty( $this->cart_expiring );
 	} // END is_session_expiring()
 
 	/**
@@ -361,20 +361,15 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 *
 	 * @since 2.1.0 Introduced.
 	 *
-	 * @param int $old_cart_key Cart key used before.
+	 * @param string|mixed $old_cart_key Optional cart key prior to user log-in. If $old_cart_key is not tied
+	 *                                   to a user, the session will be deleted with the assumption that it was migrated
+	 *                                   to the current session being saved.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
-	public function save_data( $old_cart_key = 0 ) {
+	public function save_data( $old_cart_key = '' ) {
 		if ( $this->has_session() ) {
 			global $wpdb;
-
-			/**
-			 * Filter is used to set an empty cart expiration.
-			 *
-			 * @deprecated 2.7.2 No replacement.
-			 */
-			cocart_do_deprecated_filter( 'cocart_empty_cart_expiration', '2.7.2', null );
 
 			// Check the data exists before continuing.
 			if ( ! $this->_data || empty( $this->_data ) || is_null( $this->_data ) ) {
@@ -382,7 +377,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 			}
 
 			// Check the source to determine cart expiration to utilize.
-			if ( $this->cart_source === 'cocart' ) {
+			if ( 'cocart' === $this->cart_source ) {
 				$cart_expiration = (int) $this->cart_expiration;
 			} else {
 				$cart_expiration = (int) $this->_session_expiration;
@@ -407,8 +402,10 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 			// Save or update cart data.
 			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 				$wpdb->prepare(
-					"INSERT INTO {$wpdb->prefix}cocart_carts (`cart_key`, `cart_value`, `cart_created`, `cart_expiry`, `cart_source`, `cart_hash`) VALUES (%s, %s, %d, %d, %s, %s)
- 					ON DUPLICATE KEY UPDATE `cart_value` = VALUES(`cart_value`), `cart_expiry` = VALUES(`cart_expiry`), `cart_hash` = VALUES(`cart_hash`)",
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					'INSERT INTO %i (`cart_key`, `cart_value`, `cart_created`, `cart_expiry`, `cart_source`, `cart_hash`) VALUES (%s, %s, %d, %d, %s, %s)
+ 					ON DUPLICATE KEY UPDATE `cart_value` = VALUES(`cart_value`), `cart_expiry` = VALUES(`cart_expiry`), `cart_hash` = VALUES(`cart_hash`)',
+					$this->_table,
 					$this->cart_key,
 					maybe_serialize( $this->_data ),
 					time(),
@@ -434,8 +431,12 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 
 			$this->_dirty = false;
 
-			// Customer is now registered so we delete the previous cart as guest to prevent duplication.
-			if ( get_current_user_id() !== $old_cart_key && ! is_object( get_user_by( 'id', $old_cart_key ) ) ) {
+			/**
+			 * Ideally, the removal of guest session data migrated to a logged-in user would occur within
+			 * parent::init_session_cookie() upon user login detection initially occurs. However, since some third-party
+			 * extensions override this method, relocating this logic could break backward compatibility.
+			 */
+			if ( ! empty( $old_cart_key ) && $this->_customer_id !== $old_cart_key && ! is_object( get_user_by( 'id', $old_cart_key ) ) ) {
 				$this->delete_cart( $old_cart_key );
 			}
 		}
@@ -475,7 +476,8 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 
 		$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->prepare(
-				"DELETE FROM $this->_table WHERE cart_expiry < %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				'DELETE FROM %i WHERE cart_expiry < %d', // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$this->_table,
 				time()
 			)
 		);
@@ -512,7 +514,8 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 		if ( false === $value ) {
 			$value = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 				$wpdb->prepare(
-					"SELECT cart_value FROM $this->_table WHERE cart_key = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					'SELECT cart_value FROM %i WHERE cart_key = %s', // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$this->_table,
 					$cart_key
 				)
 			);
