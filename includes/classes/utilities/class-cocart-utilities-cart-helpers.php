@@ -580,11 +580,12 @@ class CoCart_Utilities_Cart_Helpers {
 	 *
 	 * @see cocart_format_money()
 	 *
-	 * @param WC_Cart $cart Cart class instance.
+	 * @param WC_Cart         $cart    Cart class instance.
+	 * @param WP_REST_Request $request The request object.
 	 *
 	 * @return array Returns taxes if any.
 	 */
-	public static function get_taxes( $cart ) {
+	public static function get_taxes( $cart, $request ) {
 		// Return calculated tax based on store settings and customer details.
 		if ( wc_tax_enabled() && ! $cart->display_prices_including_tax() ) {
 			$taxable_address = WC()->customer->get_taxable_address();
@@ -599,7 +600,7 @@ class CoCart_Utilities_Cart_Helpers {
 			}
 
 			if ( 'itemized' === get_option( 'woocommerce_tax_total_display' ) ) {
-				return self::get_tax_lines( $cart );
+				return self::get_tax_lines( $cart, $request );
 			} else {
 				return array(
 					'label' => esc_html( WC()->countries->tax_or_vat() ) . $estimated_text,
@@ -619,14 +620,14 @@ class CoCart_Utilities_Cart_Helpers {
 	 * @static
 	 *
 	 * @since 3.0.0 Introduced.
+	 * @since 5.0.0 Added the request object as parameter.
 	 *
-	 * @see cocart_format_money()
-	 *
-	 * @param WC_Cart $cart Cart class instance.
+	 * @param WC_Cart         $cart    Cart class instance.
+	 * @param WP_REST_Request $request The request object.
 	 *
 	 * @return array Tax lines.
 	 */
-	public static function get_tax_lines( $cart ) {
+	public static function get_tax_lines( $cart, $request ) {
 		$cart_tax_totals = $cart->get_tax_totals();
 		$tax_lines       = array();
 
