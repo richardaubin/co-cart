@@ -452,6 +452,40 @@ class CoCart_Utilities_Cart_Helpers {
 	} // END fee_html()
 
 	/**
+	 * Get cart totals.
+	 *
+	 * Returns the cart subtotal, fees, discounted total, shipping total
+	 * and total of the cart.
+	 *
+	 * @access public
+	 *
+	 * @since 5.0.0 Introduced.
+	 *
+	 * @param WC_Cart         $cart    Cart class instance.
+	 * @param WP_REST_Request $request The request object.
+	 *
+	 * @return array Cart totals.
+	 */
+	public static function get_cart_totals( $cart, $request ) {
+		// Has customer provided enough information to return shipping totals.
+		// This tracks if shipping has actually been calculated so we can avoid returning costs prematurely.
+		$has_calculated_shipping = method_exists( $cart, 'has_calculated_shipping' ) ? $cart->has_calculated_shipping() : $cart->show_shipping();
+
+		return array(
+			'subtotal'       => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_subtotal(), $request ),
+			'subtotal_tax'   => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_subtotal_tax(), $request ),
+			'fee_total'      => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_fee_total(), $request ),
+			'fee_tax'        => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_fee_tax(), $request ),
+			'discount_total' => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_discount_total(), $request ),
+			'discount_tax'   => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_discount_tax(), $request ),
+			'shipping_total' => $has_calculated_shipping ? CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_shipping_total(), $request ) : '0',
+			'shipping_tax'   => $has_calculated_shipping ? CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_shipping_tax(), $request ) : '0',
+			'total'          => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_total( 'edit' ), $request ),
+			'total_tax'      => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_total_tax(), $request ),
+		);
+	} // END get_cart_totals()
+
+	/**
 	 * Get coupon in HTML.
 	 *
 	 * @access public
