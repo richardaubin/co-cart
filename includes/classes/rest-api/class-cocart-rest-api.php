@@ -630,9 +630,10 @@ class CoCart_REST_API {
 	 *
 	 * @since 1.0.0 Introduced.
 	 * @since 3.1.0 Added cart callback support and Products API.
-	 * @since 5.0.0 Added create cart route, brands and pagination utility.
+	 * @since 5.0.0 Added create cart route, brands, monetary, response and pagination utilities.
 	 */
 	public function rest_api_includes() {
+		require_once __DIR__ . '/utilities/class-cocart-rest-utilities-monetary-formatting.php';
 		require_once __DIR__ . '/utilities/class-cocart-rest-utilities-cart-response.php';
 		require_once __DIR__ . '/utilities/class-cocart-rest-utilities-pagination.php';
 
