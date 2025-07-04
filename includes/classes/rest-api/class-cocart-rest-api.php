@@ -922,7 +922,12 @@ class CoCart_REST_API {
 		 */
 		$response = apply_filters( 'cocart_rest_response', $response, $request ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
-		if ( empty( $response->get_data() ) || ! $response instanceof WP_REST_Response ) {
+		// Check if response is a WP_REST_Response object before calling get_data().
+		if ( ! $response instanceof WP_REST_Response ) {
+			return $response; // Return raw response if not a REST Response object.
+		}
+
+		if ( empty( $response->get_data() ) ) {
 			return new \WP_Error(
 				'cocart_response_returned_empty',
 				sprintf(
