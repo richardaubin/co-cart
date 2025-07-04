@@ -593,6 +593,7 @@ final class CoCart {
 	 * @static
 	 *
 	 * @since 2.1.0 Introduced.
+	 * @since 4.2.0 Moved to main class.
 	 * @since 5.0.0 Check we are not running WP CLI.
 	 *
 	 * @return bool
