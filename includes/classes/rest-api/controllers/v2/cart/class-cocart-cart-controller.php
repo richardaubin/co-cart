@@ -1900,6 +1900,8 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 		 * Filter allows you to extend the cart schema properties for extensions.
 		 *
 		 * @since 5.0.0 Introduced.
+		 *
+		 * @param array $properties The schema properties to extend.
 		 */
 		$this->schema['properties']['items']['items']['properties']['extensions'] += apply_filters( 'cocart_cart_items_extensions_schema', array() );
 
