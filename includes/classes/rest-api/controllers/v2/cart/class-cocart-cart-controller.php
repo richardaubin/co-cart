@@ -1060,6 +1060,7 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 	 *
 	 * @return array $item Returns the item prepared for the cart response.
 	 */
+	public function get_item( $product, $cart_item = array(), $item_key = '', $request = object, $removed_item = false ) {
 		$show_thumb = ! empty( $request['thumb'] ) ? $request['thumb'] : false;
 
 		$tax_display_mode = CoCart_Utilities_Cart_Helpers::get_tax_display_mode();
