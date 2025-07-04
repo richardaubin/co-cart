@@ -729,42 +729,6 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 	} // END has_enough_stock()
 
 	/**
-	 * Prepares a list of store currency data to return in responses.
-	 *
-	 * @access public
-	 *
-	 * @since 3.0.0 Introduced.
-	 *
-	 * @deprecated 3.1.0 Use `cocart_get_store_currency()` instead.
-	 *
-	 * @see cocart_get_store_currency()
-	 *
-	 * @return array
-	 */
-	public function get_store_currency() {
-		cocart_deprecated_function( 'CoCart_REST_Cart_V2_Controller::get_store_currency', '3.1', 'cocart_get_store_currency' );
-
-		return cocart_get_store_currency();
-	} // END get_store_currency()
-
-	/**
-	 * Returns the cart key.
-	 *
-	 * @access public
-	 *
-	 * @deprecated 4.2.0 Replaced with the same function in the utilities class.
-	 *
-	 * @see CoCart_Utilities_Cart_Helpers::get_cart_key()
-	 *
-	 * @return string Cart key.
-	 */
-	public function get_cart_key() {
-		cocart_deprecated_function( 'CoCart_REST_Cart_V2_Controller::get_cart_key', '4.2.0', 'CoCart_Utilities_Cart_Helpers::get_cart_key' );
-
-		return CoCart_Utilities_Cart_Helpers::get_cart_key();
-	} // END get_cart_key()
-
-	/**
 	 * Get tax lines from the cart and format to match schema.
 	 *
 	 * @access protected
@@ -784,30 +748,6 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 
 		return CoCart_Utilities_Cart_Helpers::get_tax_lines( $cart );
 	} // END get_tax_lines()
-
-	/**
-	 * Convert monetary values from WooCommerce to string based integers, using
-	 * the smallest unit of a currency.
-	 *
-	 * @access public
-	 *
-	 * @since 3.0.0 Introduced.
-	 *
-	 * @deprecated 3.1.0 Use `cocart_prepare_money_response()` function instead.
-	 *
-	 * @see cocart_prepare_money_response()
-	 *
-	 * @param string|float $amount        Monetary amount with decimals.
-	 * @param int          $decimals      Number of decimals the amount is formatted with.
-	 * @param int          $rounding_mode Defaults to the PHP_ROUND_HALF_UP constant.
-	 *
-	 * @return string The new amount.
-	 */
-	public function prepare_money_response( $amount, $decimals = 2, $rounding_mode = PHP_ROUND_HALF_UP ) {
-		cocart_deprecated_function( 'CoCart_REST_Cart_V2_Controller::prepare_money_response', '3.1', 'cocart_prepare_money_response' );
-
-		return cocart_prepare_money_response( $amount, $decimals, $rounding_mode );
-	} // END prepare_money_response()
 
 	/**
 	 * Format variation data, for example convert slugs such as attribute_pa_size to Size.
@@ -1462,76 +1402,6 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 	} // END print_notices()
 
 	/**
-	 * Cache cart item.
-	 *
-	 * @see CoCart_Cart_Cache::set_cached_item()
-	 *
-	 * @access public
-	 *
-	 * @since 3.1.0 Introduced.
-	 *
-	 * @deprecated 4.1.0 No longer used here.
-	 *
-	 * @param array $item_added_to_cart Cart item to cache.
-	 */
-	public function cache_cart_item( $item_added_to_cart ) {
-		cocart_deprecated_function( 'CoCart_REST_Cart_V2_Controller::cache_cart_item', '4.1' );
-
-		$item_key = $item_added_to_cart['key'];
-
-		CoCart_Cart_Cache::set_cached_item( $item_key, $item_added_to_cart );
-	} // END cache_cart_item()
-
-	/**
-	 * Returns the customers details from fields.
-	 *
-	 * @access protected
-	 *
-	 * @since 3.0.0 Introduced.
-	 *
-	 * @deprecated 4.2.0 Replaced with the same function in the utilities class.
-	 *
-	 * @see CoCart_Utilities_Cart_Helpers::get_customer_fields()
-	 *
-	 * @param string           $fields   The customer fields to return.
-	 * @param WC_Customer|null $customer The customer object or nothing.
-	 *
-	 * @return array Returns the customer details based on the field requested.
-	 */
-	protected function get_customer_fields( $fields = 'billing', $customer = '' ) {
-		cocart_deprecated_function( 'CoCart_REST_Cart_V2_Controller::get_customer_fields', '4.2.0', 'CoCart_Utilities_Cart_Helpers::get_customer_fields' );
-
-		return CoCart_Utilities_Cart_Helpers::get_customer_fields( $fields, $customer );
-	} // END get_customer_fields()
-
-	/**
-	 * Convert queued error notices into an exception.
-	 *
-	 * Since we're not rendering notices at all, we need to convert them to exceptions.
-	 *
-	 * This method will find the first error message and thrown an exception instead. Discards notices once complete.
-	 *
-	 * @throws CoCart_Data_Exception If an error notice is detected, Exception is thrown.
-	 *
-	 * @access public
-	 *
-	 * @static
-	 *
-	 * @since 3.0.1 Introduced.
-	 *
-	 * @deprecated 4.2.0 Replaced with the same function in the utilities class.
-	 *
-	 * @see CoCart_Utilities_Cart_Helpers::convert_notices_to_exceptions()
-	 *
-	 * @param string $error_code Error code for the thrown exceptions.
-	 */
-	public static function convert_notices_to_exceptions( $error_code = 'unknown_server_error' ) {
-		cocart_deprecated_function( 'CoCart_REST_Cart_V2_Controller::convert_notices_to_exceptions', '4.2.0', 'CoCart_Utilities_Cart_Helpers::convert_notices_to_exceptions' );
-
-		CoCart_Utilities_Cart_Helpers::convert_notices_to_exceptions( $error_code );
-	} // END convert_notices_to_exceptions()
-
-	/**
 	 * Validate the product ID or SKU ID.
 	 *
 	 * @throws CoCart_Data_Exception Exception if invalid data is detected.
@@ -1653,72 +1523,6 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 
 		return CoCart_Utilities_Cart_Helpers::get_variable_product_attributes( $product );
 	} // END get_variable_product_attributes()
-
-	/**
-	 * Gets remaining stock for a product.
-	 *
-	 * @access protected
-	 *
-	 * @since 3.1.0 Introduced.
-	 *
-	 * @deprecated 4.2.0 Replaced with the same function in the utilities class.
-	 *
-	 * @see CoCart_Utilities_Cart_Helpers::get_remaining_stock_for_product()
-	 *
-	 * @param WC_Product $product The product object.
-	 *
-	 * @return int Remaining stock.
-	 */
-	protected function get_remaining_stock_for_product( $product ) {
-		cocart_deprecated_function( 'CoCart_REST_Cart_V2_Controller::get_remaining_stock_for_product', '4.2.0', 'CoCart_Utilities_Cart_Helpers::get_remaining_stock_for_product' );
-
-		return CoCart_Utilities_Cart_Helpers::get_remaining_stock_for_product( $product );
-	} // END get_remaining_stock_for_product()
-
-	/**
-	 * Throws exception if the item key is not provided when either removing, updating or restoring the item.
-	 *
-	 * @throws CoCart_Data_Exception If an error notice is detected, Exception is thrown.
-	 *
-	 * @access protected
-	 *
-	 * @since 3.0.17 Introduced.
-	 *
-	 * @deprecated 4.2.0 Replaced with the same function in the utilities class.
-	 *
-	 * @see CoCart_Utilities_Cart_Helpers::throw_missing_item_key()
-	 *
-	 * @param string $item_key Generated ID based on the product information when added to the cart.
-	 * @param string $status   Status of which we are checking the item key.
-	 *
-	 * @return string $item_key Generated ID based on the product information when added to the cart.
-	 */
-	protected function throw_missing_item_key( $item_key, $status ) {
-		cocart_deprecated_function( 'CoCart_REST_Cart_V2_Controller::throw_missing_item_key', '4.2.0', 'CoCart_Utilities_Cart_Helpers::throw_missing_item_key' );
-
-		return CoCart_Utilities_Cart_Helpers::throw_missing_item_key( $item_key, $status );
-	} // END throw_missing_item_key()
-
-	/**
-	 * Throws exception when an item cannot be added to the cart.
-	 *
-	 * @throws CoCart_Data_Exception If an error notice is detected, Exception is thrown.
-	 *
-	 * @access protected
-	 *
-	 * @since 3.0.4 Introduced.
-	 *
-	 * @deprecated 4.2.0 Replaced with the same function in the utilities class.
-	 *
-	 * @see CoCart_Utilities_Cart_Helpers::throw_product_not_purchasable()
-	 *
-	 * @param WC_Product $product The product object.
-	 */
-	protected function throw_product_not_purchasable( $product ) {
-		cocart_deprecated_function( 'CoCart_REST_Cart_V2_Controller::throw_product_not_purchasable', '4.2.0', 'CoCart_Utilities_Cart_Helpers::throw_product_not_purchasable' );
-
-		CoCart_Utilities_Cart_Helpers::throw_product_not_purchasable( $product );
-	} // END throw_product_not_purchasable()
 
 	/**
 	 * Retrieves the item schema for returning the cart.
@@ -2744,15 +2548,6 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 				),
 			),
 		);
-
-		/**
-		 * This filter is now deprecated and is replaced with `cocart_cart_items_schema`.
-		 *
-		 * @deprecated 3.1.0 Use `cocart_cart_items_schema` filter instead.
-		 *
-		 * @see cocart_cart_items_schema
-		 */
-		cocart_do_deprecated_filter( 'cocart_cart_schema', '3.1.0', 'cocart_cart_items_schema', __( 'Changed for the purpose of not overriding default properties.', 'cocart-core' ), array( $this->schema['properties'] ) );
 
 		/**
 		 * Extend cart schema properties for items.
