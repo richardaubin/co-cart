@@ -1112,12 +1112,11 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 				 *
 				 * @since 3.0.0 Introduced.
 				 *
-				 * @param string     $item_quantity Item quantity.
-				 * @param string     $item_key      The item key generated based on the details of the item.
-				 * @param array      $cart_item     The cart item data.
-				 * @param WC_Product $product       The product object.
+				 * @param string $item_quantity Item quantity.
+				 * @param string $item_key      The item key generated based on the details of the item.
+				 * @param array  $cart_item     The cart item data.
 				 */
-				'value'        => apply_filters( 'cocart_cart_item_quantity', $cart_item['quantity'], $item_key, $cart_item, $product ),
+				'value'        => apply_filters( 'cocart_cart_item_quantity', $cart_item['quantity'], $cart_item, $item_key ),
 				'min_purchase' => CoCart_Utilities_Product_Helpers::get_quantity_minimum_requirement( $product ),
 				'max_purchase' => CoCart_Utilities_Product_Helpers::get_quantity_maximum_allowed( $product ),
 			),
@@ -1315,8 +1314,31 @@ class CoCart_REST_Cart_V2_Controller extends CoCart_REST_Cart_Controller {
 		foreach ( $get_cross_sells as $cross_sell ) {
 			$id = $cross_sell->get_id();
 
-			$thumbnail_id  = apply_filters( 'cocart_cross_sell_item_thumbnail', $cross_sell->get_image_id() );
+			/**
+			 * Filter allows you to modify the cross-sell item thumbnail.
+			 *
+			 * @since 3.0.0 Introduced.
+			 *
+			 * @param int $thumbnail_id The thumbnail ID.
+			 */
+			$thumbnail_id = apply_filters( 'cocart_cross_sell_item_thumbnail', $cross_sell->get_image_id() );
+
+			/**
+			 * Filter allows you to modify the cross-sell item thumbnail size.
+			 *
+			 * @since 3.0.0 Introduced.
+			 *
+			 * @param string $size The thumbnail size. Default 'woocommerce_thumbnail'.
+			 */
 			$thumbnail_src = wp_get_attachment_image_src( $thumbnail_id, apply_filters( 'cocart_cross_sell_item_thumbnail_size', 'woocommerce_thumbnail' ) );
+
+			/**
+			 * Filter allows you to modify the cross-sell item thumbnail source URL.
+			 *
+			 * @since 3.0.0 Introduced.
+			 *
+			 * @param string $src The thumbnail source URL.
+			 */
 			$thumbnail_src = apply_filters( 'cocart_cross_sell_item_thumbnail_src', $thumbnail_src[0] );
 
 			$cross_sells[ $id ] = array(

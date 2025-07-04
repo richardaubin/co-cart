@@ -449,6 +449,14 @@ class CoCart_Utilities_Cart_Helpers {
 	public static function fee_html( $cart, $fee ) {
 		$cart_totals_fee_html = $cart->display_prices_including_tax() ? wc_price( $fee->total + $fee->tax ) : wc_price( $fee->total );
 
+		/**
+		 * Filters the cart totals fee HTML.
+		 *
+		 * @since 3.0.0 Introduced.
+		 *
+		 * @param string $cart_totals_fee_html Cart totals fee HTML.
+		 * @param object $fee                  Fee object.
+		 */
 		return apply_filters( 'cocart_cart_totals_fee_html', $cart_totals_fee_html, $fee );
 	} // END fee_html()
 
@@ -528,6 +536,14 @@ class CoCart_Utilities_Cart_Helpers {
 		if ( has_filter( 'woocommerce_coupon_discount_amount_html' ) ) {
 			$discount_amount_html = apply_filters( 'woocommerce_coupon_discount_amount_html', $discount_amount_html, $coupon );
 		} else {
+			/**
+			 * Filters the coupon discount amount HTML.
+			 *
+			 * @since 3.0.0 Introduced.
+			 *
+			 * @param string     $discount_amount_html Formatted discount amount.
+			 * @param WC_Coupon  $coupon              The coupon object.
+			 */
 			$discount_amount_html = apply_filters( 'cocart_coupon_discount_amount_html', $discount_amount_html, $coupon );
 		}
 
@@ -927,12 +943,11 @@ class CoCart_Utilities_Cart_Helpers {
 		 *
 		 * @since 3.0.0 Introduced.
 		 *
-		 * @param string     $product_price Product price.
-		 * @param array      $cart_item     The cart item data.
-		 * @param string     $item_key      The item key generated based on the details of the item.
-		 * @param WC_Product $product       The product object.
+		 * @param string $product_price Product price.
+		 * @param array  $cart_item     The cart item data.
+		 * @param string $item_key      Generated ID based on the product information when added to the cart.
 		 */
-		$item['price'] = apply_filters( 'cocart_cart_item_price', cocart_format_money( $price_function( $product ) ), $cart_item, $item_key, $product );
+		$item['price'] = apply_filters( 'cocart_cart_item_price', $price_function( $product ), $cart_item, $item_key );
 
 		/**
 		 * Filter allows the quantity of the item to change.
@@ -941,12 +956,11 @@ class CoCart_Utilities_Cart_Helpers {
 		 *
 		 * @since 3.0.0 Introduced.
 		 *
-		 * @param string     $item_quantity Item quantity.
-		 * @param string     $item_key      The item key generated based on the details of the item.
-		 * @param array      $cart_item     The cart item data.
-		 * @param WC_Product $product       The product object.
+		 * @param string $item_quantity Item quantity.
+		 * @param string $item_key      Generated ID based on the product information when added to the cart.
+		 * @param array  $cart_item     The cart item data.
 		 */
-		$item['quantity'] = apply_filters( 'cocart_cart_item_quantity', $cart_item['quantity'], $item_key, $cart_item, $product );
+		$item['quantity'] = apply_filters( 'cocart_cart_item_quantity', $cart_item['quantity'], $item_key, $cart_item );
 
 		$item['variation'] = cocart_format_variation_data( $cart_item['variation'], $product );
 
