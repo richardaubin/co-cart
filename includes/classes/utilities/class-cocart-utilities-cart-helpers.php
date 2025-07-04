@@ -275,7 +275,7 @@ class CoCart_Utilities_Cart_Helpers {
 						'method_id'     => $method->get_method_id(),
 						'instance_id'   => $method->instance_id,
 						'label'         => $method->get_label(),
-						'cost'          => cocart_format_money( $method->cost ),
+						'cost'          => CoCart_REST_Utilities_Monetary_Formatting::format_money( $method->cost, $request ),
 						'html'          => html_entity_decode( wp_strip_all_tags( wc_cart_totals_shipping_method_label( $method ) ) ),
 						'taxes'         => '',
 						'chosen_method' => ( $chosen_method === $key ),
@@ -283,7 +283,7 @@ class CoCart_Utilities_Cart_Helpers {
 					);
 
 					foreach ( $method->taxes as $shipping_cost => $tax_cost ) {
-						$packages[ $package_id ]['rates'][ $key ]['taxes'] = cocart_format_money( $tax_cost );
+						$packages[ $package_id ]['rates'][ $key ]['taxes'] = CoCart_REST_Utilities_Monetary_Formatting::format_money( $tax_cost );
 					}
 				}
 
@@ -407,24 +407,25 @@ class CoCart_Utilities_Cart_Helpers {
 	 * @static
 	 *
 	 * @since 3.0.0 Introduced.
+	 * @since 5.0.0 Added the request object as parameter.
 	 *
-	 * @see cocart_format_money()
-	 *
-	 * @param WC_Cart $cart Cart class instance.
+	 * @param WC_Cart         $cart    Cart class instance.
+	 * @param WP_REST_Request $request The request object.
 	 *
 	 * @return array Cart fees.
 	 */
-	public static function get_fees( $cart ) {
+	public static function get_fees( $cart, $request ) {
 		$cart_fees = $cart->get_fees();
 
 		$fees = array();
 
 		if ( ! empty( $cart_fees ) ) {
 			foreach ( $cart_fees as $key => $fee ) {
-				$fees[ $key ] = array(
+				$fees[ $key ]        = array(
 					'name' => esc_html( $fee->name ),
-					'fee'  => cocart_format_money( self::fee_html( $cart, $fee ) ),
+					'fee'  => self::fee_html( $fee ),
 				);
+				$fees[ $key ]['fee'] = CoCart_REST_Utilities_Monetary_Formatting::format_money( $fees[ $key ]['fee'], $request );
 			}
 		}
 
@@ -602,10 +603,13 @@ class CoCart_Utilities_Cart_Helpers {
 			if ( 'itemized' === get_option( 'woocommerce_tax_total_display' ) ) {
 				return self::get_tax_lines( $cart, $request );
 			} else {
-				return array(
+				$taxes          = array(
 					'label' => esc_html( WC()->countries->tax_or_vat() ) . $estimated_text,
-					'total' => apply_filters( 'cocart_cart_totals_taxes_total', cocart_format_money( $cart->get_taxes_total() ) ),
+					'total' => apply_filters( 'cocart_cart_totals_taxes_total', $cart->get_taxes_total() ),
 				);
+				$taxes['total'] = CoCart_REST_Utilities_Monetary_Formatting::format_money( $taxes['total'], $request );
+
+				return $taxes;
 			}
 		}
 
@@ -634,7 +638,7 @@ class CoCart_Utilities_Cart_Helpers {
 		foreach ( $cart_tax_totals as $code => $tax ) {
 			$tax_lines[ $code ] = array(
 				'name'  => $tax->label,
-				'price' => cocart_format_money( $tax->amount ),
+				'price' => CoCart_REST_Utilities_Monetary_Formatting::format_money( $tax->amount, $request ),
 			);
 		}
 
@@ -963,6 +967,9 @@ class CoCart_Utilities_Cart_Helpers {
 			 */
 			$item['cart_item_data'] = apply_filters( 'cocart_cart_item_data', $cart_item, $item_key, $product );
 		}
+
+		// Format monetary values.
+		$item['price'] = CoCart_REST_Utilities_Monetary_Formatting::format_money( $item['price'], $request );
 
 		return $item;
 	} // END get_item_basic()
