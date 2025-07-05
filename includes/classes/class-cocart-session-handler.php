@@ -25,6 +25,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 class CoCart_Session_Handler extends WC_Session_Handler {
 
 	/**
+	 * Stores cart in use.
+	 *
+	 * @access protected
+	 *
+	 * @var string Cart key identifier.
+	 */
+	protected $cart_key = '';
+
+	/**
 	 * Stores cart expiry.
 	 *
 	 * @access protected
@@ -103,7 +112,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	/**
 	 * Get requested cart.
 	 *
-	 * Returns the cart key requested from parameters or via header.
+	 * Returns the cart key requested from parameters, via header, or WP-CLI command.
 	 *
 	 * @access public
 	 *
@@ -112,29 +121,34 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 * @return string Cart key.
 	 */
 	public function get_requested_cart() {
-		$cart_key = '';
-
 		// Are we requesting via url parameter?
 		if ( isset( $_REQUEST['cart_key'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$cart_key = (string) trim( sanitize_key( wp_unslash( $_REQUEST['cart_key'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$this->cart_key = (string) trim( sanitize_key( wp_unslash( $_REQUEST['cart_key'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
+
+		// Are we requesting via custom header? - Old method
+		if ( ! empty( $_SERVER['HTTP_COCART_API_CART_KEY'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$this->cart_key = (string) trim( sanitize_key( wp_unslash( $_SERVER['HTTP_COCART_API_CART_KEY'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		}
 
 		// Are we requesting via custom header?
-		if ( ! empty( $_SERVER['HTTP_COCART_API_CART_KEY'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$cart_key = (string) trim( sanitize_key( wp_unslash( $_SERVER['HTTP_COCART_API_CART_KEY'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! empty( $_SERVER['HTTP_CART_KEY'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$this->cart_key = (string) trim( sanitize_key( wp_unslash( $_SERVER['HTTP_CART_KEY'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		}
 
 		/**
 		 * Filter allows the cart key to be overridden.
 		 *
 		 * Developer Note: Really only here so I don't have to create
-		 * a new session handler to inject a customer ID with the POS Support Add-on.
+		 * a new session handler to control the cart requested.
 		 *
 		 * @since 4.2.0 Introduced.
 		 *
 		 * @ignore Function ignored when parsed into Code Reference.
 		 */
-		return apply_filters( 'cocart_requested_cart_key', $cart_key );
+		$this->cart_key = apply_filters( 'cocart_requested_cart_key', $this->cart_key );
+
+		return $this->cart_key;
 	} // END get_requested_cart()
 
 	/**
@@ -158,30 +172,30 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 			$current_user_id = strval( get_current_user_id() );
 		}
 
-		$this->_customer_id = $this->get_requested_cart();
+		$this->cart_key = $this->get_requested_cart();
 
 		// Get cart session requested.
-		if ( ! empty( $this->_customer_id ) ) {
+		if ( ! empty( $this->cart_key ) ) {
 			// Get cart.
 			$this->_data = $this->get_session_data();
 
-			// If the user logs in, and there is a requested cart that is not a customer then update session configuration.
-			if ( is_user_logged_in() && ! empty( $this->_customer_id ) && ! $this->is_user_customer( $this->_customer_id ) && $current_user_id !== $this->_customer_id ) {
-				$guest_session_id   = $this->_customer_id;
-				$this->_customer_id = $current_user_id;
+			// If the user logs in, and there is a requested cart that is not a customer, then update session configuration.
+			if ( is_user_logged_in() && ! empty( $this->_customer_id ) && ! $this->is_user_customer( $this->cart_key ) && $current_user_id !== $this->cart_key ) {
+				$guest_session_id = $this->cart_key;
+				$this->cart_key   = $current_user_id;
 				$this->save_data( $guest_session_id );
 			}
 
 			// Update cart if its close to expiring.
-			if ( time() > $this->cart_expiring || empty( $this->cart_expiring ) ) {
+			if ( $this->is_session_expiring() ) {
 				$this->set_cart_expiration();
-				$this->update_cart_timestamp( $this->_customer_id, $this->cart_expiration );
+				$this->update_cart_timestamp( $this->cart_key, $this->cart_expiration );
 			}
 		} else {
 			// New cart session created or authenticated user.
 			$this->set_cart_expiration();
-			$this->_customer_id = 0 === $current_user_id ? $this->generate_key() : $current_user_id;
-			$this->_data        = $this->get_session_data();
+			$this->cart_key = 0 === $current_user_id ? $this->generate_key() : $current_user_id;
+			$this->_data    = $this->get_session_data();
 		}
 	} // END init_session_cocart()
 
@@ -223,7 +237,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 */
 	public function has_session() {
 		// If we are loading a session via REST API then identify cart key.
-		if ( ! empty( $this->_customer_id ) && CoCart::is_rest_api_request() ) {
+		if ( ! empty( $this->cart_key ) && CoCart::is_rest_api_request() ) {
 			return true;
 		}
 
@@ -235,29 +249,58 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	} // END has_session()
 
 	/**
+	 * Checks if the session is expiring.
+	 *
+	 * @access private
+	 *
+	 * @since 4.4.0 Introduced.
+	 *
+	 * @return bool Whether session is expiring.
+	 */
+	private function is_session_expiring() {
+		return time() > $this->cart_expiration || empty( $this->cart_expiring );
+	} // END is_session_expiring()
+
+	/**
 	 * Set cart expiration.
 	 *
-	 * This session expiration is used for the REST API and is set for 7 days by default.
+	 * This session expiration is used for the REST API.
+	 *
+	 * For logged in users sessions renew daily and expire in a week. This is to keep carts persistent for logged in users.
+	 * For guests, sessions expire in 48 hours.
 	 *
 	 * @access public
 	 */
 	public function set_cart_expiration() {
+		$expiring_seconds   = DAY_IN_SECONDS;
+		$expiration_seconds = 2 * DAY_IN_SECONDS;
+
+		// Set expiration time for logged in users.
+		if ( is_user_logged_in() ) {
+			$expiration_seconds = WEEK_IN_SECONDS;
+		}
+
 		/**
 		 * Filter allows you to change the amount of time before the cart starts to expire.
 		 *
-		 * Default is (DAY_IN_SECONDS * 6) = 6 Days
-		 *
 		 * @since 2.1.0 Introduced.
+		 * @since 4.4.0 Added the parameter if user is logged in.
+		 *
+		 * @param int  $expiring_seconds  The expiration time in seconds.
+		 * @param bool $is_user_logged_in Whether the user is logged in or not.
 		 */
-		$this->cart_expiring = time() + intval( apply_filters( 'cocart_cart_expiring', DAY_IN_SECONDS * 6 ) );
+		$this->cart_expiring = time() + intval( apply_filters( 'cocart_cart_expiring', $expiring_seconds, is_user_logged_in() ) );
+
 		/**
-		 * Filter allows you to change the amount of time before the cart has expired.
-		 *
-		 * Default is (DAY_IN_SECONDS * 7) = 7 Days
+		 * Filter allows you to change the amount of time before the cart does expire.
 		 *
 		 * @since 2.1.0 Introduced.
+		 * @since 4.4.0 Added the parameter if user is logged in.
+		 *
+		 * @param int  $expiration_seconds The expiration time in seconds.
+		 * @param bool $is_user_logged_in  Whether the user is logged in or not.
 		 */
-		$this->cart_expiration = time() + intval( apply_filters( 'cocart_cart_expiration', DAY_IN_SECONDS * 7 ) );
+		$this->cart_expiration = time() + intval( apply_filters( 'cocart_cart_expiration', $expiration_seconds, is_user_logged_in() ) );
 	} // END set_cart_expiration()
 
 	/**
@@ -274,11 +317,27 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	public function generate_key() {
 		require_once ABSPATH . 'wp-includes/class-phpass.php';
 
-		$hasher        = new \PasswordHash( 8, false );
-		$generated_key = apply_filters( 'cocart_generate_key', substr( md5( $hasher->get_random_bytes( 32 ) ), 2 ) );
+		$hasher = new \PasswordHash( 8, false );
+		/**
+		 * Filter allows you to change the generated key.
+		 *
+		 * @since 4.2.0 Introduced.
+		 *
+		 * @param PasswordHash $hasher PHPass object.
+		 */
+		$generated_key = 't_' . apply_filters( 'cocart_generate_key', substr( md5( $hasher->get_random_bytes( 32 ) ), 2 ), $hasher );
 
 		return $generated_key;
 	} // END generate_key()
+
+	/**
+	 * Get session data.
+	 *
+	 * @return array
+	 */
+	public function get_session_data() {
+		return $this->has_session() ? (array) $this->get_session( $this->cart_key, array() ) : array();
+	}
 
 	/**
 	 * Gets a cache prefix.
@@ -302,20 +361,15 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 *
 	 * @since 2.1.0 Introduced.
 	 *
-	 * @param int $old_cart_key Cart key used before.
+	 * @param string|mixed $old_cart_key Optional cart key prior to user log-in. If $old_cart_key is not tied
+	 *                                   to a user, the session will be deleted with the assumption that it was migrated
+	 *                                   to the current session being saved.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
-	public function save_data( $old_cart_key = 0 ) {
+	public function save_data( $old_cart_key = '' ) {
 		if ( $this->has_session() ) {
 			global $wpdb;
-
-			/**
-			 * Filter is used to set an empty cart expiration.
-			 *
-			 * @deprecated 2.7.2 No replacement.
-			 */
-			cocart_do_deprecated_filter( 'cocart_empty_cart_expiration', '2.7.2', null );
 
 			// Check the data exists before continuing.
 			if ( ! $this->_data || empty( $this->_data ) || is_null( $this->_data ) ) {
@@ -323,7 +377,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 			}
 
 			// Check the source to determine cart expiration to utilize.
-			if ( $this->cart_source === 'cocart' ) {
+			if ( 'cocart' === $this->cart_source ) {
 				$cart_expiration = (int) $this->cart_expiration;
 			} else {
 				$cart_expiration = (int) $this->_session_expiration;
@@ -348,9 +402,11 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 			// Save or update cart data.
 			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 				$wpdb->prepare(
-					"INSERT INTO {$wpdb->prefix}cocart_carts (`cart_key`, `cart_value`, `cart_created`, `cart_expiry`, `cart_source`, `cart_hash`) VALUES (%s, %s, %d, %d, %s, %s)
- 					ON DUPLICATE KEY UPDATE `cart_value` = VALUES(`cart_value`), `cart_expiry` = VALUES(`cart_expiry`), `cart_hash` = VALUES(`cart_hash`)",
-					$this->_customer_id,
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					'INSERT INTO %i (`cart_key`, `cart_value`, `cart_created`, `cart_expiry`, `cart_source`, `cart_hash`) VALUES (%s, %s, %d, %d, %s, %s)
+ 					ON DUPLICATE KEY UPDATE `cart_value` = VALUES(`cart_value`), `cart_expiry` = VALUES(`cart_expiry`), `cart_hash` = VALUES(`cart_hash`)',
+					$this->_table,
+					$this->cart_key,
 					maybe_serialize( $this->_data ),
 					time(),
 					$cart_expiration,
@@ -359,24 +415,28 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 				)
 			);
 
-			wp_cache_set( $this->get_cache_prefix() . $this->_customer_id, $this->_data, COCART_CART_CACHE_GROUP, $cart_expiration - time() );
+			wp_cache_set( $this->get_cache_prefix() . $this->cart_key, $this->_data, COCART_CART_CACHE_GROUP, $cart_expiration - time() );
 
 			/**
 			 * Hook: Fires after session data is saved.
 			 *
 			 * @since 4.2.0 Introduced.
 			 *
-			 * @param int    $customer_id     Customer ID.
+			 * @param int    $cart_key        Cart key identifier.
 			 * @param array  $data            Cart data.
 			 * @param int    $cart_expiration Cart expiration.
 			 * @param string $cart_source     Cart source.
 			 */
-			do_action( 'cocart_after_session_saved_data', $this->_customer_id, $this->_data, $cart_expiration, $cart_source );
+			do_action( 'cocart_after_session_saved_data', $this->cart_key, $this->_data, $cart_expiration, $cart_source );
 
 			$this->_dirty = false;
 
-			// Customer is now registered so we delete the previous cart as guest to prevent duplication.
-			if ( get_current_user_id() !== $old_cart_key && ! is_object( get_user_by( 'id', $old_cart_key ) ) ) {
+			/**
+			 * Ideally, the removal of guest session data migrated to a logged-in user would occur within
+			 * parent::init_session_cookie() upon user login detection initially occurs. However, since some third-party
+			 * extensions override this method, relocating this logic could break backward compatibility.
+			 */
+			if ( ! empty( $old_cart_key ) && $this->_customer_id !== $old_cart_key && ! is_object( get_user_by( 'id', $old_cart_key ) ) ) {
 				$this->delete_cart( $old_cart_key );
 			}
 		}
@@ -388,7 +448,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 * @access public
 	 */
 	public function destroy_cart() {
-		$this->delete_cart( $this->_customer_id );
+		$this->delete_cart( $this->cart_key );
 		$this->forget_session();
 	} // END destroy_cart()
 
@@ -416,7 +476,8 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 
 		$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->prepare(
-				"DELETE FROM $this->_table WHERE cart_expiry < %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				'DELETE FROM %i WHERE cart_expiry < %d', // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$this->_table,
 				time()
 			)
 		);
@@ -453,7 +514,8 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 		if ( false === $value ) {
 			$value = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 				$wpdb->prepare(
-					"SELECT cart_value FROM $this->_table WHERE cart_key = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					'SELECT cart_value FROM %i WHERE cart_key = %s', // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$this->_table,
 					$cart_key
 				)
 			);
@@ -573,9 +635,9 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 *
 	 * @return string
 	 */
-	public function get_customer_id() {
-		return $this->_customer_id;
-	} // END get_customer_id()
+	public function get_cart_key() {
+		return $this->cart_key;
+	} // END get_cart_key()
 
 	/**
 	 * Set customer ID.
@@ -584,11 +646,11 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 *
 	 * @since 3.0.0 Introduced.
 	 *
-	 * @param string $customer_id Customer ID.
+	 * @param string $cart_key Customer ID.
 	 */
-	public function set_customer_id( $customer_id ) {
-		$this->_customer_id = $customer_id;
-	} // END set_customer_id()
+	public function set_cart_key( $cart_key ) {
+		$this->cart_key = $cart_key;
+	} // END set_cart_key()
 
 	/**
 	 * Get cart hash
@@ -628,397 +690,4 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	public function get_carts_expiration() {
 		return $this->cart_expiration;
 	} // END get_carts_expiration()
-
-	/**
-	 * Update the session expiry timestamp.
-	 *
-	 * @param string $customer_id Customer ID.
-	 * @param int    $timestamp Timestamp to expire the cookie.
-	 */
-	public function update_session_timestamp( $customer_id, $timestamp ) {
-		global $wpdb;
-
-		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			$this->_table,
-			array(
-				'cart_expiry' => $timestamp,
-			),
-			array(
-				'cart_key' => $customer_id,
-			),
-			array(
-				'%d',
-			)
-		);
-	} // END update_session_timestamp()
-
-	/* Functions below this line are deprecated! */
-
-	/**
-	 * Is Cookie support enabled?
-	 *
-	 * Determines if a cookie should manage the cart for customers.
-	 *
-	 * @access public
-	 *
-	 * @since 2.1.0 Introduced.
-	 *
-	 * @deprecated 4.2.0 No replacement.
-	 *
-	 * @return bool
-	 */
-	public function is_cookie_supported() {
-		cocart_deprecated_function( 'CoCart_Session_Handler::is_cookie_supported', '4.2.0', null );
-
-		return cocart_do_deprecated_filter(
-			'cocart_cookie_supported',
-			'4.2.0',
-			null,
-			sprintf(
-				/* translators: %s: Filter name */
-				__( '%s is no longer used.', 'cocart-core' ),
-				'cocart_cookie_supported'
-			)
-		);
-	} // END is_cookie_supported()
-
-	/**
-	 * Returns the cookie name.
-	 *
-	 * @access public
-	 *
-	 * @deprecated 4.2.0 No replacement.
-	 *
-	 * @return string
-	 */
-	public function get_cookie_name() {
-		cocart_deprecated_function( 'CoCart_Session_Handler::get_cookie_name', '4.2.0', null );
-
-		return $this->_cookie;
-	} // END get_cookie_name()
-
-	/**
-	 * Set a cookie - wrapper for setcookie using WP constants.
-	 *
-	 * @access public
-	 *
-	 * @since 2.1.0 Introduced.
-	 *
-	 * @deprecated 4.2.0 No replacement.
-	 *
-	 * @param string  $name Name of the cookie being set.
-	 * @param string  $value Value of the cookie.
-	 * @param integer $expire Expiry of the cookie.
-	 * @param bool    $secure Whether the cookie should be served only over https.
-	 * @param bool    $httponly Whether the cookie is only accessible over HTTP, not scripting languages like JavaScript. @since 2.7.2.
-	 */
-	public function cocart_setcookie( $name, $value, $expire = 0, $secure = false, $httponly = false ) {
-		cocart_deprecated_function( 'CoCart_Session_Handler::cocart_setcookie', '4.2.0', null );
-
-		if ( ! headers_sent() ) {
-			// samesite - Set to None by default and only available to those using PHP 7.3 or above. @since 2.9.1.
-			if ( version_compare( PHP_VERSION, '7.3.0', '>=' ) ) {
-				setcookie( $name, $value, apply_filters( 'cocart_set_cookie_options', array( 'expires' => $expire, 'secure' => $secure, 'path' => COOKIEPATH ? COOKIEPATH : '/', 'domain' => COOKIE_DOMAIN, 'httponly' => apply_filters( 'cocart_cookie_httponly', $httponly, $name, $value, $expire, $secure ), 'samesite' => apply_filters( 'cocart_cookie_samesite', 'Lax' ) ), $name, $value ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
-			} else {
-				setcookie( $name, $value, $expire, COOKIEPATH ? COOKIEPATH : '/', COOKIE_DOMAIN, $secure, apply_filters( 'cocart_cookie_httponly', $httponly, $name, $value, $expire, $secure ) );
-			}
-		} elseif ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			headers_sent( $file, $line );
-			trigger_error( "{$name} cookie cannot be set - headers already sent by {$file} on line {$line}", E_USER_NOTICE ); // @codingStandardsIgnoreLine
-		}
-	} // END cocart_cookie()
-
-	/**
-	 * Get cart data.
-	 *
-	 * Similar to the `WC()->session->get_session_data()` function but we needed to access our own table query.
-	 *
-	 * @access public
-	 *
-	 * @deprecated 4.2.0 Replaced with original `WC()->session->get_session_data()` function.
-	 *
-	 * @return array
-	 */
-	public function get_cart_data() {
-		cocart_deprecated_function( 'CoCart_Session_Handler::get_cart_data', '4.2.0', 'CoCart_Session_Handler::get_session_data' );
-
-		return $this->has_session() ? (array) $this->get_cart( $this->_customer_id, array() ) : array();
-	} // END get_cart_data()
-
-	/**
-	 * Save cart data and delete previous cart data.
-	 *
-	 * @access public
-	 *
-	 * @since 2.1.0 Introduced.
-	 *
-	 * @deprecated 4.2.0 Use `WC()->session->save_data()` instead.
-	 *
-	 * @param int $old_cart_key Cart key used before.
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 */
-	public function save_cart( $old_cart_key = 0 ) {
-		cocart_deprecated_function( 'CoCart_Session_Handler::save_cart', '4.2.0', 'CoCart_Session_Handler::save_data' );
-
-		$this->save_data( $old_cart_key );
-	} // END save_cart()
-
-	/**
-	 * Destroy cart cookie.
-	 *
-	 * @access public
-	 *
-	 * @since 3.0.0 Introduced.
-	 *
-	 * @deprecated 4.2.0 No replacement.
-	 */
-	public function destroy_cookie() {
-		cocart_deprecated_function( 'CoCart_Session_Handler::destroy_cookie', '4.2.0', null );
-
-		$this->cocart_setcookie( $this->_cookie, '', time() - YEAR_IN_SECONDS, $this->use_secure_cookie(), $this->use_httponly() );
-	} // END destroy_cookie()
-
-	/**
-	 * Returns the cart.
-	 *
-	 * @access public
-	 *
-	 * @since 3.1.0 Introduced.
-	 *
-	 * @deprecated 4.2.0 Use `WC()->session->get_session()` instead.
-	 *
-	 * @param string $cart_key The cart key.
-	 * @param mixed  $default  Default cart value.
-	 */
-	public function get_cart( $cart_key, $default = false ) {
-		cocart_deprecated_function( 'CoCart_Session_Handler::get_cart', '4.2.0', 'WC()->session->get_session()' );
-
-		$this->get_session( $cart_key, $default );
-	} // END get_cart()
-
-	/**
-	 * Returns the timestamp the cart was created.
-	 *
-	 * @access public
-	 *
-	 * @since 3.1.0 Introduced.
-	 *
-	 * @deprecated 4.2.0 Use `cocart_get_timestamp()` instead.
-	 *
-	 * @see cocart_get_timestamp()
-	 *
-	 * @param string $cart_key The cart key.
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
-	 * @return string
-	 */
-	public function get_cart_created( $cart_key ) {
-		cocart_deprecated_function( 'CoCart_Session_Handler::get_cart_created', '4.2.0', 'cocart_get_timestamp' );
-
-		global $wpdb;
-
-		$value = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			$wpdb->prepare(
-				"SELECT cart_created FROM $this->_table WHERE cart_key = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				$cart_key
-			)
-		);
-
-		return $value;
-	} // END get_cart_created()
-
-	/**
-	 * Returns the timestamp the cart expires.
-	 *
-	 * @access public
-	 *
-	 * @since 3.1.0 Introduced.
-	 *
-	 * @deprecated 4.2.0 Use `cocart_get_timestamp()` instead.
-	 *
-	 * @see cocart_get_timestamp()
-	 *
-	 * @param string $cart_key The cart key.
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
-	 * @return string
-	 */
-	public function get_cart_expiration( $cart_key ) {
-		cocart_deprecated_function( 'CoCart_Session_Handler::get_cart_expiration', '4.2.0', 'cocart_get_timestamp' );
-
-		global $wpdb;
-
-		$value = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			$wpdb->prepare(
-				"SELECT cart_expiry FROM $this->_table WHERE cart_key = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				$cart_key
-			)
-		);
-
-		return $value;
-	} // END get_cart_expiration()
-
-	/**
-	 * Returns the source of the cart.
-	 *
-	 * @access public
-	 *
-	 * @since 3.1.0 Introduced.
-	 *
-	 * @deprecated 4.2.0 Use `cocart_get_source()` instead.
-	 *
-	 * @see cocart_get_source()
-	 *
-	 * @param string $cart_key The cart key.
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
-	 * @return string
-	 */
-	public function get_cart_source( $cart_key ) {
-		cocart_deprecated_function( 'CoCart_Session_Handler::get_cart_source', '4.2.0', 'cocart_get_source' );
-
-		global $wpdb;
-
-		$value = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			$wpdb->prepare(
-				"SELECT cart_source FROM $this->_table WHERE cart_key = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				$cart_key
-			)
-		);
-
-		return $value;
-	} // END get_cart_source()
-
-	/**
-	 * Checks if data is still validated to create a cart or update a cart in session.
-	 *
-	 * @access protected
-	 *
-	 * @since 2.7.2 Introduced.
-	 *
-	 * @deprecated 4.2.0 No replacement.
-	 *
-	 * @param array  $data     The cart data to validate.
-	 * @param string $cart_key The cart key.
-	 *
-	 * @return array $data Returns the original cart data or a boolean value.
-	 */
-	protected function is_cart_data_valid( $data, $cart_key ) {
-		cocart_deprecated_function( 'CoCart_Session_Handler::is_cart_data_valid', '4.2.0', null );
-
-		if ( ! empty( $data ) && empty( $this->get_cart( $cart_key ) ) ) {
-			// If the cart value is empty then the cart data is not valid.
-			if ( ! isset( $data['cart'] ) || empty( maybe_unserialize( $data['cart'] ) ) ) {
-				$data = false;
-			}
-		}
-
-		$data = apply_filters( 'cocart_is_cart_data_valid', $data );
-
-		return $data;
-	} // END is_cart_data_valid()
-
-	/**
-	 * Whether the cookie is only accessible over HTTP.
-	 * Returns true by default for the frontend and false by default via the REST API.
-	 *
-	 * @uses CoCart::is_rest_api_request()
-	 *
-	 * @access protected
-	 *
-	 * @since 2.7.2 Introduced.
-	 *
-	 * @deprecated 4.2.0 No replacement.
-	 *
-	 * @return boolean
-	 */
-	protected function use_httponly() {
-		cocart_deprecated_function( 'CoCart_Session_Handler::use_httponly', '4.2.0', null );
-
-		$httponly = true;
-
-		if ( CoCart::is_rest_api_request() ) {
-			$httponly = false;
-		}
-
-		return $httponly;
-	} // END use_httponly()
-
-	/**
-	 * Forget all cart data without destroying it.
-	 *
-	 * @access public
-	 *
-	 * @since 2.1.0 Introduced.
-	 *
-	 * @deprecated 4.2.0 No replacement.
-	 */
-	public function forget_cart() {
-		cocart_deprecated_function( 'CoCart_Session_Handler::forget_cart', '4.2.0', null );
-
-		$this->destroy_cookie();
-
-		// Empty cart.
-		wc_empty_cart();
-
-		$this->_data        = array();
-		$this->_customer_id = $this->generate_customer_id();
-	} // END forget_cart()
-
-	/**
-	 * Create a blank new cart and returns cart key if successful.
-	 *
-	 * @access public
-	 *
-	 * @since 2.1.0 Introduced.
-	 *
-	 * @deprecated 4.2.0 No replacement.
-	 *
-	 * @param string $cart_key        The cart key passed to create the cart.
-	 * @param array  $cart_value      The cart data.
-	 * @param string $cart_expiration Timestamp of cart expiration.
-	 * @param string $cart_source     Cart source.
-
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
-	 * @return $cart_key
-	 */
-	public function create_new_cart( $cart_key = '', $cart_value = array(), $cart_expiration = '', $cart_source = '' ) {
-		cocart_deprecated_function( 'CoCart_Session_Handler::create_new_cart', '4.2.0', null );
-
-		global $wpdb;
-
-		if ( empty( $cart_key ) ) {
-			$cart_key = $this->generate_key();
-		}
-
-		if ( empty( $cart_expiration ) ) {
-			$cart_expiration = time() + intval( apply_filters( 'cocart_cart_expiring', DAY_IN_SECONDS * 7 ) );
-		}
-
-		if ( empty( $cart_source ) ) {
-			$cart_source = apply_filters( 'cocart_cart_source', $this->cart_source );
-		}
-
-		$result = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-			$this->_table,
-			array(
-				'cart_key'     => $cart_key,
-				'cart_value'   => maybe_serialize( $cart_value ),
-				'cart_created' => time(),
-				'cart_expiry'  => $cart_expiration,
-				'cart_source'  => $cart_source,
-			),
-			array( '%s', '%s', '%d', '%d', '%s' )
-		);
-
-		// Returns the cart key if cart successfully created.
-		if ( $result ) {
-			return $cart_key;
-		}
-	} // END create_new_cart()
 } // END class

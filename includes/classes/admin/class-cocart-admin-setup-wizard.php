@@ -128,11 +128,12 @@ class CoCart_Admin_Setup_Wizard extends CoCart_Submenu_Page {
 				'view'    => array( $this, 'cocart_setup_wizard_store_setup' ),
 				'handler' => array( $this, 'cocart_setup_wizard_store_setup_save' ),
 			),
+			/*
 			'sessions'    => array(
 				'name'    => __( 'Sessions', 'cocart-core' ),
 				'view'    => array( $this, 'cocart_setup_wizard_sessions' ),
 				'handler' => array( $this, 'cocart_setup_wizard_sessions_save' ),
-			),
+			),*/
 			'ready'       => array(
 				'name'    => __( 'Ready!', 'cocart-core' ),
 				'view'    => array( $this, 'cocart_setup_wizard_ready' ),
@@ -201,10 +202,10 @@ class CoCart_Admin_Setup_Wizard extends CoCart_Submenu_Page {
 
 		set_current_screen( 'cocart-setup-wizard' );
 		?>
-		<div class="wrap cocart-wrapped cocart-setup-wizard <?php echo esc_attr( 'cocart-setup-step__' . $this->step ); ?>">
-			<h1 class="cocart-logo">
+		<div class="wrap cocart-wrapped cocart-setup-wizard <?php echo esc_attr( 'cocart-setup-step__' . $this->step ); ?>" role="main">
+			<h1>
 				<a href="<?php echo esc_url( $store_url ); ?>" target="_blank" rel="noopener noreferrer">
-					<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/header-logo.png' ); ?>" alt="CoCart Logo" /><?php // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
+					<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/cocart-logo.svg' ); ?>" alt="CoCart Logo" style="margin-bottom: 1em;" /><?php // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
 				</a>
 			</h1>
 		<?php
@@ -285,17 +286,10 @@ class CoCart_Admin_Setup_Wizard extends CoCart_Submenu_Page {
 	 * @since 4.3.0 Added option to install JWT Authentication.
 	 */
 	public function cocart_setup_wizard_store_setup() {
-		$sessions_transferred = get_transient( 'cocart_setup_wizard_sessions_transferred' );
-
 		$product_count = array_sum( (array) wp_count_posts( 'product' ) );
 
 		$new_store = ( 0 === $product_count ) ? 'yes' : 'no';
 
-		// If setup wizard has nothing left to setup, redirect to ready step.
-		if ( $sessions_transferred && class_exists( 'CoCart_CORS' ) ) {
-			wp_safe_redirect( esc_url_raw( $this->get_next_step_link( 'ready' ) ) );
-			exit;
-		}
 		?>
 		<form method="post" class="store-step">
 			<input type="hidden" name="save_step" value="store_setup" />
@@ -324,33 +318,8 @@ class CoCart_Admin_Setup_Wizard extends CoCart_Submenu_Page {
 
 			<p><?php esc_html_e( 'If you don’t want to go through the wizard right now, you can skip it and come back anytime if you change your mind!', 'cocart-core' ); ?></p>
 
-			<?php if ( ! $sessions_transferred ) { ?>
-			<label for="store_new">
-				<?php
-				printf(
-					/* translators: %s WooCommerce */
-					esc_html__( 'Is this a new %s store?', 'cocart-core' ),
-					'WooCommerce'
-				);
-				?>
-			</label>
-			<select id="store_new" name="store_new" aria-label="<?php esc_attr_e( 'New Store', 'cocart-core' ); ?>" class="select-input dropdown">
-				<option value="no"<?php selected( $new_store, 'no' ); ?>><?php echo esc_html__( 'No', 'cocart-core' ); ?></option>
-				<option value="yes"<?php selected( $new_store, 'yes' ); ?>><?php echo esc_html__( 'Yes', 'cocart-core' ); ?></option>
-			</select>
-			<span>
-				<?php
-				printf(
-				/* translators: %s: CoCart */
-					esc_html__( 'If no, %s will transfer all cart sessions to our database table to prevent duplicate cart session data.', 'cocart-core' ),
-					'CoCart'
-				);
-				?>
-			</span>
-			<?php } ?>
-
 			<label for="multiple_domains"><?php esc_html_e( 'Will your headless setup use multiple domains?', 'cocart-core' ); ?></label>
-			<select id="multiple_domains" name="multiple_domains" aria-label="<?php esc_attr_e( 'Multiple Domains', 'cocart-core' ); ?>" class="select-input dropdown">
+			<select id="multiple_domains" name="multiple_domains" class="select-input dropdown">
 				<option value="no"><?php echo esc_html__( 'No', 'cocart-core' ); ?></option>
 				<option value="yes"><?php echo esc_html__( 'Yes', 'cocart-core' ); ?></option>
 			</select>
@@ -358,13 +327,13 @@ class CoCart_Admin_Setup_Wizard extends CoCart_Submenu_Page {
 			<span><?php esc_html_e( 'If you are using multiple domains for your headless setup, installing support for CORS is recommended.', 'cocart-core' ); ?> <a href="<?php echo esc_url( 'https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'What is CORS?', 'cocart-core' ); ?></a></span>
 
 			<label for="jwt_authentication"><?php esc_html_e( 'Do you require support for JWT Authentication?', 'cocart-core' ); ?></label>
-			<select id="jwt_authentication" name="jwt_authentication" aria-label="<?php esc_attr_e( 'JWT Authentication', 'cocart-core' ); ?>" class="select-input dropdown">
+			<select id="jwt_authentication" name="jwt_authentication" class="select-input dropdown">
 				<option value="no"><?php echo esc_html__( 'No', 'cocart-core' ); ?></option>
 				<option value="yes"><?php echo esc_html__( 'Yes', 'cocart-core' ); ?></option>
 			</select>
 
 			<p class="cocart-actions step">
-				<button class="button button-primary button-large" value="<?php esc_attr_e( "Let's go!", 'cocart-core' ); ?>" name="save_step"><?php esc_html_e( "Let's go!", 'cocart-core' ); ?></button>
+				<button class="button button-primary button-large cocart-button" value="<?php esc_attr_e( "Let's go!", 'cocart-core' ); ?>" name="save_step"><?php esc_html_e( "Let's go!", 'cocart-core' ); ?></button>
 			</p>
 		</form>
 		<?php
@@ -387,7 +356,7 @@ class CoCart_Admin_Setup_Wizard extends CoCart_Submenu_Page {
 
 		if ( $store_new ) {
 			set_transient( 'cocart_setup_wizard_store_new', 'yes', MINUTE_IN_SECONDS * 10 );
-			$next_step = apply_filters( 'cocart_setup_wizard_store_save_next_step_override', 'ready' );
+			$next_step = 'ready';
 		}
 
 		// If true and CoCart Cors is not already installed then it will be installed in the background.

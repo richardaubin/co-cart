@@ -109,7 +109,7 @@ if ( ! class_exists( 'CoCart_Admin_Help_Tab' ) ) {
 										'reset-cc-wizard' => true,
 									),
 									admin_url( 'admin.php' )
-								) . '" class="button button-primary" aria-label="' . sprintf(
+								) . '" class="button button-primary cocart-button" aria-label="' . sprintf(
 									/* translators: %s CoCart */
 									esc_attr__( 'View %s setup wizard', 'cocart-core' ),
 									'CoCart'

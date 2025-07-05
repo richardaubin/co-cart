@@ -28,11 +28,46 @@ class_alias( 'CoCart_REST_Restore_Item_V2_Controller', 'CoCart_Restore_Item_V2_C
 class CoCart_REST_Restore_Item_V2_Controller extends CoCart_REST_Cart_V2_Controller {
 
 	/**
-	 * Route base.
+	 * Route base. - Replaced with `get_path()`
 	 *
 	 * @var string
 	 */
 	protected $rest_base = 'cart/item';
+
+	/**
+	 * Get the path of this REST route.
+	 *
+	 * @return string
+	 */
+	public function get_path() {
+		return $this->get_path_regex();
+	}
+
+	/**
+	 * Get the path of this rest route.
+	 *
+	 * @return string
+	 */
+	public function get_path_regex() {
+		return '/cart/item/(?P<item_key>[\w]+)';
+	}
+
+	/**
+	 * Get method arguments for this REST route.
+	 *
+	 * @return array An array of endpoints.
+	 */
+	public function get_args() {
+		return array(
+			array(
+				'methods'             => WP_REST_Server::EDITABLE,
+				'callback'            => array( $this, 'restore_item' ),
+				'permission_callback' => '__return_true',
+				'args'                => $this->get_collection_params(),
+			),
+			'allow_batch' => array( 'v1' => true ),
+		);
+	} // END get_args()
 
 	/**
 	 * Register routes.
@@ -44,19 +79,13 @@ class CoCart_REST_Restore_Item_V2_Controller extends CoCart_REST_Cart_V2_Control
 	 * @ignore Function ignored when parsed into Code Reference.
 	 */
 	public function register_routes() {
+		cocart_deprecated_function( __FUNCTION__, '5.0.0' );
+
 		// Restore Item - cocart/v2/cart/item/6364d3f0f495b6ab9dcf8d3b5c6e0b01 (PUT).
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<item_key>[\w]+)',
-			array(
-				array(
-					'methods'             => WP_REST_Server::EDITABLE,
-					'callback'            => array( $this, 'restore_item' ),
-					'permission_callback' => '__return_true',
-					'args'                => $this->get_collection_params(),
-				),
-				'allow_batch' => array( 'v1' => true ),
-			)
+			$this->get_path(),
+			$this->get_args()
 		);
 	} // END register_routes()
 
@@ -74,17 +103,19 @@ class CoCart_REST_Restore_Item_V2_Controller extends CoCart_REST_Cart_V2_Control
 	 *
 	 * @return WP_REST_Response The returned response.
 	 */
-	public function restore_item( $request = array() ) {
+	public function restore_item( $request ) {
 		try {
 			$item_key = ! isset( $request['item_key'] ) ? '0' : wc_clean( sanitize_text_field( wp_unslash( $request['item_key'] ) ) );
 
 			$item_key = CoCart_Utilities_Cart_Helpers::throw_missing_item_key( $item_key, 'restore' );
 
+			$cart = $this->get_cart_instance();
+
 			// Ensure we have calculated before we handle any data.
-			$this->get_cart_instance()->calculate_totals();
+			$cart->calculate_totals();
 
 			// Check item removed from cart before fetching the cart item data.
-			$current_data = $this->get_cart_instance()->get_removed_cart_contents();
+			$current_data = $cart->get_removed_cart_contents();
 
 			// If item does not exist as an item removed check if the item is in the cart.
 			if ( empty( $current_data ) ) {
@@ -121,24 +152,26 @@ class CoCart_REST_Restore_Item_V2_Controller extends CoCart_REST_Cart_V2_Control
 				throw new CoCart_Data_Exception( 'cocart_item_restored_to_cart', $message, $response_code );
 			}
 
-			if ( $this->get_cart_instance()->restore_cart_item( $item_key ) ) {
+			if ( $cart->restore_cart_item( $item_key ) ) {
 				$current_data = $this->get_cart_item( $item_key, 'restore' ); // Fetches the cart item data once it is restored.
 
 				/**
 				 * Hook: cocart_item_restored
 				 *
 				 * @since 2.0.0 Introduced.
+				 * @since 5.0.0 Added the request object as the first parameter.
 				 *
-				 * @param array $current_data The product object.
+				 * @param WP_REST_Request $request      The request object.
+				 * @param array           $current_data The product object.
 				 */
-				do_action( 'cocart_item_restored', $current_data );
+				do_action( 'cocart_item_restored', $request, $current_data );
 
 				/**
 				 * Re-calculate totals now an item has been restored.
 				 *
 				 * @since 2.1.0 Introduced.
 				 */
-				$this->get_cart_instance()->calculate_totals();
+				$cart->calculate_totals();
 
 				$product = wc_get_product( $current_data['product_id'] );
 
@@ -150,7 +183,7 @@ class CoCart_REST_Restore_Item_V2_Controller extends CoCart_REST_Cart_V2_Control
 
 				$restored_message = sprintf(
 					/* translators: %s: product name */
-					__( '%s has been added back to your cart.', 'cocart-core' ),
+					__( '%s has been added back to the cart.', 'cocart-core' ),
 					$item_restored_title
 				);
 
@@ -163,19 +196,28 @@ class CoCart_REST_Restore_Item_V2_Controller extends CoCart_REST_Cart_V2_Control
 				 */
 				$restored_message = apply_filters( 'cocart_cart_item_restored_message', $restored_message );
 
-				// Add notice.
-				wc_add_notice( $restored_message, 'success' );
-
 				// Get cart contents.
 				$request['dont_check'] = true;
 				$response              = $this->get_cart( $request );
+
+				// Was it requested to return status once item restored?
+				if ( $request['return_status'] ) {
+					/* translators: %s: Item name. */
+					$response = $restored_message;
+				} else {
+					// Add notice.
+					wc_add_notice( $restored_message, 'success' );
+				}
 
 				// Was it requested to return just the restored item?
 				if ( $request['return_item'] ) {
 					$response = $this->get_item( $current_data['data'], $current_data, $current_data['key'], true );
 				}
 
-				return CoCart_Response::get_response( $response, $this->namespace, $this->rest_base );
+				$response = rest_ensure_response( $response );
+				$response = ( new CoCart_REST_Utilities_Cart_Response() )->add_headers( $response, $request );
+
+				return $response;
 			} else {
 				$message = __( 'Unable to restore item to the cart.', 'cocart-core' );
 
@@ -191,7 +233,7 @@ class CoCart_REST_Restore_Item_V2_Controller extends CoCart_REST_Cart_V2_Control
 				throw new CoCart_Data_Exception( 'cocart_can_not_restore_item', $message, 403 );
 			}
 		} catch ( CoCart_Data_Exception $e ) {
-			return CoCart_Response::get_error_response( $e->getErrorCode(), $e->getMessage(), $e->getCode(), $e->getAdditionalData() );
+			return new \WP_Error( $e->getErrorCode(), $e->getMessage(), array( 'status' => $e->getCode() ), $e->getAdditionalData() );
 		}
 	} // END restore_item()
 

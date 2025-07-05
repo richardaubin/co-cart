@@ -5,7 +5,7 @@
  * @author  Sébastien Dumont
  * @package CoCart
  * @since   2.6.0
- * @version 4.0.0
+ * @version 4.5.0
  * @license GPL-3.0
  */
 
@@ -42,7 +42,7 @@ final class CoCart {
 	 *
 	 * @var string
 	 */
-	public static $db_version = '3.0.0';
+	public static $db_version = '4.3.23';
 
 	/**
 	 * Tested up to WordPress version.
@@ -55,7 +55,7 @@ final class CoCart {
 	 *
 	 * @var string
 	 */
-	public static $tested_up_to_wp = '6.7';
+	public static $tested_up_to_wp = '6.8';
 
 	/**
 	 * Required WordPress version.
@@ -68,7 +68,7 @@ final class CoCart {
 	 *
 	 * @var string
 	 */
-	public static $required_wp = '5.6';
+	public static $required_wp = '6.3';
 
 	/**
 	 * Required WooCommerce version.
@@ -117,30 +117,11 @@ final class CoCart {
 	} // END __wakeup()
 
 	/**
-	 * Requested CoCart Namespace.
-	 *
-	 * @access public
-	 *
-	 * @static
-	 *
-	 * @since 5.0.0 Introduced.
+	 * Namespace for the API.
 	 *
 	 * @var string
 	 */
-	public static $cocart_namespace = '';
-
-	/**
-	 * Requested CoCart Namespace version.
-	 *
-	 * @access public
-	 *
-	 * @static
-	 *
-	 * @since 5.0.0 Introduced.
-	 *
-	 * @var string
-	 */
-	public static $cocart_namespace_version = '';
+	private static $api_namespace = 'cocart';
 
 	/**
 	 * Initiate CoCart.
@@ -156,6 +137,7 @@ final class CoCart {
 		self::includes();
 		self::include_extension_compatibility();
 		self::include_third_party();
+		self::set_api_namespace();
 
 		// Install CoCart upon activation.
 		register_activation_hook( COCART_FILE, array( __CLASS__, 'install_cocart' ) );
@@ -215,7 +197,7 @@ final class CoCart {
 		self::define( 'COCART_REVIEW_URL', 'https://testimonial.to/cocart' );
 		self::define( 'COCART_SUGGEST_FEATURE', 'https://cocartapi.com/suggest-a-feature/' );
 		self::define( 'COCART_COMMUNITY_URL', 'https://cocartapi.com/community/' );
-		self::define( 'COCART_DOCUMENTATION_URL', 'https://docs.cocart.xyz' );
+		self::define( 'COCART_DOCUMENTATION_URL', 'https://cocartapi.com/docs/' );
 		self::define( 'COCART_TRANSLATION_URL', 'https://translate.cocartapi.com/projects/cocart-core/' );
 		self::define( 'COCART_REPO_URL', 'https://github.com/co-cart/co-cart' );
 		self::define( 'COCART_NEXT_VERSION', '5.0.0' );
@@ -307,6 +289,50 @@ final class CoCart {
 	} // END get_file_version()
 
 	/**
+	 * Get the API namespace.
+	 *
+	 * @access public
+	 *
+	 * @static
+	 *
+	 * @since 5.0.0 Introduced.
+	 *
+	 * @return string
+	 */
+	public static function get_api_namespace() {
+		return self::$api_namespace;
+	}
+
+	/**
+	 * Set the API namespace.
+	 *
+	 * @access protected
+	 *
+	 * @static
+	 *
+	 * @since 5.0.0 Introduced.
+	 */
+	protected static function set_api_namespace() {
+		self::$api_namespace = wp_cache_get( 'cocart_api_namespace', CoCart_Utilities_Cache_Helpers::get_cache_prefix( 'api_namespace' ) );
+
+		if ( false === self::$api_namespace ) {
+			/**
+			 * CoCart can be white labeled by configuring the "COCART_API_NAMESPACE" constant in your `wp-config.php` file.
+			 *
+			 * @since 5.0.0 Introduced.
+			 */
+			self::$api_namespace = defined( 'COCART_API_NAMESPACE' ) ? constant( 'COCART_API_NAMESPACE' ) : 'cocart';
+
+			wp_cache_add( 'cocart_api_namespace', self::$api_namespace, CoCart_Utilities_Cache_Helpers::get_cache_prefix( 'api_namespace' ), time() + DAY_IN_SECONDS );
+		}
+
+		// Revert back if white label add-on is not active. @todo Add detection of white label plugin.
+		if ( 'cocart' !== self::$api_namespace ) {
+			self::$api_namespace = 'cocart';
+		}
+	} // END set_api_namespace();
+
+	/**
 	 * Includes required core files.
 	 *
 	 * @access public
@@ -334,6 +360,11 @@ final class CoCart {
 		include_once __DIR__ . '/cocart-deprecated-functions.php';
 		include_once __DIR__ . '/cocart-formatting-functions.php';
 
+		// Utilities.
+		include_once __DIR__ . '/classes/utilities/class-cocart-utilities-cache-helpers.php';
+		include_once __DIR__ . '/classes/utilities/class-cocart-utilities-cart-helpers.php';
+		include_once __DIR__ . '/classes/utilities/class-cocart-utilities-product-helpers.php';
+
 		// Core classes.
 		require_once __DIR__ . '/classes/class-cocart-status.php';
 		require_once __DIR__ . '/classes/class-cocart-helpers.php';
@@ -345,10 +376,6 @@ final class CoCart {
 		// REST API functions.
 		include_once __DIR__ . '/cocart-rest-functions.php';
 		require_once __DIR__ . '/classes/rest-api/class-cocart-authentication.php';
-
-		// Utilities.
-		include_once __DIR__ . '/classes/utilities/class-cocart-utilities-cart-helpers.php';
-		include_once __DIR__ . '/classes/utilities/class-cocart-utilities-product-helpers.php';
 
 		// WP-CLI.
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
@@ -546,18 +573,6 @@ final class CoCart {
 			return;
 		}
 
-		if ( self::is_rest_api_request() ) {
-			// Get current request and remove the home URI and REST prefix.
-			$request_uri = esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) );
-			$request_uri = str_replace( home_url(), '', $request_uri );
-			$request_uri = str_replace( trailingslashit( rest_get_url_prefix() ), '', $request_uri );
-
-			// Explode the remaining requested URI and get the namespace and version.
-			$cocart_request                 = explode( '/', $request_uri );
-			self::$cocart_namespace         = $cocart_request[1];
-			self::$cocart_namespace_version = $cocart_request[2];
-		}
-
 		require_once __DIR__ . '/classes/class-cocart-data-exception.php';
 		require_once __DIR__ . '/classes/rest-api/class-cocart-cart-cache.php';
 		require_once __DIR__ . '/classes/rest-api/class-cocart-cart-callbacks.php';
@@ -573,24 +588,24 @@ final class CoCart {
 	/**
 	 * Returns true if we are making a REST API request for CoCart.
 	 *
-	 * @todo: replace this function once core WP function is available: https://core.trac.wordpress.org/ticket/42061.
-	 *
 	 * @access public
 	 *
 	 * @static
 	 *
 	 * @since 2.1.0 Introduced.
+	 * @since 4.2.0 Moved to main class.
+	 * @since 5.0.0 Check we are not running WP CLI.
 	 *
 	 * @return bool
 	 */
 	public static function is_rest_api_request() {
-		if ( empty( $_SERVER['REQUEST_URI'] ) ) {
+		if ( empty( $_SERVER['REQUEST_URI'] ) && ! defined( 'WP_CLI' ) ) {
 			return false;
 		}
 
 		$rest_prefix         = trailingslashit( rest_get_url_prefix() );
 		$request_uri         = esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) );
-		$is_rest_api_request = ( false !== strpos( $request_uri, $rest_prefix . 'cocart/' ) ); // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$is_rest_api_request = ( false !== strpos( $request_uri, $rest_prefix . self::get_api_namespace() . '/' ) ); // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		/**
 		 * Filters the REST API requested.

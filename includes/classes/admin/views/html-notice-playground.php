@@ -18,7 +18,7 @@ $campaign_args['utm_medium']   = 'wordpress-admin'; // phpcs:ignore: WordPress.N
 $campaign_args['utm_campaign'] = 'admin-notice'; // phpcs:ignore: WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $campaign_args['utm_content']  = 'plugin-link'; // phpcs:ignore: WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 ?>
-<div class="notice notice-error cocart-notice is-dismissible">
+<div class="notice notice-error cocart-notice is-dismissible" role="alert">
 	<div class="cocart-notice-inner">
 		<div class="cocart-notice-icon">
 			<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/icon-logo.png' ); ?>" alt="CoCart Logo" /><?php // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
@@ -26,18 +26,12 @@ $campaign_args['utm_content']  = 'plugin-link'; // phpcs:ignore: WordPress.Namin
 
 		<div class="cocart-notice-content">
 			<p>
-				<?php
-				printf(
-					/* translators: %s: CoCart */
-					esc_html__( 'WordPress Playground is not compatible with the %s plugin. Recommend requesting a demo instead.', 'cocart-core' ),
-					'CoCart'
-				);
-				?>
+				<?php esc_html_e( 'If WordPress Playground is having any issues. You can request a demo site instead.', 'cocart-core' ); ?>
 			</p>
 		</div>
 
 		<div class="cocart-action">
-			<a href="<?php echo esc_url( add_query_arg( $campaign_args, 'https://cocartapi.com/try-free-demo/' ) ); ?>" class="button button-primary cocart-button" aria-label="<?php echo esc_html__( 'Request Demo', 'cocart-core' ); ?>"><?php echo esc_html__( 'Request Demo', 'cocart-core' ); ?></a>
+			<a href="<?php echo esc_url( add_query_arg( $campaign_args, 'https://cocartapi.com/try-free-demo/' ) ); ?>" class="button button-primary cocart-button" role="button"><?php echo esc_html__( 'Request Demo', 'cocart-core' ); ?></a>
 		</div>
 	</div>
 </div>

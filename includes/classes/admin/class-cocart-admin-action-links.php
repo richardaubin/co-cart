@@ -65,11 +65,11 @@ if ( ! class_exists( 'CoCart_Admin_Action_Links' ) ) {
 		 * @access public
 		 *
 		 * @since   2.0.0 Introduced.
-		 * @version 3.10.0
+		 * @version 4.5.0
 		 *
 		 * @param array $links An array of plugin links.
 		 *
-		 * @return array $links An array of plugin links.
+		 * @return array $links
 		 */
 		public function plugin_action_links( $links ) {
 			if ( version_compare( get_option( 'cocart_version' ), COCART_VERSION, '<' ) ) {
@@ -84,7 +84,7 @@ if ( ! class_exists( 'CoCart_Admin_Action_Links' ) ) {
 						'page' => 'cocart-setup',
 					),
 					$page
-				) . '" aria-label="' . esc_attr__( 'Setup Wizard', 'cocart-core' ) . '" title="' . esc_attr__( 'Setup Wizard', 'cocart-core' ) . '">' . esc_attr__( 'Setup Wizard', 'cocart-core' ) . '</a>';
+				) . '" title="' . esc_attr__( 'Setup Wizard', 'cocart-core' ) . '">' . esc_attr__( 'Setup Wizard', 'cocart-core' ) . '</a>';
 			}
 
 			$action_links['support'] = '<a href="' . add_query_arg(
@@ -92,10 +92,6 @@ if ( ! class_exists( 'CoCart_Admin_Action_Links' ) ) {
 					'page' => 'cocart-support',
 				),
 				$page
-			) . '" aria-label="' . sprintf(
-				/* translators: %s: CoCart */
-				esc_attr__( 'Support for %s', 'cocart-core' ),
-				'CoCart'
 			) . '" title="' . sprintf(
 				/* translators: %s: CoCart */
 				esc_attr__( 'Support for %s', 'cocart-core' ),
@@ -104,14 +100,10 @@ if ( ! class_exists( 'CoCart_Admin_Action_Links' ) ) {
 
 			// Only show upgrade option if neither CoCart Plus, Pro or above is found.
 			if ( apply_filters( 'cocart_show_upgrade_action_link', true ) ) {
-				$store_url = CoCart_Helpers::build_shortlink( add_query_arg( $this->campaign_args, COCART_STORE_URL . 'pricing/' ) );
+				$store_url = CoCart_Helpers::build_shortlink( add_query_arg( $this->campaign_args, COCART_STORE_URL . 'why-upgrade/' ) );
 
 				$action_links['upgrade'] = sprintf(
-					'<a href="%1$s" aria-label="' . sprintf(
-						/* translators: %s: CoCart */
-						esc_attr__( 'Upgrade %s', 'cocart-core' ),
-						'CoCart'
-					) . '" target="_blank" rel="noopener noreferrer" style="color: #6032b0; font-weight: 600;">%2$s</a>',
+					'<a href="%1$s" title="%2$s" target="_blank" rel="noopener noreferrer" style="color: #6032b0; font-weight: 600;">%2$s</a>',
 					esc_url( $store_url ),
 					sprintf(
 						/* translators: %s: CoCart */
@@ -121,7 +113,7 @@ if ( ! class_exists( 'CoCart_Admin_Action_Links' ) ) {
 				);
 			}
 
-			$links = array_merge( $action_links, $links );
+			$links = array_merge( $links, $action_links );
 
 			return $links;
 		} // END plugin_action_links()
@@ -132,7 +124,7 @@ if ( ! class_exists( 'CoCart_Admin_Action_Links' ) ) {
 		 * @access public
 		 *
 		 * @since   2.0.0 Introduced.
-		 * @version 3.10.0
+		 * @version 4.5.0
 		 *
 		 * @param array  $metadata An array of the plugin's metadata.
 		 * @param string $file     Path to the plugin file.
@@ -151,17 +143,8 @@ if ( ! class_exists( 'CoCart_Admin_Action_Links' ) ) {
 						esc_attr__( 'Join %1$s Community on %2$s', 'cocart-core' ),
 						'CoCart',
 						'Discord'
-					) . '" aria-label="' . sprintf(
-						/* translators: %1$s: CoCart, %2$s :Discord */
-						esc_attr__( 'Join %1$s Community on %2$s', 'cocart-core' ),
-						'CoCart',
-						'Discord'
 					) . '" target="_blank" rel="noopener noreferrer">' . esc_attr__( 'Join Community', 'cocart-core' ) . '</a>',
-					'docs'      => '<a href="' . CoCart_Helpers::build_shortlink( add_query_arg( $this->campaign_args, esc_url( COCART_DOCUMENTATION_URL ) ) ) . '" title="' . sprintf(
-						/* translators: %s: CoCart */
-						esc_attr__( 'View %s Documentation', 'cocart-core' ),
-						'CoCart'
-					) . '" aria-label="' . sprintf(
+					'docs'      => '<a href="' . esc_url( COCART_DOCUMENTATION_URL ) . '" title="' . sprintf(
 						/* translators: %s: CoCart */
 						esc_attr__( 'View %s Documentation', 'cocart-core' ),
 						'CoCart'
@@ -170,16 +153,8 @@ if ( ! class_exists( 'CoCart_Admin_Action_Links' ) ) {
 						/* translators: %s: CoCart */
 						esc_attr__( 'Translate %s', 'cocart-core' ),
 						'CoCart'
-					) . '" aria-label="' . sprintf(
-						/* translators: %s: CoCart */
-						esc_attr__( 'Translate %s', 'cocart-core' ),
-						'CoCart'
 					) . '" target="_blank" rel="noopener noreferrer">' . esc_attr__( 'Translate', 'cocart-core' ) . '</a>',
 					'review'    => '<a href="' . esc_url( COCART_REVIEW_URL ) . '" title="' . sprintf(
-						/* translators: %s: CoCart */
-						esc_attr__( 'Submit a review for %s', 'cocart-core' ),
-						'CoCart'
-					) . '" aria-label="' . sprintf(
 						/* translators: %s: CoCart */
 						esc_attr__( 'Submit a review for %s', 'cocart-core' ),
 						'CoCart'

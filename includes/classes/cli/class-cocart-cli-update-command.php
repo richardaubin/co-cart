@@ -52,7 +52,6 @@ class CoCart_CLI_Update_Command {
 
 		$wpdb->hide_errors();
 
-		include_once COCART_ABSPATH . 'includes/class-cocart-install.php';
 		include_once COCART_ABSPATH . 'includes/cocart-update-functions.php';
 
 		$current_db_version = get_option( 'cocart_db_version' );
@@ -91,6 +90,9 @@ class CoCart_CLI_Update_Command {
 				implode( ', ', $callbacks_to_run )
 			)
 		);
+
+		// Ask for confirmation before proceeding.
+		WP_CLI::confirm( __( 'Do you want to proceed with the database updates?', 'cocart-core' ) );
 
 		$progress = \WP_CLI\Utils\make_progress_bar(
 			__( 'Updating database', 'cocart-core' ),

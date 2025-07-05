@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<div class="notice notice-error">
+<div class="notice notice-error" role="alert">
 	<p>
 		<?php
 		printf(

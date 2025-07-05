@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<div class="notice notice-info cocart-notice">
+<div class="notice notice-info cocart-notice" role="alert">
 	<div class="cocart-notice-inner">
 		<div class="cocart-notice-icon">
 			<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/icon-logo.png' ); ?>" alt="CoCart Logo" /><?php // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
@@ -44,7 +44,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 
 		<div class="cocart-action">
-			<?php printf( '<a href="%1$s" class="button button-primary cocart-button" target="_blank" rel="noopener noreferrer">%2$s</a>', esc_url( 'https://github.com/co-cart/co-cart/blob/development/NEXT_CHANGELOG.md' ), esc_html__( "What's Coming Next?", 'cocart-core' ) ); ?>
+			<?php printf( '<a href="%1$s" class="button button-primary cocart-button" target="_blank" rel="noopener noreferrer" role="button">%2$s</a>', esc_url( 'https://github.com/co-cart/co-cart/blob/development/NEXT_CHANGELOG.md' ), esc_html__( "What's Coming Next?", 'cocart-core' ) ); ?>
 			<a href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'cocart-hide-notice', 'upgrade_warning', CoCart_Helpers::cocart_get_current_admin_url() ), 'cocart_hide_notices_nonce', '_cocart_notice_nonce' ) ); ?>" class="no-thanks" aria-label="<?php echo esc_html__( 'Hide this notice.', 'cocart-core' ); ?>"><?php echo esc_html__( 'Remind me another time', 'cocart-core' ); ?></a>
 		</div>
 	</div>

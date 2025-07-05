@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<div class="notice notice-info cocart-notice">
+<div class="notice notice-info cocart-notice" role="alert">
 	<div class="cocart-notice-inner">
 		<div class="cocart-notice-icon">
 			<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/icon-logo.png' ); ?>" alt="CoCart Logo" /><?php // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
@@ -49,7 +49,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 
 		<div class="cocart-action">
-			<a class="button button-primary cocart-button" href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'cocart-hide-notice', 'base_tables_missing', CoCart_Helpers::cocart_get_current_admin_url() ), 'cocart_hide_notices_nonce', '_cocart_notice_nonce' ) ); ?>"><?php esc_html_e( 'Dismiss', 'cocart-core' ); ?></a>
+			<a class="button button-primary cocart-button" href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'cocart-hide-notice', 'base_tables_missing', CoCart_Helpers::cocart_get_current_admin_url() ), 'cocart_hide_notices_nonce', '_cocart_notice_nonce' ) ); ?>" role="button"><?php esc_html_e( 'Dismiss', 'cocart-core' ); ?></a>
 		</div>
 	</div>
 </div>

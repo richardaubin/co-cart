@@ -79,8 +79,8 @@ class CoCart_Load_Cart {
 
 			if ( $is_cart_loaded ) {
 				// Destroy guest cart if one already existed.
-				if ( ! is_user_logged_in() && WC()->session->get_customer_id() !== $cart_key ) {
-					WC()->session->delete_cart( WC()->session->get_customer_id() );
+				if ( ! is_user_logged_in() && WC()->session->get_cart_key() !== $cart_key ) {
+					WC()->session->delete_cart( WC()->session->get_cart_key() );
 				}
 
 				// Sets the php session data for the loaded cart.
@@ -103,8 +103,19 @@ class CoCart_Load_Cart {
 					WC()->session->set( 'cart_cached', maybe_unserialize( $requested_cart['cart_cached'] ) );
 				}
 
+				/**
+				 * Hook: cocart_set_requested_cart.
+				 *
+				 * Fires before the session is finally set.
+				 *
+				 * @since 5.0.0 Introduced.
+				 *
+				 * @param array $requested_cart The cart data containing cart items, coupons, fees and other cart session data.
+				 */
+				do_action( 'cocart_set_requested_cart', $requested_cart );
+
 				// Setup cart session.
-				WC()->session->set_customer_id( $cart_key );
+				WC()->session->set_cart_key( $cart_key );
 				WC()->session->set_cart_hash();
 				WC()->session->set_session_expiration();
 				WC()->session->set_customer_session_cookie( true );

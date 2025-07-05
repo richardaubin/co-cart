@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<div class="notice notice-warning cocart-notice">
+<div class="notice notice-warning cocart-notice" role="alert">
 	<div class="cocart-notice-inner">
 		<div class="cocart-notice-icon">
 			<img src="<?php echo esc_url( COCART_URL_PATH . '/assets/images/brand/icon-logo.png' ); ?>" alt="CoCart Logo" /><?php // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
@@ -47,7 +47,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					$url = 'https://wordpress.org/plugins/woocommerce/'; // phpcs:ignore: WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 				}
 
-				echo '<a href="' . esc_url( $url ) . '" class="button button-primary" aria-label="' . esc_html__( 'Install WooCommerce', 'cocart-core' ) . '">' . esc_html__( 'Install WooCommerce', 'cocart-core' ) . '</a>';
+				echo '<a href="' . esc_url( $url ) . '" class="button button-primary" aria-label="' . esc_html__( 'Install WooCommerce', 'cocart-core' ) . '" role="button">' . esc_html__( 'Install WooCommerce', 'cocart-core' ) . '</a>';
 			endif;
 			?>
 			</p>

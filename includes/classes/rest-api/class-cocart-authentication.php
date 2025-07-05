@@ -86,10 +86,22 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 			'X-WP-Total',
 			'X-WP-TotalPages',
 			'Link',
-			'CoCart-API-Cart-Key',
-			'CoCart-API-Cart-Expiring',
-			'CoCart-API-Cart-Expiration',
+			'Cart-Key',
+			'Cart-Hash',
+			'Cart-Expiring',
+			'Cart-Expiration',
 		);
+
+		/**
+		 * Basic authentication pattern.
+		 *
+		 * @access private
+		 *
+		 * @since 4.6.0 Introduced.
+		 *
+		 * @var string
+		 */
+		private const BASIC_AUTH_PATTERN = '/^Basic ([a-zA-Z0-9+\/=]+)$/';
 
 		/**
 		 * Constructor.
@@ -191,7 +203,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 * @since 4.1.0 Introduced.
 		 * @since 4.2.0 Changed access from protected to public.
 		 *
-		 * @return string $auth_header
+		 * @return string $auth_header Authorization header value.
 		 */
 		public static function get_auth_header() {
 			$auth_header = ! empty( $_SERVER['HTTP_AUTHORIZATION'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_AUTHORIZATION'] ) ) : '';
@@ -220,6 +232,40 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 			 */
 			return apply_filters( 'cocart_auth_header', $auth_header );
 		} // END get_auth_header()
+
+		/**
+		 * Check if the authorization header contains Basic authentication.
+		 *
+		 * @access private
+		 *
+		 * @since 4.6.0 Introduced.
+		 *
+		 * @param string $auth Authorization header value.
+		 *
+		 * @return bool
+		 */
+		private function is_basic_auth( string $auth ): bool {
+			return ! empty( $auth ) && preg_match( self::BASIC_AUTH_PATTERN, $auth );
+		} // END is_basic_auth()
+
+		/**
+		 * Extract Basic login from authorization header.
+		 *
+		 * @access private
+		 *
+		 * @since 4.6.0 Introduced.
+		 *
+		 * @param string $auth Authorization header value.
+		 *
+		 * @return string|null Login if found, null otherwise.
+		 */
+		private static function extract_basic_auth( string $auth ): ?string {
+			if ( preg_match( self::BASIC_AUTH_PATTERN, $auth, $matches ) ) {
+				return $matches[1];
+			}
+
+			return null;
+		} // END extract_basic_auth()
 
 		/**
 		 * Authenticate user.
@@ -321,13 +367,13 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		/**
 		 * Set authentication error.
 		 *
-		 * @access protected
+		 * @access public
 		 *
 		 * @since 3.0.0 Introduced.
 		 *
 		 * @param WP_Error $error Authentication error data.
 		 */
-		protected function set_error( $error ) {
+		public function set_error( $error ) {
 			// Reset user.
 			$this->user = null;
 
@@ -386,8 +432,10 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 			$auth_header = self::get_auth_header();
 
 			// Look up authorization header and check it's a valid.
-			if ( ! empty( $auth_header ) && 0 === stripos( $auth_header, 'basic ' ) ) {
-				$exploded = explode( ':', base64_decode( substr( $auth_header, 6 ) ), 2 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+			if ( ! empty( $auth_header ) && $this->is_basic_auth( $auth_header ) ) {
+				$auth_str = self::extract_basic_auth( $auth_header );
+
+				$exploded = explode( ':', base64_decode( $auth_str ), 2 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
 				// If valid return username and password.
 				if ( 2 === \count( $exploded ) ) {
@@ -411,6 +459,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 			if ( empty( $username ) && empty( $password ) ) {
 				return false;
 			} elseif ( empty( $username ) || empty( $password ) ) {
+				\CoCart_Logger::log( esc_html__( 'Authentication attempted but did not find valid login details.', 'cocart-core' ), 'error' );
 				// If either username or password is missing then return error.
 				$this->set_error( new WP_Error( 'cocart_authentication_error', __( 'Authentication invalid!', 'cocart-core' ), array( 'status' => 401 ) ) );
 				return false;
@@ -419,6 +468,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 			$user = get_user_by( 'login', $username );
 
 			if ( empty( $user ) ) {
+				\CoCart_Logger::log( esc_html__( 'User was not found when authenticating.', 'cocart-core' ), 'error' );
 				$this->set_error( new WP_Error( 'cocart_authentication_error', __( 'Authentication is invalid. Please check your login details are correct and try again.', 'cocart-core' ), array( 'status' => 401 ) ) );
 				return false;
 			}
@@ -849,7 +899,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 				// Return previous result if nothing has changed.
 				return $result;
 			} catch ( CoCart_Data_Exception $e ) {
-				return CoCart_Response::get_error_response( $e->getErrorCode(), $e->getMessage(), $e->getCode(), $e->getAdditionalData() );
+				return new \WP_Error( $e->getErrorCode(), $e->getMessage(), array( 'status' => $e->getCode() ), $e->getAdditionalData() );
 			}
 		} // END check_api_permissions()
 
@@ -932,65 +982,86 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 * @static
 		 *
 		 * @since 4.2.0 Introduced.
+		 * @since 5.0.0 Added filterable headers and default IP address.
 		 *
 		 * @param boolean $proxy_support Enables/disables proxy support.
 		 *
 		 * @return string
 		 */
 		public static function get_ip_address( bool $proxy_support = false ) { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewParamTypeDeclarations.boolFound
-			if ( ! $proxy_support ) {
-				return self::validate_ip( sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? 'unresolved_ip' ) ) ); // phpcs:ignore PHPCompatibility.Operators.NewOperators.t_coalesceFound
+			$ip = '';
+
+			// Proxy force check.
+			if ( $proxy_support ) {
+				CoCart_Logger::log( 'Proxy support forced', 'info' );
+				return self::validate_ip( sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) ); // phpcs:ignore PHPCompatibility.Operators.NewOperators.t_coalesceFound
 			}
 
-			// Check Cloudflare's connecting IP header.
-			if ( array_key_exists( 'HTTP_CF_CONNECTING_IP', $_SERVER ) ) {
-				return self::validate_ip( sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) );
+			// Check if we're behind a proxy.
+			if ( isset( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+				CoCart_Logger::log( 'Behind a proxy', 'info' );
+				// HTTP_X_FORWARDED_FOR can contain a chain of comma-separated addresses.
+				$forwarded_for = explode( ',', sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) );
+				$ip            = trim( $forwarded_for[0] );
+			} elseif ( isset( $_SERVER['REMOTE_ADDR'] ) ) {
+				CoCart_Logger::log( 'Regular IP header', 'info' );
+				$ip = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) );
 			}
 
-			if ( array_key_exists( 'HTTP_X_REAL_IP', $_SERVER ) ) {
-				return self::validate_ip( sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_REAL_IP'] ) ) );
-			}
+			/**
+			 * Additional IP headers for common proxy setups.
+			 *
+			 * @since 5.0.0 Introduced.
+			 */
+			$additional_headers = apply_filters(
+				'cocart_ip_headers',
+				array(
+					'HTTP_CF_CONNECTING_IP', // Cloudflare.
+					'HTTP_X_REAL_IP',        // Nginx proxy.
+					'HTTP_CLIENT_IP',        // Client IP.
+				)
+			);
 
-			if ( array_key_exists( 'HTTP_CLIENT_IP', $_SERVER ) ) {
-				return self::validate_ip( sanitize_text_field( wp_unslash( $_SERVER['HTTP_CLIENT_IP'] ) ) );
-			}
+			foreach ( $additional_headers as $header ) {
+				if ( ! empty( $_SERVER[ $header ] ) ) {
+					CoCart_Logger::log( $header . ' is detected', 'info' );
 
-			if ( array_key_exists( 'HTTP_X_FORWARDED_FOR', $_SERVER ) ) {
-				$ips = explode( ',', sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) );
-				if ( is_array( $ips ) && ! empty( $ips ) ) {
-					return self::validate_ip( trim( $ips[0] ) );
+					$ip = sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) );
+					break;
 				}
 			}
 
-			if ( array_key_exists( 'HTTP_FORWARDED', $_SERVER ) ) {
+			if ( ! empty( $_SERVER['HTTP_FORWARDED'] ) ) {
+				CoCart_Logger::log( 'HTTP_FORWARDED is detected', 'info' );
+
 				// Using regex instead of explode() for a smaller code footprint.
 				// Expected format: Forwarded: for=192.0.2.60;proto=http;by=203.0.113.43,for="[2001:db8:cafe::17]:4711"...
-				preg_match(
-					'/(?<=for\=)[^;,]*/i', // We catch everything on the first "for" entry, and validate later.
-					sanitize_text_field( wp_unslash( $_SERVER['HTTP_FORWARDED'] ) ),
-					$matches
-				);
+				preg_match( '/for=([^;]+)/i', sanitize_text_field( wp_unslash( $_SERVER['HTTP_FORWARDED'] ) ), $matches );
 
-				if ( strpos( $matches[0] ?? '', '"[' ) !== false ) { // phpcs:ignore PHPCompatibility.Operators.NewOperators.t_coalesceFound, Detect for ipv6, eg "[ipv6]:port".
-					preg_match(
-						'/(?<=\[).*(?=\])/i', // We catch only the ipv6 and overwrite $matches.
-						$matches[0],
-						$matches
-					);
-				}
-
-				if ( ! empty( $matches ) ) {
-					return self::validate_ip( trim( $matches[0] ) );
+				if ( isset( $matches[1] ) && self::validate_ip( $matches[1] ) ) {
+					$ip = $matches[1];
 				}
 			}
 
-			return '0.0.0.0';
+			// Validate the IP.
+			if ( ! empty( $ip ) ) {
+				return self::validate_ip( $ip );
+			}
+
+			CoCart_Logger::log( 'Falling back to default IP address', 'info' );
+
+			/**
+			 * Default IP address if none found.
+			 *
+			 * @since 5.0.0 Introduced.
+			 */
+			return apply_filters( 'cocart_ip_default_address', '0.0.0.0' );
 		} // END get_ip_address()
 
 		/**
 		 * Uses filter_var() to validate and return ipv4 and ipv6 addresses.
 		 *
-		 * Will return 0.0.0.0 if the ip is not valid. This is done to group and still rate limit invalid ips.
+		 * This is done to group and still rate limit invalid ips.
 		 *
 		 * @access public
 		 *
@@ -1003,14 +1074,33 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 * @return string
 		 */
 		public static function validate_ip( $ip ) {
-			$ip = filter_var(
+			return filter_var(
 				$ip,
 				FILTER_VALIDATE_IP,
 				array( FILTER_FLAG_NO_RES_RANGE, FILTER_FLAG_IPV6 )
 			);
-
-			return $ip ?: '0.0.0.0';
 		} // END validate_ip()
+
+		/**
+		 * Check for localhost and private networks.
+		 *
+		 * @access public
+		 *
+		 * @static
+		 *
+		 * @since 5.0.0 Introduced.
+		 *
+		 * @param string $ip ipv4 or ipv6 ip string.
+		 *
+		 * @return string
+		 */
+		public static function is_ip_private( $ip ) {
+			return filter_var(
+				$ip,
+				FILTER_VALIDATE_IP,
+				FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+			) === false;
+		} // END is_ip_private()
 	} // END class.
 } // END if class exists.
 

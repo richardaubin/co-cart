@@ -36,11 +36,11 @@ class CoCart_Utilities_Cart_Helpers {
 	 * @return string Cart key.
 	 */
 	public static function get_cart_key() {
-		if ( ! method_exists( WC()->session, 'get_customer_id' ) ) {
+		if ( ! method_exists( WC()->session, 'get_cart_key' ) ) {
 			return '';
 		}
 
-		return (string) WC()->session->get_customer_id();
+		return (string) WC()->session->get_cart_key();
 	} // END get_cart_key()
 
 	/**
@@ -52,6 +52,7 @@ class CoCart_Utilities_Cart_Helpers {
 	 *
 	 * @since 3.0.0 Introduced.
 	 * @since 4.2.0 Customer object is now required.
+	 * @since 5.0.0 Meta data fetched for any additional fields if any.
 	 *
 	 * @param string           $fields   The customer fields to return.
 	 * @param WC_Customer|null $customer The customer object or nothing.
@@ -78,6 +79,12 @@ class CoCart_Utilities_Cart_Helpers {
 		 */
 		foreach ( $checkout_fields as $key => $value ) {
 			$field_name = 'get_' . $key; // Name of the default field function. e.g. "get_billing_first_name".
+			$meta_data  = wp_list_filter( $customer->get_meta_data(), array( 'key' => $key ) );
+			$meta_data  = array_values( wp_list_pluck( $meta_data, 'value' ) );
+			$meta_data  = ! empty( $meta_data[0] ) ? $meta_data[0] : array();
+			if ( empty( $meta_data ) ) {
+				$meta_data = '';
+			}
 
 			$field_value = method_exists( $customer, $field_name ) ? $customer->$field_name() : '';
 
@@ -142,21 +149,31 @@ class CoCart_Utilities_Cart_Helpers {
 	 * @return array $attributes Product attributes.
 	 */
 	public static function get_variable_product_attributes( $product ) {
-		try {
-			if ( $product->is_type( 'variation' ) ) {
-				$product = wc_get_product( $product->get_parent_id() );
-			}
-
-			if ( ! $product || ! $product->exists() || 'trash' === $product->get_status() ) {
-				$message = __( 'This product cannot be added to the cart.', 'cocart-core' );
-
-				throw new CoCart_Data_Exception( 'cocart_cart_invalid_parent_product', $message, 404 );
-			}
-
-			return $product->get_attributes();
-		} catch ( CoCart_Data_Exception $e ) {
-			return CoCart_Response::get_error_response( $e->getErrorCode(), $e->getMessage(), $e->getCode(), $e->getAdditionalData() );
+		if ( $product->is_type( 'variation' ) ) {
+			$product = wc_get_product( $product->get_parent_id() );
 		}
+
+		if ( ! $product || ! $product->exists() || 'trash' === $product->get_status() ) {
+			$message = __( 'This product cannot be added to the cart.', 'cocart-core' );
+
+			/**
+			 * Filters message about product that cannot be added to cart.
+			 *
+			 * @since 3.0.0 Introduced.
+			 *
+			 * @param string     $message Message.
+			 * @param WC_Product $product The product object.
+			 */
+			$message = apply_filters( 'cocart_product_cannot_be_added_message', $message, $product );
+
+			throw new CoCart_Data_Exception(
+				'cocart_cart_invalid_parent_product',
+				$message,
+				400
+			);
+		}
+
+		return $product->get_attributes();
 	} // END get_variable_product_attributes()
 
 	/**
@@ -170,7 +187,6 @@ class CoCart_Utilities_Cart_Helpers {
 	 * @since 5.0.0 Added cart class instance and recurring cart as new parameters.
 	 *
 	 * @see cocart_format_money()
-	 * @see CoCart_Utilities_Cart_Helpers::is_shipping_enabled()
 	 *
 	 * @param WC_Cart $cart           Cart class instance.
 	 * @param bool    $recurring_cart True or false if cart is recurring.
@@ -178,108 +194,88 @@ class CoCart_Utilities_Cart_Helpers {
 	 * @return array Shipping details.
 	 */
 	public static function get_shipping_details( $cart, $recurring_cart = false ) {
-		if ( ! self::is_shipping_enabled() ) {
-			return array();
-		}
-
 		// See if we need to calculate anything.
 		if ( ! $cart->needs_shipping() ) {
 			return array();
 		}
 
-		// Get shipping rates and packages.
-		$get_packages          = WC()->shipping->get_packages();
-		$get_shipping_packages = $cart->get_shipping_packages();
+		// Get shipping packages.
+		$get_packages = WC()->shipping->get_packages();
 
 		// Return early if invalid object supplied by the filter or no packages.
 		if ( ! is_array( $get_packages ) || empty( $get_packages ) ) {
 			return array();
 		}
 
+		// Has customer provided enough information to return shipping details. This tracks if shipping has actually been
+		// calculated so we can avoid returning costs and rates prematurely.
 		$has_calculated_shipping = $cart->show_shipping();
 
+		// Get cart shipping packages.
+		$get_shipping_packages = $has_calculated_shipping ? $cart->get_shipping_packages() : array();
+
 		// Return nothing if the cart has no subscriptions that require shipping.
+		/*
 		if ( $recurring_cart ) {
 			if ( ! $has_calculated_shipping && ! WC_Subscriptions_Cart::cart_contains_subscriptions_needing_shipping() ) {
 				return array();
 			}
-		}
+		}*/
 
 		$details = array(
-			'total_packages'          => count( (array) $get_shipping_packages[0]['contents'] ),
-			'show_package_details'    => $recurring_cart ? true : count( (array) $get_shipping_packages[0]['contents'] ) > 1,
+			'total_packages'          => ! empty( $get_shipping_packages ) ? count( (array) $get_shipping_packages[0]['contents'] ) : 0,
+			'show_package_details'    => ! empty( $get_shipping_packages ) ? count( (array) $get_shipping_packages[0]['contents'] ) > 1 : false,
 			'has_calculated_shipping' => $has_calculated_shipping,
 			'packages'                => array(),
 		);
 
+		// If customer has not provided enough shipping information then don't continue preparing packages.
+		if ( ! $has_calculated_shipping ) {
+			return $details;
+		}
+
 		$packages      = array();
-		$package_key   = 1;
 		$chosen_method = ''; // Leave blank until a method has been selected.
 
 		foreach ( $get_packages as $package_id => $package ) {
 			$chosen_method = isset( WC()->session->chosen_shipping_methods[ $package_id ] ) ? WC()->session->chosen_shipping_methods[ $package_id ] : '';
 			$product_names = array();
 
-			if ( count( (array) $packages ) > 1 ) {
-				foreach ( $package['contents'] as $item_id => $values ) {
-					$product_names[ $item_id ] = $values['data']->get_name() . ' x' . $values['quantity'];
-				}
-
-				/**
-				 * Filter allows you to change the package details.
-				 *
-				 * @since 3.0.0 Introduced.
-				 *
-				 * @param array $product_names Product names.
-				 * @param array $package       Package details.
-				 */
-				$product_names = apply_filters( 'cocart_shipping_package_details_array', $product_names, $package );
+			foreach ( $package['contents'] as $item_id => $values ) {
+				$product_names[ $item_id ] = $values['data']->get_name() . ' x' . $values['quantity'];
 			}
 
-			if ( 0 === $package_id ) {
-				$package_key = 'default'; // Identifies the default package.
-			}
+			/**
+			 * Filter allows you to change the package details.
+			 *
+			 * @since 3.0.0 Introduced.
+			 *
+			 * @param array $product_names Product names.
+			 * @param array $package       Package details.
+			 */
+			$product_names = apply_filters( 'cocart_shipping_package_details_array', $product_names, $package );
 
 			// Check that there are rates available for the package.
 			if ( count( (array) $package['rates'] ) > 0 ) {
-				$shipping_name = ( ( $package_id + 1 ) > 1 ) ? sprintf(
-					/* translators: %d: shipping package ID */
-					_x( 'Shipping #%d', 'shipping packages', 'cocart-core' ),
-					( $package_id + 1 )
-				) : _x( 'Shipping', 'shipping packages', 'cocart-core' );
-
-				$packages[ $package_key ] = array(
-					/**
-					 * Filters the package name for the shipping method.
-					 *
-					 * @since 3.0.0 Introduced.
-					 * @since 5.0.0 Added cart class instance as parameter.
-					 *
-					 * @param string  $shipping_name Package name.
-					 * @param int     $package_id    Package ID.
-					 * @param array   $package       Package contents.
-					 * @param WC_Cart $cart          Cart class instance.
-					 */
-					'package_name'          => apply_filters( 'cocart_shipping_package_name', $shipping_name, $package_id, $package, $cart ),
+				$packages[ $package_id ] = array(
+					'package_name'          => isset( $package['package_name'] ) ? $package['package_name'] : self::get_package_name( $package, $package_id, $cart ),
 					'rates'                 => array(),
 					'package_details'       => implode( ', ', $product_names ),
-					'index'                 => $package_id, // Shipping package ID.
+					'index'                 => isset( $package['package_id'] ) ? $package['package_id'] : $package_id, // Shipping package ID.
 					'chosen_method'         => $chosen_method,
 					'formatted_destination' => WC()->countries->get_formatted_address( $package['destination'], ', ' ),
 				);
-
-				$rates = array();
 
 				// Return each rate.
 				foreach ( $package['rates'] as $key => $method ) {
 					$meta_data = self::clean_meta_data( $method, 'shipping' );
 
-					$rates[ $key ] = array(
+					$packages[ $package_id ]['rates'][ $key ] = array(
 						'key'           => $key,
 						'method_id'     => $method->get_method_id(),
 						'instance_id'   => $method->instance_id,
 						'label'         => $method->get_label(),
-						'cost'          => cocart_format_money( $method->cost ),
+						'cost'          => CoCart_REST_Utilities_Monetary_Formatting::format_money( $method->cost, $request ),
 						'html'          => html_entity_decode( wp_strip_all_tags( wc_cart_totals_shipping_method_label( $method ) ) ),
 						'taxes'         => '',
 						'chosen_method' => ( $chosen_method === $key ),
@@ -287,14 +283,16 @@ class CoCart_Utilities_Cart_Helpers {
 					);
 
 					foreach ( $method->taxes as $shipping_cost => $tax_cost ) {
-						$rates[ $key ]['taxes'] = cocart_format_money( $tax_cost );
+						$packages[ $package_id ]['rates'][ $key ]['taxes'] = CoCart_REST_Utilities_Monetary_Formatting::format_money( $tax_cost );
 					}
 				}
 
-				$packages[ $package_key ]['rates'] = $rates;
+				// Identify the first package as the default package. This helps identify from other packages like recurring packages.
+				if ( 0 === $package_id ) {
+					$packages['default'] = $packages[0];
+					unset( $packages[0] );
+				}
 			}
-
-			++$package_key; // Update package key for next inline if any.
 		}
 
 		/**
@@ -310,10 +308,52 @@ class CoCart_Utilities_Cart_Helpers {
 		 */
 		$packages = apply_filters( 'cocart_available_shipping_packages', $packages, $chosen_method, $cart, $recurring_cart );
 
-		$details['packages'] = $has_calculated_shipping ? $packages : array();
+		$details['packages'] = $packages;
 
 		return $details;
 	} // END get_shipping_details()
+
+	/**
+	 * Creates a name for a package.
+	 *
+	 * @access protected
+	 *
+	 * @static
+	 *
+	 * @param array   $package    Shipping package from WooCommerce.
+	 * @param int     $package_id Package number.
+	 * @param WC_Cart $cart       Cart class instance.
+	 *
+	 * @return string
+	 */
+	protected static function get_package_name( $package, $package_id, $cart ) {
+		/**
+		 * Filters the shipping package name.
+		 *
+		 * @since 3.0.0 Introduced.
+		 * @since 5.0.0 Added cart class instance as parameter.
+		 *
+		 * @param string  $shipping_package_name Shipping package name.
+		 * @param string  $package_id            Shipping package ID.
+		 * @param array   $package               Shipping package from WooCommerce.
+		 * @param WC_Cart $cart                  Cart class instance.
+		 *
+		 * @return string Shipping package name.
+		 */
+		return apply_filters(
+			'cocart_shipping_package_name',
+			$package_id > 1 ?
+				sprintf(
+					/* translators: %d: shipping package number */
+					_x( 'Shipment %d', 'shipping packages', 'cocart-core' ),
+					$package_id
+				) :
+				_x( 'Shipping', 'shipping packages', 'cocart-core' ),
+			$package_id,
+			$package,
+			$cart
+		);
+	} // END get_package_name()
 
 	/**
 	 * Cleans up the meta data for API.
@@ -367,24 +407,25 @@ class CoCart_Utilities_Cart_Helpers {
 	 * @static
 	 *
 	 * @since 3.0.0 Introduced.
+	 * @since 5.0.0 Added the request object as parameter.
 	 *
-	 * @see cocart_format_money()
-	 *
-	 * @param WC_Cart $cart Cart class instance.
+	 * @param WC_Cart         $cart    Cart class instance.
+	 * @param WP_REST_Request $request The request object.
 	 *
 	 * @return array Cart fees.
 	 */
-	public static function get_fees( $cart ) {
+	public static function get_fees( $cart, $request ) {
 		$cart_fees = $cart->get_fees();
 
 		$fees = array();
 
 		if ( ! empty( $cart_fees ) ) {
 			foreach ( $cart_fees as $key => $fee ) {
-				$fees[ $key ] = array(
+				$fees[ $key ]        = array(
 					'name' => esc_html( $fee->name ),
-					'fee'  => cocart_format_money( self::fee_html( $cart, $fee ) ),
+					'fee'  => self::fee_html( $fee ),
 				);
+				$fees[ $key ]['fee'] = CoCart_REST_Utilities_Monetary_Formatting::format_money( $fees[ $key ]['fee'], $request );
 			}
 		}
 
@@ -408,8 +449,50 @@ class CoCart_Utilities_Cart_Helpers {
 	public static function fee_html( $cart, $fee ) {
 		$cart_totals_fee_html = $cart->display_prices_including_tax() ? wc_price( $fee->total + $fee->tax ) : wc_price( $fee->total );
 
+		/**
+		 * Filters the cart totals fee HTML.
+		 *
+		 * @since 3.0.0 Introduced.
+		 *
+		 * @param string $cart_totals_fee_html Cart totals fee HTML.
+		 * @param object $fee                  Fee object.
+		 */
 		return apply_filters( 'cocart_cart_totals_fee_html', $cart_totals_fee_html, $fee );
 	} // END fee_html()
+
+	/**
+	 * Get cart totals.
+	 *
+	 * Returns the cart subtotal, fees, discounted total, shipping total
+	 * and total of the cart.
+	 *
+	 * @access public
+	 *
+	 * @since 5.0.0 Introduced.
+	 *
+	 * @param WC_Cart         $cart    Cart class instance.
+	 * @param WP_REST_Request $request The request object.
+	 *
+	 * @return array Cart totals.
+	 */
+	public static function get_cart_totals( $cart, $request ) {
+		// Has customer provided enough information to return shipping totals.
+		// This tracks if shipping has actually been calculated so we can avoid returning costs prematurely.
+		$has_calculated_shipping = method_exists( $cart, 'has_calculated_shipping' ) ? $cart->has_calculated_shipping() : $cart->show_shipping();
+
+		return array(
+			'subtotal'       => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_subtotal(), $request ),
+			'subtotal_tax'   => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_subtotal_tax(), $request ),
+			'fee_total'      => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_fee_total(), $request ),
+			'fee_tax'        => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_fee_tax(), $request ),
+			'discount_total' => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_discount_total(), $request ),
+			'discount_tax'   => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_discount_tax(), $request ),
+			'shipping_total' => $has_calculated_shipping ? CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_shipping_total(), $request ) : '0',
+			'shipping_tax'   => $has_calculated_shipping ? CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_shipping_tax(), $request ) : '0',
+			'total'          => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_total( 'edit' ), $request ),
+			'total_tax'      => CoCart_REST_Utilities_Monetary_Formatting::format_money( $cart->get_total_tax(), $request ),
+		);
+	} // END get_cart_totals()
 
 	/**
 	 * Get coupon in HTML.
@@ -453,6 +536,14 @@ class CoCart_Utilities_Cart_Helpers {
 		if ( has_filter( 'woocommerce_coupon_discount_amount_html' ) ) {
 			$discount_amount_html = apply_filters( 'woocommerce_coupon_discount_amount_html', $discount_amount_html, $coupon );
 		} else {
+			/**
+			 * Filters the coupon discount amount HTML.
+			 *
+			 * @since 3.0.0 Introduced.
+			 *
+			 * @param string     $discount_amount_html Formatted discount amount.
+			 * @param WC_Coupon  $coupon              The coupon object.
+			 */
 			$discount_amount_html = apply_filters( 'cocart_coupon_discount_amount_html', $discount_amount_html, $coupon );
 		}
 
@@ -506,11 +597,12 @@ class CoCart_Utilities_Cart_Helpers {
 	 *
 	 * @see cocart_format_money()
 	 *
-	 * @param WC_Cart $cart Cart class instance.
+	 * @param WC_Cart         $cart    Cart class instance.
+	 * @param WP_REST_Request $request The request object.
 	 *
 	 * @return array Returns taxes if any.
 	 */
-	public static function get_taxes( $cart ) {
+	public static function get_taxes( $cart, $request ) {
 		// Return calculated tax based on store settings and customer details.
 		if ( wc_tax_enabled() && ! $cart->display_prices_including_tax() ) {
 			$taxable_address = WC()->customer->get_taxable_address();
@@ -525,12 +617,15 @@ class CoCart_Utilities_Cart_Helpers {
 			}
 
 			if ( 'itemized' === get_option( 'woocommerce_tax_total_display' ) ) {
-				return self::get_tax_lines( $cart );
+				return self::get_tax_lines( $cart, $request );
 			} else {
-				return array(
+				$taxes          = array(
 					'label' => esc_html( WC()->countries->tax_or_vat() ) . $estimated_text,
-					'total' => apply_filters( 'cocart_cart_totals_taxes_total', cocart_format_money( $cart->get_taxes_total() ) ),
+					'total' => apply_filters( 'cocart_cart_totals_taxes_total', $cart->get_taxes_total() ),
 				);
+				$taxes['total'] = CoCart_REST_Utilities_Monetary_Formatting::format_money( $taxes['total'], $request );
+
+				return $taxes;
 			}
 		}
 
@@ -545,21 +640,21 @@ class CoCart_Utilities_Cart_Helpers {
 	 * @static
 	 *
 	 * @since 3.0.0 Introduced.
+	 * @since 5.0.0 Added the request object as parameter.
 	 *
-	 * @see cocart_format_money()
-	 *
-	 * @param WC_Cart $cart Cart class instance.
+	 * @param WC_Cart         $cart    Cart class instance.
+	 * @param WP_REST_Request $request The request object.
 	 *
 	 * @return array Tax lines.
 	 */
-	public static function get_tax_lines( $cart ) {
+	public static function get_tax_lines( $cart, $request ) {
 		$cart_tax_totals = $cart->get_tax_totals();
 		$tax_lines       = array();
 
 		foreach ( $cart_tax_totals as $code => $tax ) {
 			$tax_lines[ $code ] = array(
 				'name'  => $tax->label,
-				'price' => cocart_format_money( $tax->amount ),
+				'price' => CoCart_REST_Utilities_Monetary_Formatting::format_money( $tax->amount, $request ),
 			);
 		}
 
@@ -574,12 +669,67 @@ class CoCart_Utilities_Cart_Helpers {
 	 * @static
 	 *
 	 * @since 3.0.0 Introduced.
+	 * @since 5.0.0 Added cart instance as parameter and added additional notices for validation purposes.
+	 *
+	 * @param WC_Cart $cart Cart class instance.
 	 *
 	 * @return array $notices.
 	 */
-	public static function maybe_return_notices() {
+	public static function maybe_return_notices( $cart ) {
 		$notice_count = 0;
-		$all_notices  = WC()->session->get( 'wc_notices', array() );
+		$wc_notices   = \WC()->session->get( 'wc_notices', array() );
+
+		// Get shipping packages.
+		if ( self::is_shipping_enabled() ) {
+			$get_packages = WC()->shipping->get_packages();
+
+			if ( is_array( $get_packages ) ) {
+				$rates = array();
+
+				foreach ( $get_packages as $package_id => $package ) {
+					$rates[] = count( (array) $package['rates'] );
+				}
+
+				// If no rates found then add warning notice.
+				if ( empty( $rates ) ) {
+					$wc_notices['warning']['no_shipping'] = array(
+						'notice' => __( 'No shipping options are available for this address. Please verify the address is correct or try a different address.', 'cocart-core' ),
+						'data'   => array(),
+					);
+				}
+			}
+		}
+
+		// Check fields to validate.
+		$check_fields = array(
+			'billing'  => array(
+				'country',
+				'postcode',
+			),
+			'shipping' => array(
+				'country',
+				'postcode',
+			),
+		);
+
+		foreach ( $check_fields as $field_type => $fields ) {
+			foreach ( $fields as $field ) {
+				$function = 'is_' . $field . '_valid';
+				$valid    = self::{$function}( $cart->get_customer(), $field_type );
+
+				if ( ! empty( $valid ) ) {
+					$wc_notices['error'][ $field_type . '_' . $field ] = array(
+						'notice' => $valid,
+						'data'   => array(),
+					);
+				}
+			}
+		}
+
+		$all_notices = $wc_notices;
+
+		// Update notices.
+		WC()->session->set( 'wc_notices', $all_notices );
 
 		foreach ( $all_notices as $notices ) {
 			$notice_count += count( $notices );
@@ -754,7 +904,7 @@ class CoCart_Utilities_Cart_Helpers {
 	 *
 	 * @param int|WC_Product $product   The product ID or object.
 	 * @param array          $cart_item The cart item data.
-	 * @param string         $item_key  The item key generated based on the details of the item.
+	 * @param string         $item_key  Generated ID based on the product information when added to the cart.
 	 *
 	 * @return array $item Basic item details.
 	 */
@@ -782,7 +932,7 @@ class CoCart_Utilities_Cart_Helpers {
 		 * @param string     $product_name Product name.
 		 * @param WC_Product $product      The product object.
 		 * @param array      $cart_item    The cart item data.
-		 * @param string     $item_key     The item key generated based on the details of the item.
+		 * @param string     $item_key     Generated ID based on the product information when added to the cart.
 		 */
 		$item['name'] = apply_filters( 'cocart_cart_item_name', $product->get_name(), $product, $cart_item, $item_key );
 
@@ -793,12 +943,11 @@ class CoCart_Utilities_Cart_Helpers {
 		 *
 		 * @since 3.0.0 Introduced.
 		 *
-		 * @param string     $product_price Product price.
-		 * @param array      $cart_item     The cart item data.
-		 * @param string     $item_key      The item key generated based on the details of the item.
-		 * @param WC_Product $product       The product object.
+		 * @param string $product_price Product price.
+		 * @param array  $cart_item     The cart item data.
+		 * @param string $item_key      Generated ID based on the product information when added to the cart.
 		 */
-		$item['price'] = apply_filters( 'cocart_cart_item_price', cocart_format_money( $price_function( $product ) ), $cart_item, $item_key, $product );
+		$item['price'] = apply_filters( 'cocart_cart_item_price', $price_function( $product ), $cart_item, $item_key );
 
 		/**
 		 * Filter allows the quantity of the item to change.
@@ -807,12 +956,11 @@ class CoCart_Utilities_Cart_Helpers {
 		 *
 		 * @since 3.0.0 Introduced.
 		 *
-		 * @param string     $item_quantity Item quantity.
-		 * @param string     $item_key      The item key generated based on the details of the item.
-		 * @param array      $cart_item     The cart item data.
-		 * @param WC_Product $product       The product object.
+		 * @param string $item_quantity Item quantity.
+		 * @param string $item_key      Generated ID based on the product information when added to the cart.
+		 * @param array  $cart_item     The cart item data.
 		 */
-		$item['quantity'] = apply_filters( 'cocart_cart_item_quantity', $cart_item['quantity'], $item_key, $cart_item, $product );
+		$item['quantity'] = apply_filters( 'cocart_cart_item_quantity', $cart_item['quantity'], $item_key, $cart_item );
 
 		$item['variation'] = cocart_format_variation_data( $cart_item['variation'], $product );
 
@@ -834,6 +982,9 @@ class CoCart_Utilities_Cart_Helpers {
 			$item['cart_item_data'] = apply_filters( 'cocart_cart_item_data', $cart_item, $item_key, $product );
 		}
 
+		// Format monetary values.
+		$item['price'] = CoCart_REST_Utilities_Monetary_Formatting::format_money( $item['price'], $request );
+
 		return $item;
 	} // END get_item_basic()
 
@@ -848,16 +999,11 @@ class CoCart_Utilities_Cart_Helpers {
 	 *
 	 * @since 5.0.0 Introduced.
 	 *
-	 * @param int|float       $quantity     The original quantity of the item.
-	 * @param int             $product_id   The product ID.
-	 * @param int             $variation_id The variation ID.
-	 * @param array           $variation    The variation data.
-	 * @param array           $item_data    The cart item data.
-	 * @param WP_REST_Request $request      The request object.
+	 * @param WP_REST_Request $request The request object.
 	 *
 	 * @return int|float $quantity The cart item quantity.
 	 */
-	public static function set_cart_item_quantity( $quantity = 1, $product_id = 0, $variation_id = 0, $variation = array(), $item_data = array(), $request = array() ) {
+	public static function set_cart_item_quantity( $request ) {
 		/**
 		 * Filters the quantity for specified products.
 		 *
@@ -871,7 +1017,7 @@ class CoCart_Utilities_Cart_Helpers {
 		 * @param array           $item_data    The cart item data.
 		 * @param WP_REST_Request $request      The request object.
 		 */
-		$quantity = apply_filters( 'cocart_add_to_cart_quantity', $quantity, $product_id, $variation_id, $variation, $item_data, $request );
+		$quantity = apply_filters( 'cocart_add_to_cart_quantity', $request['quantity'], $request['id'], $request['variation_id'], $request['variation'], $request['item_data'], $request );
 
 		return $quantity;
 	} // END set_cart_item_quantity()
@@ -885,20 +1031,16 @@ class CoCart_Utilities_Cart_Helpers {
 	 *
 	 * @since 5.0.0 Introduced.
 	 *
-	 * @param int|float       $quantity     The quantity to validate.
-	 * @param int             $product_id   The product ID.
-	 * @param int             $variation_id The variation ID.
-	 * @param array           $item_data    The cart item data.
-	 * @param WP_REST_Request $request      The request object.
+	 * @param WP_REST_Request $request The request object.
 	 *
-	 * @return int|float $quantity The quantity.
+	 * @return WP_REST_Request $request The request object.
 	 */
-	public static function set_cart_item_quantity_sold_individually( $quantity = 1, $product_id = 0, $variation_id = 0, $item_data = array(), $request = array() ) {
+	public static function set_cart_item_quantity_sold_individually( $request ) {
 		/**
 		 * Filters the quantity for sold individual products.
 		 *
 		 * @since 2.0.13 Introduced.
-		 * @since 5.0.0 Added parameters: `$quantity`, `$product_id`, `$variation_id`, `$item_data` and `$request`
+		 * @since 5.0.0 Added parameters: `$quantity`, `$product_id`, `$variation_id`, `$item_data`
 		 *
 		 * @param int             $sold_individual_quantity Sold individual quantity.
 		 * @param int|float       $quantity                 The quantity to validate.
@@ -907,9 +1049,9 @@ class CoCart_Utilities_Cart_Helpers {
 		 * @param array           $item_data                The cart item data.
 		 * @param WP_REST_Request $request                  The request object.
 		 */
-		$quantity = apply_filters( 'cocart_add_to_cart_sold_individually_quantity', 1, $quantity, $product_id, $variation_id, $item_data, $request );
+		$request['quantity'] = apply_filters( 'cocart_add_to_cart_sold_individually_quantity', 1, $request['quantity'], $request['id'], $request['variation_id'], $request['item_data'] );
 
-		return $quantity;
+		return $request;
 	} // END set_cart_item_quantity_sold_individually()
 
 	/**
@@ -921,16 +1063,11 @@ class CoCart_Utilities_Cart_Helpers {
 	 *
 	 * @since 5.0.0 Introduced.
 	 *
-	 * @param array           $item_data    The cart item data.
-	 * @param int             $product_id   The product ID.
-	 * @param int             $variation_id The variation ID.
-	 * @param int|float       $quantity     The item quantity.
-	 * @param string          $product_type The product type.
-	 * @param WP_REST_Request $request      The request object.
+	 * @param WP_REST_Request $request The request object.
 	 *
 	 * @return array $item_data The cart item data.
 	 */
-	public static function set_cart_item_data( $item_data = array(), $product_id = 0, $variation_id = 0, $quantity = 1, $product_type = 'simple', $request = array() ) {
+	public static function set_cart_item_data( $request ) {
 		/**
 		 * Filter allows other plugins to add their own cart item data.
 		 *
@@ -944,7 +1081,7 @@ class CoCart_Utilities_Cart_Helpers {
 		 * @param string          $product_type The product type.
 		 * @param WP_REST_Request $request      The request object.
 		 */
-		$item_data = (array) apply_filters( 'cocart_add_cart_item_data', $item_data, $product_id, $variation_id, $quantity, $product_type, $request );
+		$item_data = (array) apply_filters( 'cocart_add_cart_item_data', $request['item_data'], $request['id'], $request['variation_id'], $request['quantity'], $request['product_type'], $request );
 
 		return $item_data;
 	} // END set_cart_item_data()
@@ -1010,34 +1147,37 @@ class CoCart_Utilities_Cart_Helpers {
 	 * @static
 	 *
 	 * @since 3.0.0 Introduced.
+	 * @since 5.0.0 Replaced the product object with the request of cart item as parameter.
 	 *
-	 * @param WC_Product $product The product object.
+	 * @param WP_REST_Request $request The request object.
 	 *
 	 * @return WC_Product $product Returns a product object if purchasable.
 	 */
-	public static function validate_product_for_cart( $product ) {
-		try {
-			// Check if the product exists before continuing.
-			if ( ! $product || ! $product->exists() || 'trash' === $product->get_status() ) {
-				$message = __( 'This product cannot be added to the cart.', 'cocart-core' );
+	public static function validate_product_for_cart( $request ) {
+		$product = wc_get_product( $request['id'] );
 
-				/**
-				 * Filters message about product that cannot be added to cart.
-				 *
-				 * @since 3.0.0 Introduced.
-				 *
-				 * @param string     $message Message.
-				 * @param WC_Product $product The product object.
-				 */
-				$message = apply_filters( 'cocart_product_cannot_be_added_message', $message, $product );
+		// Check if the product exists before continuing.
+		if ( ! $product || ! $product->exists() || 'trash' === $product->get_status() ) {
+			$message = __( 'This product cannot be added to the cart.', 'cocart-core' );
 
-				throw new CoCart_Data_Exception( 'cocart_invalid_product', $message, 400 );
-			}
+			/**
+			 * Filters message about product that cannot be added to cart.
+			 *
+			 * @since 3.0.0 Introduced.
+			 *
+			 * @param string     $message Message.
+			 * @param WC_Product $product The product object.
+			 */
+			$message = apply_filters( 'cocart_product_cannot_be_added_message', $message, $product );
 
-			return $product;
-		} catch ( CoCart_Data_Exception $e ) {
-			return CoCart_Response::get_error_response( $e->getErrorCode(), $e->getMessage(), $e->getCode(), $e->getAdditionalData() );
+			throw new CoCart_Data_Exception(
+				'cocart_invalid_product',
+				$message,
+				400
+			);
 		}
+
+		return $product;
 	} // END validate_product_for_cart()
 
 	/**
@@ -1089,7 +1229,7 @@ class CoCart_Utilities_Cart_Helpers {
 
 			return $product_id;
 		} catch ( CoCart_Data_Exception $e ) {
-			return CoCart_Response::get_error_response( $e->getErrorCode(), $e->getMessage(), $e->getCode(), $e->getAdditionalData() );
+			return new \WP_Error( $e->getErrorCode(), $e->getMessage(), array( 'status' => $e->getCode() ), $e->getAdditionalData() );
 		}
 	} // END validate_product_id()
 
@@ -1110,10 +1250,10 @@ class CoCart_Utilities_Cart_Helpers {
 	 *
 	 * @return int|float|\WP_Error
 	 */
-	public static function validate_quantity( $quantity, WC_Product $product = null ) {
+	public static function validate_quantity( $quantity, WC_Product $product ) {
 		try {
 			if ( ! is_numeric( $quantity ) ) {
-				throw new CoCart_Data_Exception( 'cocart_quantity_not_numeric', __( 'Quantity must be integer or a float value!', 'cocart-core' ), 405 );
+				throw new CoCart_Data_Exception( 'cocart_quantity_not_numeric', __( 'Quantity must be numeric value!', 'cocart-core' ), 405 );
 			}
 
 			// Minimum quantity to validate with.
@@ -1157,7 +1297,7 @@ class CoCart_Utilities_Cart_Helpers {
 
 			return wc_stock_amount( $quantity );
 		} catch ( CoCart_Data_Exception $e ) {
-			return CoCart_Response::get_error_response( $e->getErrorCode(), $e->getMessage(), $e->getCode(), $e->getAdditionalData() );
+			return new \WP_Error( $e->getErrorCode(), $e->getMessage(), array( 'status' => $e->getCode() ), $e->getAdditionalData() );
 		}
 	} // END validate_quantity()
 
@@ -1170,22 +1310,24 @@ class CoCart_Utilities_Cart_Helpers {
 	 *
 	 * @static
 	 *
-	 * @since   2.1.0 Introduced.
-	 * @version 3.0.6
+	 * @since 2.1.0 Introduced.
+	 * @since 5.0.0 Replaced `$variation_id` and `$variation` params with `$request`.
 	 *
-	 * @param int        $variation_id The variation ID.
-	 * @param array      $variation    The variation attributes.
-	 * @param WC_Product $product      The product object.
+	 * @param array      $request                     Add to cart request params.
+	 * @param WC_Product $product                     The product object.
+	 * @param array      $variable_product_attributes Product attributes we're expecting. - optional
 	 *
-	 * @return array $variation_id ID of the variation and attribute values.
+	 * @return array Updated request array.
 	 */
-	public static function validate_variable_product( int $variation_id, array $variation, WC_Product $product ) {
+	public static function validate_variable_product( $request, $product, $variable_product_attributes = array() ) {
 		try {
 			// Flatten data and format posted values.
-			$variable_product_attributes = self::get_variable_product_attributes( $product );
+			if ( empty( $variable_product_attributes ) ) {
+				$variable_product_attributes = self::get_variable_product_attributes( $product );
+			}
 
 			// Now we have a variation ID, get the valid set of attributes for this variation. They will have an attribute_ prefix since they are from meta.
-			$expected_attributes = wc_get_product_variation_attributes( $variation_id );
+			$expected_attributes = wc_get_product_variation_attributes( $request['id'] );
 			$missing_attributes  = array();
 
 			foreach ( $variable_product_attributes as $attribute ) {
@@ -1197,8 +1339,8 @@ class CoCart_Utilities_Cart_Helpers {
 				$expected_value          = isset( $expected_attributes[ $prefixed_attribute_name ] ) ? $expected_attributes[ $prefixed_attribute_name ] : '';
 				$attribute_label         = wc_attribute_label( $attribute['name'] );
 
-				if ( isset( $variation[ wc_variation_attribute_name( $attribute['name'] ) ] ) ) {
-					$given_value = $variation[ wc_variation_attribute_name( $attribute['name'] ) ];
+				if ( isset( $request['variation'][ wc_variation_attribute_name( $attribute['name'] ) ] ) ) {
+					$given_value = $request['variation'][ wc_variation_attribute_name( $attribute['name'] ) ];
 
 					if ( $expected_value === $given_value ) {
 						continue;
@@ -1231,8 +1373,8 @@ class CoCart_Utilities_Cart_Helpers {
 				}
 
 				// Fills variation array with unspecified attributes that have default values. This ensures the variation always has full data.
-				if ( '' !== $expected_value && ! isset( $variation[ wc_variation_attribute_name( $attribute['name'] ) ] ) ) {
-					$variation[ wc_variation_attribute_name( $attribute['name'] ) ] = $expected_value;
+				if ( '' !== $expected_value && ! isset( $request['variation'][ wc_variation_attribute_name( $attribute['name'] ) ] ) ) {
+					$request['variation'][ wc_variation_attribute_name( $attribute['name'] ) ] = $expected_value;
 				}
 
 				// If no attribute was posted, only error if the variation has an 'any' attribute which requires a value.
@@ -1262,9 +1404,11 @@ class CoCart_Utilities_Cart_Helpers {
 				throw new CoCart_Data_Exception( 'cocart_missing_variation_data', $message, 400 );
 			}
 
-			return $variation;
+			ksort( $request['variation'] );
+
+			return $request;
 		} catch ( CoCart_Data_Exception $e ) {
-			return CoCart_Response::get_error_response( $e->getErrorCode(), $e->getMessage(), $e->getCode(), $e->getAdditionalData() );
+			return new \WP_Error( $e->getErrorCode(), $e->getMessage(), array( 'status' => $e->getCode() ), $e->getAdditionalData() );
 		}
 	} // END validate_variable_product()
 
@@ -1308,7 +1452,7 @@ class CoCart_Utilities_Cart_Helpers {
 
 			return true;
 		} catch ( CoCart_Data_Exception $e ) {
-			return CoCart_Response::get_error_response( $e->getErrorCode(), $e->getMessage(), $e->getCode(), $e->getAdditionalData() );
+			return new \WP_Error( $e->getErrorCode(), $e->getMessage(), array( 'status' => $e->getCode() ), $e->getAdditionalData() );
 		}
 	} // END has_enough_stock()
 

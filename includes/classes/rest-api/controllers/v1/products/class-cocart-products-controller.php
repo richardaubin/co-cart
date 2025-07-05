@@ -145,7 +145,7 @@ class CoCart_Products_Controller extends CoCart_REST_Posts_Controller {
 		$max_pages = (int) ceil( $total_posts / (int) $query->query_vars['posts_per_page'] );
 
 		if ( $page > $max_pages && $total_posts > 0 ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'cocart_products_invalid_page_number',
 				__( 'The page number requested is larger than the number of products available.', 'cocart-core' ),
 				array( 'status' => 400 )
@@ -363,7 +363,7 @@ endif;
 		$object = $this->get_object( (int) $request['id'] );
 
 		if ( ! $object || 0 === $object->get_id() || 'publish' !== $object->get_status() ) {
-			return new WP_Error( 'cocart_' . $this->post_type . '_invalid_id', __( 'Invalid ID.', 'cocart-core' ), array( 'status' => 404 ) );
+			return new \WP_Error( 'cocart_' . $this->post_type . '_invalid_id', __( 'Invalid ID.', 'cocart-core' ), array( 'status' => 404 ) );
 		}
 
 		$data     = $this->prepare_object_for_response( $object, $request );
@@ -563,8 +563,9 @@ endif;
 
 		// Map between taxonomy name and arg key.
 		$default_taxonomies = array(
-			'product_cat' => 'category',
-			'product_tag' => 'tag',
+			'product_cat'   => 'category',
+			'product_tag'   => 'tag',
+			'product_brand' => 'brand',
 		);
 
 		$taxonomies = array_merge( $all_product_taxonomies, $default_taxonomies );
@@ -572,10 +573,11 @@ endif;
 		// Set tax_query for each passed arg.
 		foreach ( $taxonomies as $taxonomy => $key ) {
 			if ( ! empty( $request[ $key ] ) ) {
+				$type        = is_numeric( $request[ $key ][0] ) ? 'term_id' : 'slug';
 				$operator    = $request[ $key . '_operator' ] && isset( $operator_mapping[ $request[ $key . '_operator' ] ] ) ? $operator_mapping[ $request[ $key . '_operator' ] ] : 'IN';
 				$tax_query[] = array(
 					'taxonomy' => $taxonomy,
-					'field'    => is_numeric( $request[ $key ] ) ? 'term_id' : 'slug',
+					'field'    => $type,
 					'terms'    => $request[ $key ],
 					'operator' => $operator,
 				);
@@ -2431,9 +2433,9 @@ endif;
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['category']           = array(
-			'description'       => __( 'Limit result set to products assigned a specific category ID or slug.', 'cocart-core' ),
+			'description'       => __( 'Limit result set to products assigned a set of category IDs or slugs, separated by commas.', 'cocart-core' ),
 			'type'              => 'string',
-			'sanitize_callback' => 'sanitize_text_field',
+			'sanitize_callback' => 'wp_parse_list',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['category_operator']  = array(
@@ -2445,15 +2447,29 @@ endif;
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['tag']                = array(
-			'description'       => __( 'Limit result set to products assigned a specific tag ID or slug.', 'cocart-core' ),
+			'description'       => __( 'Limit result set to products assigned a set of tag IDs or slugs, separated by commas.', 'cocart-core' ),
 			'type'              => 'string',
-			'sanitize_callback' => 'sanitize_text_field',
+			'sanitize_callback' => 'wp_parse_list',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['tag_operator']       = array(
 			'description'       => __( 'Operator to compare product tags.', 'cocart-core' ),
 			'type'              => 'string',
 			'enum'              => array( 'in', 'not in', 'and' ),
+			'default'           => 'in',
+			'sanitize_callback' => 'sanitize_key',
+			'validate_callback' => 'rest_validate_request_arg',
+		);
+		$params['brand']              = array(
+			'description'       => __( 'Limit result set to products assigned a set of brand IDs or slugs, separated by commas.', 'cocart-core' ),
+			'type'              => 'string',
+			'sanitize_callback' => 'wp_parse_list',
+			'validate_callback' => 'rest_validate_request_arg',
+		);
+		$params['brand_operator']     = array(
+			'description'       => __( 'Operator to compare product brand terms.', 'cocart-core' ),
+			'type'              => 'string',
+			'enum'              => array( 'in', 'not_in', 'and' ),
 			'default'           => 'in',
 			'sanitize_callback' => 'sanitize_key',
 			'validate_callback' => 'rest_validate_request_arg',
@@ -2591,6 +2607,8 @@ endif;
 				'price_desc',
 				'sales',
 				'rating',
+				'relevance',
+				'rand',
 			),
 			'sanitize_callback' => 'sanitize_text_field',
 			'validate_callback' => 'rest_validate_request_arg',
