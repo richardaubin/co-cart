@@ -637,6 +637,10 @@ class CoCart_REST_API {
 		require_once __DIR__ . '/utilities/class-cocart-rest-utilities-cart-response.php';
 		require_once __DIR__ . '/utilities/class-cocart-rest-utilities-pagination.php';
 
+    // CoCart REST API controllers.
+		require_once __DIR__ . '/controllers/class-cocart-rest-controller.php';
+		require_once __DIR__ . '/controllers/class-cocart-rest-posts-controller.php';
+
 		// CoCart REST API v1 controllers.
 		require_once __DIR__ . '/controllers/v1/cart/class-cocart-controller.php';
 		require_once __DIR__ . '/controllers/v1/cart/class-cocart-add-item-controller.php';
