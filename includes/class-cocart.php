@@ -192,6 +192,7 @@ final class CoCart {
 		self::define( 'COCART_FILE_PATH', untrailingslashit( plugin_dir_path( COCART_FILE ) ) );
 		self::define( 'COCART_CART_CACHE_GROUP', 'cocart_cart_id' );
 		self::define( 'COCART_STORE_URL', 'https://cocartapi.com/' );
+		self::define( 'COCART_BILLING_URL', 'https://cocartapi.com/billing/' );
 		self::define( 'COCART_PLUGIN_URL', 'https://wordpress.org/plugins/cart-rest-api-for-woocommerce/' );
 		self::define( 'COCART_SUPPORT_URL', 'https://wordpress.org/support/plugin/cart-rest-api-for-woocommerce' );
 		self::define( 'COCART_REVIEW_URL', 'https://testimonial.to/cocart' );
