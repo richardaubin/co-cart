@@ -108,7 +108,7 @@ class CoCart_Cart_Cache {
 		}
 
 		if ( is_array( $cart_item_key ) ) {
-			$cart_item_key = $cart_item_key['key'];
+			$cart_item_key = isset( $cart_item_key['key'] ) ? $cart_item_key['key'] : '';
 		}
 
 		if ( ! empty( $cart_item_key ) ) {
