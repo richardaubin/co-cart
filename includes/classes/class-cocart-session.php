@@ -84,12 +84,15 @@ class CoCart_Load_Cart {
 				}
 
 				// Sets the php session data for the loaded cart.
-				WC()->session->set( 'cart', maybe_unserialize( $requested_cart['cart'] ) );
-				WC()->session->set( 'applied_coupons', maybe_unserialize( $requested_cart['applied_coupons'] ) );
-				WC()->session->set( 'coupon_discount_totals', maybe_unserialize( $requested_cart['coupon_discount_totals'] ) );
-				WC()->session->set( 'coupon_discount_tax_totals', maybe_unserialize( $requested_cart['coupon_discount_tax_totals'] ) );
-				WC()->session->set( 'removed_cart_contents', maybe_unserialize( $requested_cart['removed_cart_contents'] ) );
+				// If either cart, cart_totals, applied_coupons, coupon_discount_totals, coupon_discount_tax_totals or removed_cart_contents are not set then they are nulled as fallback.
+				WC()->session->set( 'cart', isset( $requested_cart['cart'] ) ? maybe_unserialize( $requested_cart['cart'] ) : null );
+				WC()->session->set( 'cart_totals', isset( $requested_cart['cart_totals'] ) ? maybe_unserialize( $requested_cart['cart_totals'] ) : null );
+				WC()->session->set( 'applied_coupons', isset( $requested_cart['applied_coupons'] ) ? maybe_unserialize( $requested_cart['applied_coupons'] ) : null );
+				WC()->session->set( 'coupon_discount_totals', isset( $requested_cart['applied_coupons'] ) ? maybe_unserialize( $requested_cart['coupon_discount_totals'] ) : null );
+				WC()->session->set( 'coupon_discount_tax_totals', isset( $requested_cart['applied_coupons'] ) ? maybe_unserialize( $requested_cart['coupon_discount_tax_totals'] ) : null );
+				WC()->session->set( 'removed_cart_contents', isset( $requested_cart['applied_coupons'] ) ? maybe_unserialize( $requested_cart['removed_cart_contents'] ) : null );
 
+				// The rest of the session data either exists or does not. There is no fallback requirement.
 				if ( ! empty( $requested_cart['chosen_shipping_methods'] ) ) {
 					WC()->session->set( 'chosen_shipping_methods', maybe_unserialize( $requested_cart['chosen_shipping_methods'] ) );
 				}
@@ -98,7 +101,7 @@ class CoCart_Load_Cart {
 					WC()->session->set( 'cart_fees', maybe_unserialize( $requested_cart['cart_fees'] ) );
 				}
 
-				// Checks for any items cached.
+				// Checks for any items cached. - Added by CoCart in order to handle donation pricing mechanic.
 				if ( ! empty( $requested_cart['cart_cached'] ) ) {
 					WC()->session->set( 'cart_cached', maybe_unserialize( $requested_cart['cart_cached'] ) );
 				}
