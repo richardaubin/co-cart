@@ -103,7 +103,7 @@ class CoCart_WooCommerce {
 		}
 
 		// Check the CoCart session handler is used but is NOT a CoCart REST API request.
-		if ( ! WC()->session instanceof CoCart_Session_Handler || WC()->session instanceof CoCart_Session_Handler && ! CoCart::is_rest_api_request() ) {
+		if ( ! WC()->session instanceof CoCart_Session_Handler || ( WC()->session instanceof CoCart_Session_Handler && ! CoCart::is_rest_api_request() ) ) {
 			return;
 		}
 
@@ -153,10 +153,11 @@ class CoCart_WooCommerce {
 		// Get current cart contents.
 		$cart_contents = WC()->session->get( 'cart', array() );
 
+		// Initialize merge cart array.
+		$merge_cart = array();
+
 		// Merge requested cart. - ONLY ITEMS, COUPONS AND FEES THAT ARE NOT APPLIED TO THE CART IN SESSION WILL MERGE!!!
 		if ( ! empty( $cart_key ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			$merge_cart = array();
-
 			$applied_coupons       = WC()->session->get( 'applied_coupons', array() );
 			$removed_cart_contents = WC()->session->get( 'removed_cart_contents', array() );
 			$cart_fees             = WC()->session->get( 'cart_fees', array() );
@@ -188,18 +189,19 @@ class CoCart_WooCommerce {
 		// Set cart for customer if not empty.
 		if ( ! empty( $cart ) ) {
 			WC()->session->set( 'cart', $cart_contents );
-			WC()->session->set( 'cart_totals', maybe_unserialize( $cart['cart_totals'] ) );
-			WC()->session->set( 'applied_coupons', ! empty( $merge_cart['applied_coupons'] ) ? $merge_cart['applied_coupons'] : maybe_unserialize( $cart['applied_coupons'] ) );
-			WC()->session->set( 'coupon_discount_totals', maybe_unserialize( $cart['coupon_discount_totals'] ) );
-			WC()->session->set( 'coupon_discount_tax_totals', maybe_unserialize( $cart['coupon_discount_tax_totals'] ) );
-			WC()->session->set( 'removed_cart_contents', ! empty( $merge_cart['removed_cart_contents'] ) ? $merge_cart['removed_cart_contents'] : maybe_unserialize( $cart['removed_cart_contents'] ) );
+			WC()->session->set( 'cart_totals', isset( $cart['cart_totals'] ) ? maybe_unserialize( $cart['cart_totals'] ) : array() );
+			WC()->session->set( 'applied_coupons', ! empty( $merge_cart['applied_coupons'] ) ? $merge_cart['applied_coupons'] : ( isset( $cart['applied_coupons'] ) ? maybe_unserialize( $cart['applied_coupons'] ) : array() ) );
+			WC()->session->set( 'coupon_discount_totals', isset( $cart['coupon_discount_totals'] ) ? maybe_unserialize( $cart['coupon_discount_totals'] ) : array() );
+			WC()->session->set( 'coupon_discount_tax_totals', isset( $cart['coupon_discount_tax_totals'] ) ? maybe_unserialize( $cart['coupon_discount_tax_totals'] ) : array() );
+			WC()->session->set( 'removed_cart_contents', ! empty( $merge_cart['removed_cart_contents'] ) ? $merge_cart['removed_cart_contents'] : ( isset( $cart['removed_cart_contents'] ) ? maybe_unserialize( $cart['removed_cart_contents'] ) : array() ) );
 
-			if ( ! empty( $cart['chosen_shipping_methods'] ) ) {
-				WC()->session->set( 'chosen_shipping_methods', maybe_unserialize( $cart['chosen_shipping_methods'] ) );
-			}
+			WC()->session->set( 'chosen_shipping_methods', ! empty( $cart['chosen_shipping_methods'] ) ? maybe_unserialize( $cart['chosen_shipping_methods'] ) : array() );
 
-			if ( ! empty( $cart['cart_fees'] ) ) {
-				WC()->session->set( 'cart_fees', ! empty( $merge_cart['cart_fees'] ) ? $merge_cart['cart_fees'] : maybe_unserialize( $cart['cart_fees'] ) );
+			WC()->session->set( 'cart_fees', ! empty( $merge_cart['cart_fees'] ) ? $merge_cart['cart_fees'] : ( isset( $cart['cart_fees'] ) ? maybe_unserialize( $cart['cart_fees'] ) : array() ) );
+
+			// Checks for any items cached. - Added by CoCart in order to handle donation pricing mechanic.
+			if ( ! empty( $cart['cart_cached'] ) ) {
+				WC()->session->set( 'cart_cached', maybe_unserialize( $cart['cart_cached'] ) );
 			}
 		}
 	} // END load_cart_from_session()
