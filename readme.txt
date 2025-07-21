@@ -4,7 +4,7 @@ Tags: woocommerce, rest-api, decoupled, headless, cart
 Requires at least: 6.3
 Requires PHP: 7.4
 Tested up to: 6.8
-Stable tag: 4.6.0
+Stable tag: 4.6.1
 WC requires at least: 7.0
 WC tested up to: 10.0
 License: GPLv3
@@ -295,6 +295,17 @@ We’d love to hear what you have to say. [Share your experience](https://testim
 
 📢 Only bug and security updates will be provided here on WordPress dot ORG. Any new major updates starting with v5.0 will be provided [directly from us](https://cocartapi.com?utm_medium=website&utm_source=wpplugindirectory&utm_campaign=readme&utm_content=readmelink).
 
+= v4.6.1 - 21st July, 2025 =
+
+### Bug Fixes
+
+* REST API: Fixed `undefined array key` errors with cart session when cart is empty. [Solves Issue #533](https://github.com/co-cart/co-cart/issues/533)
+* REST API: Fixed removing an item using the update endpoint when it thinks quantity value is not numeric.
+
+### Compatibility
+
+* Tested with WooCommerce v10.0.3
+
 = v4.6.0 - 26th June, 2025 =
 
 This release is a compatibility release for the next WooCommerce release.
@@ -542,6 +553,6 @@ add_filter( 'cocart_get_customer_billing_country', function( $value ) {
 
 == Upgrade Notice ==
 
-= 4.6.0 =
+= 4.6.1 =
 
-This release is a compatibility release for the next WooCommerce release.
+This release fixes a compatibility issue with WooCommerce v10.

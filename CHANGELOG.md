@@ -1,5 +1,16 @@
 # Changelog for CoCart Core
 
+## v4.6.1 - 21st July, 2025
+
+### Bug Fixes
+
+* REST API: Fixed `undefined array key` errors with cart session when cart is empty. [Solves Issue #533](https://github.com/co-cart/co-cart/issues/533)
+* REST API: Fixed removing an item using the update endpoint when it thinks quantity value is not numeric.
+
+### Compatibility
+
+* Tested with WooCommerce v10.0.3
+
 ## v4.6.0 - 26th June, 2025
 
 This release is a compatibility release for the next WooCommerce release.

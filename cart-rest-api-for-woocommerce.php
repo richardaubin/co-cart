@@ -5,7 +5,7 @@
  * Description: The best REST-API to decouple your WooCommerce store with. Fast, secure, customizable, easy.
  * Author:      CoCart Headless, LLC
  * Author URI:  https://cocartapi.com
- * Version:     4.6.0
+ * Version:     4.6.1
  * Text Domain: cart-rest-api-for-woocommerce
  * Domain Path: /languages/
  * Requires at least: 6.3
