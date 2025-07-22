@@ -192,7 +192,9 @@ class CoCart_REST_API {
 
 			// Update session when the cart is updated.
 			add_action( 'woocommerce_after_calculate_totals', array( $session, 'set_session' ), 1000 );
-			add_action( 'woocommerce_cart_loaded_from_session', array( $session, 'set_session' ) );
+			if ( version_compare( WC_VERSION, '10.0', '<' ) ) {
+				add_action( 'woocommerce_cart_loaded_from_session', array( $session, 'set_session' ) );
+			}
 			add_action( 'woocommerce_removed_coupon', array( $session, 'set_session' ) );
 
 			// Persistent cart stored to usermeta. Only supported for WC users below v10. @todo Remove hooks below in future.
