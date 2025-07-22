@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Cart Cache for Cart REST API.
+ * Cache for the cart.
  *
  * This handles the cart data in cache before the totals are calculated.
  *
