@@ -164,7 +164,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 			return;
 		}
 
-		// If user is logged in and no cart key provided for guest, set customer ID to current usser ID.
+		// If user is logged in and no cart key provided for guest, set customer ID to current user ID.
 		if ( is_user_logged_in() && empty( $this->_customer_id ) ) {
 			$this->set_customer_id( $current_user_id );
 		}
