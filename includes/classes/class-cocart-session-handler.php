@@ -402,6 +402,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 
 			// Check the data exists before continuing.
 			if ( ! $this->_data || empty( $this->_data ) || is_null( $this->_data ) ) {
+				\CoCart_Logger::log( esc_html__( 'Session data does not exist. Something really bad must have happened.', 'cart-rest-api-for-woocommerce' ), 'warning' );
 				return true;
 			}
 
