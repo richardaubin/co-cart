@@ -381,7 +381,8 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public function save_data( $old_cart_key = 0 ) {
-		if ( $this->has_session() ) {
+		// Dirty if something changed - prevents saving nothing new.
+		if ( $this->_dirty && $this->has_session() ) {
 			global $wpdb;
 
 			/**
