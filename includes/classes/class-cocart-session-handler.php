@@ -260,6 +260,10 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 		$expiring_seconds   = DAY_IN_SECONDS;
 		$expiration_seconds = 2 * DAY_IN_SECONDS;
 
+		$max_expiration_seconds = MONTH_IN_SECONDS;
+		$max_expiring_seconds   = $max_expiration_seconds - DAY_IN_SECONDS;
+		$session_limit_exceeded = false;
+
 		// Set expiration time for logged in users.
 		if ( is_user_logged_in() ) {
 			$expiration_seconds = WEEK_IN_SECONDS;
@@ -274,7 +278,12 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 		 * @param int  $expiring_seconds  The expiration time in seconds.
 		 * @param bool $is_user_logged_in Whether the user is logged in or not.
 		 */
-		$this->cart_expiring = time() + intval( apply_filters( 'cocart_cart_expiring', $expiring_seconds, is_user_logged_in() ) );
+		$expiring_seconds = intval( apply_filters( 'cocart_cart_expiring', $expiring_seconds, is_user_logged_in() ) ) ?: $expiring_seconds; // phpcs:ignore Universal.Operators.DisallowShortTernary.Found
+
+		if ( $expiring_seconds > $max_expiring_seconds ) {
+			$expiring_seconds       = $max_expiring_seconds;
+			$session_limit_exceeded = true;
+		}
 
 		/**
 		 * Filter allows you to change the amount of time before the cart does expire.
@@ -285,7 +294,37 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 		 * @param int  $expiration_seconds The expiration time in seconds.
 		 * @param bool $is_user_logged_in  Whether the user is logged in or not.
 		 */
-		$this->cart_expiration = time() + intval( apply_filters( 'cocart_cart_expiration', $expiration_seconds, is_user_logged_in() ) );
+		$expiration_seconds = intval( apply_filters( 'cocart_cart_expiration', $expiration_seconds, is_user_logged_in() ) ) ?: $expiration_seconds; // phpcs:ignore Universal.Operators.DisallowShortTernary.Found
+
+		// We limit the expiration time to 30 days to avoid performance issues and the session table growing too large.
+		if ( $expiration_seconds > $max_expiration_seconds ) {
+			$expiration_seconds     = $max_expiration_seconds;
+			$session_limit_exceeded = true;
+		}
+
+		if ( $session_limit_exceeded ) {
+			$transient_key = 'cocart_session_handler_warning';
+			if ( false === get_transient( $transient_key ) ) {
+				\CoCart_Logger::log(
+					sprintf(
+						/* translators: %d = Expiration in seconds. */
+						esc_html__( 'Keeping sessions for longer than %d days results in performance issues, expiry has been capped.', 'cart-rest-api-for-woocommerce' ),
+						$max_expiration_seconds / DAY_IN_SECONDS
+					),
+					'warning'
+				);
+				set_transient( $transient_key, true, $max_expiration_seconds );
+			}
+		}
+
+		// If the expiring time is greater than the expiration time, set the expiring time to 90% of the expiration time.
+		if ( $expiring_seconds > $expiration_seconds ) {
+			$expiring_seconds = $expiration_seconds * 0.9;
+		}
+
+		$this->cart_expiring = time() + $expiring_seconds;
+
+		$this->cart_expiration = time() + $expiration_seconds;
 	} // END set_cart_expiration()
 
 	/**
