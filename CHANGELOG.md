@@ -1,5 +1,23 @@
 # Changelog for CoCart Core
 
+## v4.6.2 - ?? June, 2025
+
+### Bug Fix
+
+* REST API: Removing an item stays removed.
+
+> WooCommerce v10 caused a cache issue due to a change in the many times session data is handled.
+
+### Improvement
+
+* Plugin: Session handler optimized - New sessions created first, then auth users if no cart requested.
+* Plugin: Session handler - Removed the need to set cart hash at the start.
+* Plugin: Session handler - Added warning log for when the session data to have really screwed up.
+* Plugin: Session handler - Added max expiration exceed limit to 30 days to avoid performance issues and the session table growing too large.
+* Plugin: Moved the cart cache to load once WooCommerce has loaded instead of only during the REST API.
+
+> Developer note: This allows for items with custom pricing to be calculated on the native site and not just via the REST API to keep consistent with calculations.
+
 ## v4.6.1 - 21st July, 2025
 
 ### Bug Fixes
