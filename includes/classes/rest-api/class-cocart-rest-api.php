@@ -238,7 +238,7 @@ class CoCart_REST_API {
 			$this->initialize_customer();
 
 			// Initialize cart.
-			$this->initialize_cart_session();
+			// $this->initialize_cart_session(); - Dev note, was causing pain problems instead of being helpful. Thanks WC!
 			$this->initialize_cart();
 		}
 	} // END maybe_load_cart()
