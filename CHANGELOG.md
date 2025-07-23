@@ -4,7 +4,7 @@
 
 ### Bug Fix
 
-* REST API: Removing an item stays removed.
+* REST API: Removing an item stays removed. [Solves issue #534](https://github.com/co-cart/co-cart/issues/534)
 
 > WooCommerce v10 caused a cache issue due to a change in the many times session data is handled.
 
