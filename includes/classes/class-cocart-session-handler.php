@@ -385,22 +385,6 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 		if ( $this->_dirty && $this->has_session() ) {
 			global $wpdb;
 
-			/**
-			 * Filter is used to set an empty cart expiration.
-			 *
-			 * @deprecated 2.7.2 No replacement.
-			 */
-			cocart_do_deprecated_filter(
-				'cocart_empty_cart_expiration',
-				'2.7.2',
-				null,
-				sprintf(
-					/* translators: %s: Filter name */
-					__( '%s is no longer used.', 'cart-rest-api-for-woocommerce' ),
-					'cocart_empty_cart_expiration'
-				)
-			);
-
 			// Check the data exists before continuing.
 			if ( ! $this->_data || empty( $this->_data ) || is_null( $this->_data ) ) {
 				\CoCart_Logger::log( esc_html__( 'Session data does not exist. Something really bad must have happened.', 'cart-rest-api-for-woocommerce' ), 'warning' );
