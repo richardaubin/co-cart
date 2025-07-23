@@ -1,6 +1,6 @@
 # Changelog for CoCart Core
 
-## v4.6.2 - ?? June, 2025
+## v4.6.2 - ?? July, 2025
 
 ### Bug Fix
 
