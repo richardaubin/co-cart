@@ -240,6 +240,20 @@ class CoCart_REST_API {
 			// Initialize cart.
 			// $this->initialize_cart_session(); - Dev note, was causing pain problems instead of being helpful. Thanks WC!
 			$this->initialize_cart();
+
+			// Destroy cookies not needed to help with performance.
+			add_action( 'woocommerce_set_cart_cookies', function ( $set ) {
+				$unsetcookies = array(
+					'woocommerce_items_in_cart',
+					'woocommerce_cart_hash',
+				);
+				foreach ( $unsetcookies as $name ) {
+					if ( isset( $_COOKIE[ $name ] ) ) {
+						wc_setcookie( $name, 0, time() - HOUR_IN_SECONDS );
+						unset( $_COOKIE[ $name ] );
+					}
+				}
+			} );
 		}
 	} // END maybe_load_cart()
 
