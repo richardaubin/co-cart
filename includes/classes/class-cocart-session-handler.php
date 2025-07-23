@@ -82,6 +82,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 *
 	 * @since 2.1.0 Introduced.
 	 * @since 4.2.0 Rest requests don't require the use of cookies.
+	 * @since 4.6.2 Removed the need to set cart hash at the start.
 	 */
 	public function init() {
 		// Load the session based on native or decoupled request.
@@ -89,7 +90,6 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 			$this->cart_source = 'cocart';
 
 			$this->init_session_cocart();
-			$this->set_cart_hash();
 
 			add_action( 'shutdown', array( $this, 'save_data' ), 20 );
 			add_action( 'wp_logout', array( $this, 'destroy_cart' ) );
