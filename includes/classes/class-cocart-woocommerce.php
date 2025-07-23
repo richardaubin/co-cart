@@ -107,26 +107,15 @@ class CoCart_WooCommerce {
 			return;
 		}
 
-		$cookie = WC()->session->get_session_cookie();
-
-		$cart_key = '';
-
-		// If cookie exists then return cart key from it.
-		if ( $cookie ) {
-			$cart_key = $cookie[0];
-		}
-
 		// Check if we requested to load a specific cart.
-		if ( isset( $_REQUEST['cart_key'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			$cart_key = trim( esc_html( wp_unslash( $_REQUEST['cart_key'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		}
+		$cart_key = WC()->session->get_requested_cart();
 
 		// Check if the user is logged in.
 		if ( is_user_logged_in() ) {
 			$customer_id = strval( get_current_user_id() );
 
 			// Compare the customer ID with the requested cart key. If they match then return error message.
-			if ( isset( $_REQUEST['cart_key'] ) && $customer_id === $_REQUEST['cart_key'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			if ( ! empty( $cart_key ) && $customer_id === $cart_key ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				$error = new WP_Error( 'cocart_already_authenticating_user', __( 'You are already authenticating as the customer. Cannot set cart key as the user.', 'cart-rest-api-for-woocommerce' ), array( 'status' => 403 ) );
 				wp_send_json_error( $error, 403 );
 				exit;
