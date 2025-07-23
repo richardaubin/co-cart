@@ -100,7 +100,7 @@ class CoCart_REST_Add_Item_V2_Controller extends CoCart_REST_Cart_V2_Controller 
 		try {
 			$cart = $this->get_cart_instance();
 
-			$params = $request->get_params();
+			$params = ! is_array( $request ) ? $request->get_params() : $request;
 
 			$request = array_merge( array(
 				'id'        => '0',
