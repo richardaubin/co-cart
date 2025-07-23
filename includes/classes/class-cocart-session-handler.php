@@ -212,7 +212,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	} // END is_user_customer()
 
 	/**
-	 * Return true if the current customer has an active cart.
+	 * Return true if the current user has an active session.
 	 *
 	 * Either a cookie, a user ID or a cart key to retrieve values.
 	 *
@@ -226,6 +226,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 			return true;
 		}
 
+		// Fallback to default `has_session`.
 		if ( parent::has_session() ) {
 			return true;
 		}
