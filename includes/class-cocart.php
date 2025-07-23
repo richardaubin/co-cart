@@ -575,7 +575,6 @@ final class CoCart {
 		}
 
 		require_once __DIR__ . '/classes/class-cocart-data-exception.php';
-		require_once __DIR__ . '/classes/rest-api/class-cocart-cart-cache.php';
 		require_once __DIR__ . '/classes/rest-api/class-cocart-cart-callbacks.php';
 		require_once __DIR__ . '/classes/rest-api/class-cocart-cart-extension.php';
 		require_once __DIR__ . '/classes/rest-api/class-cocart-response.php';
@@ -754,11 +753,13 @@ final class CoCart {
 	 * @static
 	 *
 	 * @since 2.1.2 Introduced.
+	 * @since 4.6.2 Moved the cart cache to load once WooCommerce has loaded instead of only during the REST API.
 	 *
 	 * @return void
 	 */
 	public static function woocommerce() {
 		require_once __DIR__ . '/classes/class-cocart-woocommerce.php';
+		require_once __DIR__ . '/classes/class-cocart-cart-cache.php';
 	} // END woocommerce()
 
 	/**

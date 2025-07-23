@@ -59,7 +59,7 @@ class CoCart_Load_Cart {
 	public static function load_cart_action() {
 		if ( self::maybe_load_cart() ) {
 			$action         = self::get_action_query();
-			$cart_key       = isset( $_REQUEST[ $action ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ $action ] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$cart_key       = isset( $_GET[ $action ] ) ? sanitize_text_field( wp_unslash( $_GET[ $action ] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$is_cart_loaded = true;
 
 			cocart_nocache_headers();
@@ -169,7 +169,7 @@ class CoCart_Load_Cart {
 		$action = self::get_action_query();
 
 		// If we did not request to load a cart then just return.
-		if ( ! isset( $_REQUEST[ $action ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_GET[ $action ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return false;
 		}
 
@@ -221,7 +221,7 @@ class CoCart_Load_Cart {
 
 		if ( ! is_user_logged_in() && self::maybe_load_cart() ) {
 			$action   = self::get_action_query();
-			$cart_key = isset( $_REQUEST[ $action ] ) ? trim( sanitize_text_field( wp_unslash( $_REQUEST[ $action ] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$cart_key = isset( $_GET[ $action ] ) ? trim( sanitize_text_field( wp_unslash( $_GET[ $action ] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 			if ( ! empty( $cart_key ) ) {
 				$checkout_url = add_query_arg( $action, $cart_key, $checkout_url );

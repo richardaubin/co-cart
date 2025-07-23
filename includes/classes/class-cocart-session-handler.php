@@ -92,6 +92,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 *
 	 * @since 2.1.0 Introduced.
 	 * @since 4.2.0 Rest requests don't require the use of cookies.
+	 * @since 4.6.2 Removed the need to set cart hash at the start.
 	 */
 	public function init() {
 		// Load the session based on native or decoupled request.
@@ -99,7 +100,6 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 			$this->cart_source = 'cocart';
 
 			$this->init_session_cocart();
-			$this->set_cart_hash();
 
 			add_action( 'shutdown', array( $this, 'save_data' ), 20 );
 			add_action( 'wp_logout', array( $this, 'destroy_cart' ) );
@@ -166,36 +166,44 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 */
 	public function init_session_cocart() {
 		// Current user ID. If user is NOT logged in then the customer is a guest.
-		$current_user_id = 0;
+		$current_user_id = is_user_logged_in() ? strval( get_current_user_id() ) : 0;
 
-		if ( is_user_logged_in() ) {
-			$current_user_id = strval( get_current_user_id() );
+		// Get requested guest cart.
+		$this->_customer_id = $this->get_requested_cart();
+
+		// New cart session created.
+		if ( 0 === $current_user_id && empty( $this->_customer_id ) ) {
+			$this->set_cart_expiration();
+			$this->set_customer_id( $this->generate_key() );
+			$this->_data = $this->get_session_data();
+			return;
 		}
 
-		$this->cart_key = $this->get_requested_cart();
+		// If user is logged in and no cart key provided for guest, set customer ID to current user ID.
+		if ( is_user_logged_in() && empty( $this->_customer_id ) ) {
+			$this->set_customer_id( $current_user_id );
+		}
 
-		// Get cart session requested.
-		if ( ! empty( $this->cart_key ) ) {
-			// Get cart.
-			$this->_data = $this->get_session_data();
+		// Get cart.
+		$this->_data = $this->get_session_data();
 
-			// If the user logs in, and there is a requested cart that is not a customer, then update session configuration.
-			if ( is_user_logged_in() && ! empty( $this->_customer_id ) && ! $this->is_user_customer( $this->cart_key ) && $current_user_id !== $this->cart_key ) {
-				$guest_session_id = $this->cart_key;
-				$this->cart_key   = $current_user_id;
+		// If a user is logged in and a guest session is requested, transfer the session over.
+		if ( is_user_logged_in() && $current_user_id !== $this->_customer_id ) {
+			// Only transfer if the user is a customer, otherwise other previous guest sessions will be lost if handled by administrator or shop owner.
+			if ( $this->is_user_customer( $current_user_id ) ) {
+				$guest_session_id   = $this->_customer_id;
+				$this->_customer_id = $current_user_id;
+				$this->_dirty       = true;
+
+				// Save current data and delete guest session.
 				$this->save_data( $guest_session_id );
 			}
+		}
 
-			// Update cart if its close to expiring.
-			if ( $this->is_session_expiring() ) {
-				$this->set_cart_expiration();
-				$this->update_cart_timestamp( $this->cart_key, $this->cart_expiration );
-			}
-		} else {
-			// New cart session created or authenticated user.
+		// Update session if its close to expiring.
+		if ( $this->is_session_expiring() ) {
 			$this->set_cart_expiration();
-			$this->cart_key = 0 === $current_user_id ? $this->generate_key() : $current_user_id;
-			$this->_data    = $this->get_session_data();
+			$this->update_cart_timestamp( $this->_customer_id, $this->cart_expiration );
 		}
 	} // END init_session_cocart()
 
@@ -227,7 +235,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	} // END is_user_customer()
 
 	/**
-	 * Return true if the current customer has an active cart.
+	 * Return true if the current user has an active session.
 	 *
 	 * Either a cookie, a user ID or a cart key to retrieve values.
 	 *
@@ -241,6 +249,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 			return true;
 		}
 
+		// Fallback to default `has_session`.
 		if ( parent::has_session() ) {
 			return true;
 		}
@@ -275,6 +284,10 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 		$expiring_seconds   = DAY_IN_SECONDS;
 		$expiration_seconds = 2 * DAY_IN_SECONDS;
 
+		$max_expiration_seconds = MONTH_IN_SECONDS;
+		$max_expiring_seconds   = $max_expiration_seconds - DAY_IN_SECONDS;
+		$session_limit_exceeded = false;
+
 		// Set expiration time for logged in users.
 		if ( is_user_logged_in() ) {
 			$expiration_seconds = WEEK_IN_SECONDS;
@@ -289,7 +302,12 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 		 * @param int  $expiring_seconds  The expiration time in seconds.
 		 * @param bool $is_user_logged_in Whether the user is logged in or not.
 		 */
-		$this->cart_expiring = time() + intval( apply_filters( 'cocart_cart_expiring', $expiring_seconds, is_user_logged_in() ) );
+		$expiring_seconds = intval( apply_filters( 'cocart_cart_expiring', $expiring_seconds, is_user_logged_in() ) ) ?: $expiring_seconds; // phpcs:ignore Universal.Operators.DisallowShortTernary.Found
+
+		if ( $expiring_seconds > $max_expiring_seconds ) {
+			$expiring_seconds       = $max_expiring_seconds;
+			$session_limit_exceeded = true;
+		}
 
 		/**
 		 * Filter allows you to change the amount of time before the cart does expire.
@@ -300,7 +318,37 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 		 * @param int  $expiration_seconds The expiration time in seconds.
 		 * @param bool $is_user_logged_in  Whether the user is logged in or not.
 		 */
-		$this->cart_expiration = time() + intval( apply_filters( 'cocart_cart_expiration', $expiration_seconds, is_user_logged_in() ) );
+		$expiration_seconds = intval( apply_filters( 'cocart_cart_expiration', $expiration_seconds, is_user_logged_in() ) ) ?: $expiration_seconds; // phpcs:ignore Universal.Operators.DisallowShortTernary.Found
+
+		// We limit the expiration time to 30 days to avoid performance issues and the session table growing too large.
+		if ( $expiration_seconds > $max_expiration_seconds ) {
+			$expiration_seconds     = $max_expiration_seconds;
+			$session_limit_exceeded = true;
+		}
+
+		if ( $session_limit_exceeded ) {
+			$transient_key = 'cocart_session_handler_warning';
+			if ( false === get_transient( $transient_key ) ) {
+				\CoCart_Logger::log(
+					sprintf(
+						/* translators: %d = Expiration in seconds. */
+						esc_html__( 'Keeping sessions for longer than %d days results in performance issues, expiry has been capped.', 'cocart-core' ),
+						$max_expiration_seconds / DAY_IN_SECONDS
+					),
+					'warning'
+				);
+				set_transient( $transient_key, true, $max_expiration_seconds );
+			}
+		}
+
+		// If the expiring time is greater than the expiration time, set the expiring time to 90% of the expiration time.
+		if ( $expiring_seconds > $expiration_seconds ) {
+			$expiring_seconds = $expiration_seconds * 0.9;
+		}
+
+		$this->cart_expiring = time() + $expiring_seconds;
+
+		$this->cart_expiration = time() + $expiration_seconds;
 	} // END set_cart_expiration()
 
 	/**
@@ -367,12 +415,14 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
-	public function save_data( $old_cart_key = '' ) {
-		if ( $this->has_session() ) {
+	public function save_data( $old_cart_key = 0 ) {
+		// Dirty if something changed - prevents saving nothing new.
+		if ( $this->_dirty && $this->has_session() ) {
 			global $wpdb;
 
 			// Check the data exists before continuing.
 			if ( ! $this->_data || empty( $this->_data ) || is_null( $this->_data ) ) {
+				\CoCart_Logger::log( esc_html__( 'Session data does not exist. Something really bad must have happened.', 'cocart-core' ), 'warning' );
 				return true;
 			}
 
