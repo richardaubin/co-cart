@@ -179,54 +179,13 @@ class CoCart_REST_Remove_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 				throw new CoCart_Data_Exception( 'cocart_item_not_in_cart', $message, 404 );
 			}
 
-			if ( $cart->remove_cart_item( $item_key ) ) {
-				/**
-				 * Hook: cocart_item_removed
-				 *
-				 * @since 2.0.0 Introduced.
-				 * @since 5.0.0 Added the request object as the first parameter.
-				 *
-				 * @param WP_REST_Request $request      The request object.
-				 * @param array           $current_data The product object.
-				 */
-				do_action( 'cocart_item_removed', $request, $current_data );
+			$removed_item = $cart->remove_cart_item( $item_key );
 
-				if ( ! $dont_calculate ) {
-					/**
-					 * Calculates the cart totals now an item has been removed.
-					 *
-					 * @since 2.1.0 Introduced.
-					 */
-					$this->get_cart_instance()->calculate_totals();
-				}
-
-				$message = sprintf(
-					/* translators: %s: Item name. */
-					__( '%s has been removed from cart.', 'cocart-core' ),
-					$item_removed_title
-				);
-
-				// Add notice.
-				wc_add_notice( $message );
-
-				$request['dont_check'] = true;
-				$response              = $this->get_cart( $request );
-
-				// Was it requested to return status once item removed?
-				if ( $request['return_status'] ) {
-					/* translators: %s: Item name. */
-					$response = $message;
-				}
-
-				$response = rest_ensure_response( $response );
-				$response = ( new CoCart_REST_Utilities_Cart_Response() )->add_headers( $response, $request );
-
-				return $response;
-			} else {
+			if ( ! $removed_item ) {
 				$message = __( 'Unable to remove item from cart.', 'cocart-core' );
 
 				/**
-				 * Filters message about can not remove item.
+				 * Filters message about cannot remove item.
 				 *
 				 * @since 2.1.0 Introduced.
 				 *
@@ -236,6 +195,49 @@ class CoCart_REST_Remove_Item_V2_Controller extends CoCart_REST_Cart_V2_Controll
 
 				throw new CoCart_Data_Exception( 'cocart_can_not_remove_item', $message, 403 );
 			}
+
+			/**
+			 * Hook: cocart_item_removed
+			 *
+			 * @since 2.0.0 Introduced.
+			 * @since 5.0.0 Added the request object as the first parameter.
+			 *
+			 * @param WP_REST_Request $request      The request object.
+			 * @param array           $current_data The product object.
+			 */
+			do_action( 'cocart_item_removed', $request, $current_data );
+
+			if ( ! $dont_calculate ) {
+				/**
+				 * Calculates the cart totals now an item has been removed.
+				 *
+				 * @since 2.1.0 Introduced.
+				 */
+				$this->get_cart_instance()->calculate_totals();
+			}
+
+			$message = sprintf(
+				/* translators: %s: Item name. */
+				__( '%s has been removed from cart.', 'cocart-core' ),
+				$item_removed_title
+			);
+
+			// Add notice.
+			wc_add_notice( $message );
+
+			$request['dont_check'] = true;
+			$response              = $this->get_cart( $request );
+
+			// Was it requested to return status once item removed?
+			if ( $request['return_status'] ) {
+				/* translators: %s: Item name. */
+				$response = $message;
+			}
+
+			$response = rest_ensure_response( $response );
+			$response = ( new CoCart_REST_Utilities_Cart_Response() )->add_headers( $response, $request );
+
+			return $response;
 		} catch ( CoCart_Data_Exception $e ) {
 			return new \WP_Error( $e->getErrorCode(), $e->getMessage(), array( 'status' => $e->getCode() ), $e->getAdditionalData() );
 		}
