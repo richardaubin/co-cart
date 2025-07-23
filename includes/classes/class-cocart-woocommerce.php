@@ -62,8 +62,8 @@ class CoCart_WooCommerce {
 	 *
 	 * @static
 	 *
-	 * @since   2.0.5 Introduced.
-	 * @version 2.6.0
+	 * @since 2.0.5 Introduced.
+	 * @since 5.0.0 Gets the API namespace set instead of being hardcoded.
 	 *
 	 * @param bool $request Current status of allowing WooCommerce request.
 	 *
@@ -78,9 +78,7 @@ class CoCart_WooCommerce {
 		$request_uri = esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) );
 
 		// Check if the request is to the CoCart API endpoints.
-		$cocart = ( false !== strpos( $request_uri, $rest_prefix . 'cocart/' ) );
-
-		if ( $cocart ) {
+		if ( ( false !== strpos( $request_uri, $rest_prefix . CoCart::get_api_namespace() . '/' ) ) ) {
 			return true;
 		}
 
