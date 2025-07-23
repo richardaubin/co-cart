@@ -151,36 +151,44 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 */
 	public function init_session_cocart() {
 		// Current user ID. If user is NOT logged in then the customer is a guest.
-		$current_user_id = 0;
+		$current_user_id = is_user_logged_in() ? strval( get_current_user_id() ) : 0;
 
-		if ( is_user_logged_in() ) {
-			$current_user_id = strval( get_current_user_id() );
-		}
-
+		// Get requested guest cart.
 		$this->_customer_id = $this->get_requested_cart();
 
-		// Get cart session requested.
-		if ( ! empty( $this->_customer_id ) ) {
-			// Get cart.
+		// New cart session created.
+		if ( 0 === $current_user_id && empty( $this->_customer_id ) ) {
+			$this->set_cart_expiration();
+			$this->set_customer_id( $this->generate_key() );
 			$this->_data = $this->get_session_data();
+			return;
+		}
 
-			// If the user logs in, and there is a requested cart that is not a customer then update session configuration.
-			if ( is_user_logged_in() && ! empty( $this->_customer_id ) && ! $this->is_user_customer( $this->_customer_id ) && $current_user_id !== $this->_customer_id ) {
+		// If user is logged in and no cart key provided for guest, set customer ID to current usser ID.
+		if ( is_user_logged_in() && empty( $this->_customer_id ) ) {
+			$this->set_customer_id( $current_user_id );
+		}
+
+		// Get cart.
+		$this->_data = $this->get_session_data();
+
+		// If a user is logged in and a guest session is requested, transfer the session over.
+		if ( is_user_logged_in() && $current_user_id !== $this->_customer_id ) {
+			// Only transfer if the user is a customer, otherwise other previous guest sessions will be lost if handled by administrator or shop owner.
+			if ( $this->is_user_customer( $current_user_id ) ) {
 				$guest_session_id   = $this->_customer_id;
 				$this->_customer_id = $current_user_id;
+				$this->_dirty       = true;
+
+				// Save current data and delete guest session.
 				$this->save_data( $guest_session_id );
 			}
+		}
 
-			// Update cart if its close to expiring.
-			if ( time() > $this->cart_expiring || empty( $this->cart_expiring ) ) {
-				$this->set_cart_expiration();
-				$this->update_cart_timestamp( $this->_customer_id, $this->cart_expiration );
-			}
-		} else {
-			// New cart session created or authenticated user.
+		// Update session if its close to expiring.
+		if ( $this->is_session_expiring() ) {
 			$this->set_cart_expiration();
-			$this->_customer_id = 0 === $current_user_id ? $this->generate_key() : $current_user_id;
-			$this->_data        = $this->get_session_data();
+			$this->update_cart_timestamp( $this->_customer_id, $this->cart_expiration );
 		}
 	} // END init_session_cocart()
 
