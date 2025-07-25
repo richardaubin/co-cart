@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CoCart API - Headless WooCommerce Made Easy 4.6.1\n"
 "Report-Msgid-Bugs-To: https://github.com/co-cart/co-cart/issues\n"
-"POT-Creation-Date: 2025-07-21 21:26:35+00:00\n"
+"POT-Creation-Date: 2025-07-25 05:36:41+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -1231,8 +1231,18 @@ msgstr ""
 msgid "Sessions scheduled for transfer."
 msgstr ""
 
-#: includes/classes/class-cocart-session-handler.php:359
-#: includes/classes/class-cocart-session-handler.php:723
+#: includes/classes/class-cocart-session-handler.php:320
+#. translators: %d = Expiration in seconds.
+msgid ""
+"Keeping sessions for longer than %d days results in performance issues, "
+"expiry has been capped."
+msgstr ""
+
+#: includes/classes/class-cocart-session-handler.php:399
+msgid "Session data does not exist. Something really bad must have happened."
+msgstr ""
+
+#: includes/classes/class-cocart-session-handler.php:757
 #. translators: %s: Filter name
 msgid "%s is no longer used."
 msgstr ""
@@ -1276,13 +1286,13 @@ msgid ""
 "or %2$scheckout%3$s."
 msgstr ""
 
-#: includes/classes/class-cocart-woocommerce.php:130
+#: includes/classes/class-cocart-woocommerce.php:119
 msgid ""
 "You are already authenticating as the customer. Cannot set cart key as the "
 "user."
 msgstr ""
 
-#: includes/classes/class-cocart-woocommerce.php:139
+#: includes/classes/class-cocart-woocommerce.php:128
 msgid ""
 "Must authenticate customer as the cart key provided is a registered "
 "customer."
@@ -1382,40 +1392,40 @@ msgstr ""
 msgid "%s is not a valid postcode / ZIP."
 msgstr ""
 
-#: includes/classes/rest-api/class-cocart-authentication.php:460
+#: includes/classes/rest-api/class-cocart-authentication.php:478
 msgid "Authentication attempted but did not find valid login details."
 msgstr ""
 
-#: includes/classes/rest-api/class-cocart-authentication.php:462
+#: includes/classes/rest-api/class-cocart-authentication.php:480
 msgid "Authentication invalid!"
 msgstr ""
 
-#: includes/classes/rest-api/class-cocart-authentication.php:469
+#: includes/classes/rest-api/class-cocart-authentication.php:487
 msgid "User was not found when authenticating."
 msgstr ""
 
-#: includes/classes/rest-api/class-cocart-authentication.php:470
+#: includes/classes/rest-api/class-cocart-authentication.php:488
 msgid ""
 "Authentication is invalid. Please check your login details are correct and "
 "try again."
 msgstr ""
 
-#: includes/classes/rest-api/class-cocart-authentication.php:475
+#: includes/classes/rest-api/class-cocart-authentication.php:493
 msgid "The password you entered is incorrect."
 msgstr ""
 
-#: includes/classes/rest-api/class-cocart-authentication.php:582
+#: includes/classes/rest-api/class-cocart-authentication.php:575
 msgid "This filter is no longer used."
 msgstr ""
 
-#: includes/classes/rest-api/class-cocart-authentication.php:717
-#: includes/classes/rest-api/class-cocart-authentication.php:736
-#: includes/classes/rest-api/class-cocart-authentication.php:752
+#: includes/classes/rest-api/class-cocart-authentication.php:720
+#: includes/classes/rest-api/class-cocart-authentication.php:739
+#: includes/classes/rest-api/class-cocart-authentication.php:755
 #. translators: 1: permission method, 2: api route
 msgid "Permission to %1$s %2$s is only permitted if the user is authenticated."
 msgstr ""
 
-#: includes/classes/rest-api/class-cocart-authentication.php:766
+#: includes/classes/rest-api/class-cocart-authentication.php:769
 #. translators: %s: api route
 msgid "Unknown request method for %s."
 msgstr ""
@@ -1477,12 +1487,12 @@ msgstr ""
 msgid "Request returned nothing for \"%s\"! Please seek assistance."
 msgstr ""
 
-#: includes/classes/rest-api/class-cocart-rest-api.php:551
-#: includes/classes/rest-api/class-cocart-rest-api.php:596
+#: includes/classes/rest-api/class-cocart-rest-api.php:567
+#: includes/classes/rest-api/class-cocart-rest-api.php:612
 msgid "User switching is now deprecated."
 msgstr ""
 
-#: includes/classes/rest-api/class-cocart-rest-api.php:572
+#: includes/classes/rest-api/class-cocart-rest-api.php:588
 #. translators: %1$s is previous ID, %2$s is current ID.
 msgid "User has changed! Was %1$s before and is now %2$s"
 msgstr ""
