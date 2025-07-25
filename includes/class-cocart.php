@@ -67,7 +67,7 @@ final class CoCart {
 	 *
 	 * @var string
 	 */
-	public static $required_woo = '7.0';
+	public static $required_woo = '9.0';
 
 	/**
 	 * Required PHP Version
