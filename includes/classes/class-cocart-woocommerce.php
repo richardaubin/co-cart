@@ -5,7 +5,7 @@
  * @author  Sébastien Dumont
  * @package CoCart\Classes
  * @since   2.1.2 Introduced.
- * @version 4.0.0
+ * @version 4.6.2
  */
 
 // Exit if accessed directly.
@@ -92,8 +92,11 @@ class CoCart_WooCommerce {
 	 *
 	 * @static
 	 *
-	 * @since   2.1.0 Introduced.
-	 * @version 4.4.0
+	 * @since 2.1.0 Introduced.
+	 * @since 2.8.0 Set chosen shipping methods.
+	 * @since 2.9.1 Merge persistent cart with session and check REST is not requesting CoCart.
+	 * @since 3.0.0 Added check for WP-GraphQL requests.
+	 * @since 4.6.2 Simplified to avoid unnecessary checks.
 	 */
 	public static function validate_cart_requested() {
 		// Return nothing if WP-GraphQL is requested.
