@@ -26,6 +26,10 @@
 
 * WooCommerce v9 minimum is now required for CoCart but for best performance recommend using v10+
 
+### Compatibility
+
+* Tested with WooCommerce v10.0.4
+
 ## v4.6.1 - 21st July, 2025
 
 ### Bug Fixes
