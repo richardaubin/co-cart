@@ -29,14 +29,6 @@ class CoCart_REST_Utilities_Cart_Response {
 	 * @return WP_REST_Response
 	 */
 	public function add_headers( $response, $request ) {
-		// Add timestamp of response.
-		$response->header( 'Timestamp', time() );
-
-		// Add version of CoCart.
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			$response->header( 'CoCart-Version', COCART_VERSION );
-		}
-
 		$cart_hash       = WC()->session->get_cart_hash();
 		$cart_expiring   = WC()->session->get_cart_is_expiring();
 		$cart_expiration = WC()->session->get_carts_expiration();
