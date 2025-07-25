@@ -90,9 +90,6 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 				add_filter( 'determine_current_user', array( $this, 'authenticate' ), 16 );
 				add_filter( 'rest_authentication_errors', array( $this, 'authentication_fallback' ) );
 
-				// Triggers saved cart after login and updates user activity.
-				add_filter( 'rest_authentication_errors', array( $this, 'cocart_user_logged_in' ), 10 );
-
 				// Check authentication errors.
 				add_filter( 'rest_authentication_errors', array( $this, 'check_authentication_error' ), 15 );
 
@@ -118,11 +115,15 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 * @since 4.3.7 Reinstated again.
 		 * @since 4.3.14 Don't update user to load saved cart when requesting to delete.
 		 *
+		 * @deprecated 4.6.2 No longer supported in WooCommerce as v10
+		 *
 		 * @param WP_Error|null|bool $error Error from another authentication handler, null if we should handle it, or another value if not.
 		 *
 		 * @return WP_Error|null|bool
 		 */
 		public function cocart_user_logged_in( $error ) {
+			cocart_deprecated_function( 'CoCart_Authentication::cocart_user_logged_in', '4.6.2' );
+
 			// Pass through errors from other authentication error checks used before this one.
 			if ( ! empty( $error ) ) {
 				return $error;
