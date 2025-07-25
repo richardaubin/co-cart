@@ -81,6 +81,15 @@ final class CoCart {
 	public static $required_php = '7.4';
 
 	/**
+	 * Single instance of the CoCart class
+	 *
+	 * @since x.x.x Introduced.
+	 *
+	 * @var CoCart
+	 */
+	private static $instance = null;
+
+	/**
 	 * Cloning is forbidden.
 	 *
 	 * @access public
@@ -103,36 +112,95 @@ final class CoCart {
 	} // END __wakeup()
 
 	/**
-	 * Initiate CoCart.
+	 * Main CoCart Instance.
+	 *
+	 * Ensures only one instance of CoCart is loaded or can be loaded.
+	 *
+	 * @since x.x.x Introduced.
+	 *
+	 * @return CoCart - Main instance.
+	 */
+	public static function instance() {
+		if ( is_null( self::$instance ) ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
+
+	/**
+	 * CoCart Constructor.
+	 *
+	 * @access private
+	 *
+	 * @since x.x.x Introduced.
+	 */
+	private function __construct() {
+		self::setup_constants();
+		$this->load_files();
+		$this->init_hooks();
+	}
+
+	/**
+	 * Initialize the plugin.
 	 *
 	 * @access public
 	 *
 	 * @static
 	 *
-	 * @since 1.0.0 Introduced.
+	 * @since x.x.x Introduced.
 	 */
 	public static function init() {
-		self::setup_constants();
+		return self::instance();
+	} // END init()
+
+	/**
+	 * Initialize WordPress hooks
+	 *
+	 * @access private
+	 *
+	 * @since x.x.x Introduced.
+	 */
+	private function init_hooks() {
+		// Install CoCart upon activation.
+		register_activation_hook( COCART_FILE, array( $this, 'install_cocart' ) );
+
+		// Setup WooCommerce integration.
+		add_filter( 'woocommerce_session_handler', array( __CLASS__, 'session_handler' ) );
+
+		// Setup after WooCommerce loads with priority 20.
+		add_action( 'woocommerce_loaded', array( $this, 'after_woocommerce_loaded' ), 20 );
+
+		// Init REST API with normal priority.
+		add_action( 'rest_api_init', array( $this, 'load_rest_api' ) );
+
+		// Load translations.
+		add_action( 'init', array( $this, 'load_plugin_textdomain' ), 0 );
+	} // END init_hooks()
+
+	/**
+	 * Load required files.
+	 *
+	 * @access public
+	 *
+	 * @since x.x.x Introduced.
+	 */
+	public function load_files() {
 		self::includes();
 		self::include_extension_compatibility();
 		self::include_third_party();
+	} // END load_files()
 
-		// Install CoCart upon activation.
-		register_activation_hook( COCART_FILE, array( __CLASS__, 'install_cocart' ) );
-
-		// Setup CoCart Session Handler.
-		add_filter( 'woocommerce_session_handler', array( __CLASS__, 'session_handler' ) );
-
-		// Setup WooCommerce and CoCart.
-		add_action( 'woocommerce_loaded', array( __CLASS__, 'cocart_tasks' ) );
-		add_action( 'woocommerce_loaded', array( __CLASS__, 'woocommerce' ) );
-		add_action( 'woocommerce_loaded', array( __CLASS__, 'background_updater' ) );
-
-		// Load translation files.
-		add_action( 'init', array( __CLASS__, 'load_plugin_textdomain' ), 0 );
-
-		// Load REST API.
-		add_action( 'rest_api_init', array( __CLASS__, 'load_rest_api' ) );
+	/**
+	 * Setup components after WooCommerce loads.
+	 *
+	 * @access public
+	 *
+	 * @since x.x.x Introduced.
+	 */
+	public function after_woocommerce_loaded() {
+		self::cocart_tasks();
+		self::woocommerce();
+		self::background_updater();
 
 		/**
 		 * Hook: Fires once CoCart has finished loading.
@@ -140,7 +208,7 @@ final class CoCart {
 		 * @since 3.0.0 Introduced.
 		 */
 		do_action( 'cocart_init' );
-	} // END init()
+	} // END after_woocommerce_loaded()
 
 	/**
 	 * Setup Constants

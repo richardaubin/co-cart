@@ -5,7 +5,7 @@
  * Description: The best REST-API to decouple your WooCommerce store with. Fast, secure, customizable, easy.
  * Author:      CoCart Headless, LLC
  * Author URI:  https://cocartapi.com
- * Version:     4.6.1
+ * Version:     4.6.2
  * Text Domain: cart-rest-api-for-woocommerce
  * Domain Path: /languages/
  * Requires at least: 6.3
@@ -35,20 +35,6 @@ if ( ! class_exists( 'CoCart', false ) ) {
 	include_once untrailingslashit( plugin_dir_path( COCART_FILE ) ) . '/includes/class-cocart.php';
 }
 
-/**
- * Returns the main instance of CoCart and only runs if it does not already exists.
- *
- * @since   2.1.0
- * @version 3.0.7
- * @return CoCart
- */
-if ( ! function_exists( 'CoCart' ) ) {
-	/**
-	 * Initialize CoCart.
-	 */
-	function CoCart() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound
-		return CoCart::init();
-	}
 
-	CoCart();
-}
+// Initialize CoCart.
+add_action( 'plugins_loaded', array( 'CoCart', 'init' ), -1 );
