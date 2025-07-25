@@ -57,20 +57,22 @@ class CoCart_REST_API {
 		$this->rest_api_includes();
 		$this->namespaces = $this->get_rest_namespaces();
 
-		// Initialize cart.
-		$this->maybe_load_cart();
-
 		// Register REST routes.
 		$this->register_rest_routes();
 
-		// Prevents certain routes from being cached with WP REST API Cache plugin (https://wordpress.org/plugins/wp-rest-api-cache/).
-		add_filter( 'rest_cache_skip', array( $this, 'prevent_cache' ), 10, 2 );
+		if ( CoCart::is_rest_api_request() ) {
+			// Initialize cart.
+			$this->maybe_load_cart();
 
-		// Set Cache Headers.
-		add_filter( 'rest_pre_serve_request', array( $this, 'set_cache_control_headers' ), 2, 4 );
+			// Prevents certain routes from being cached with WP REST API Cache plugin (https://wordpress.org/plugins/wp-rest-api-cache/).
+			add_filter( 'rest_cache_skip', array( $this, 'prevent_cache' ), 10, 2 );
 
-		// Set general CoCart Headers.
-		add_filter( 'rest_pre_serve_request', array( $this, 'set_global_headers' ), 10, 4 );
+			// Set Cache Headers.
+			add_filter( 'rest_pre_serve_request', array( $this, 'set_cache_control_headers' ), 2, 4 );
+
+			// Set general CoCart Headers.
+			add_filter( 'rest_pre_serve_request', array( $this, 'set_global_headers' ), 10, 4 );
+		}
 	} // END __construct()
 
 	/**
@@ -223,41 +225,38 @@ class CoCart_REST_API {
 	 * @since 4.1.0 Initialize customer separately.
 	 */
 	private function maybe_load_cart() {
-		if ( CoCart::is_rest_api_request() ) {
-
-			// Check if we should prevent the requested route from initializing the session and cart.
-			if ( $this->prevent_routes_from_initializing() ) {
-				return;
-			}
-
-			// Require WooCommerce functions.
-			require_once WC_ABSPATH . 'includes/wc-cart-functions.php';
-			require_once WC_ABSPATH . 'includes/wc-notice-functions.php';
-
-			// Initialize session.
-			$this->initialize_session();
-
-			// Initialize customer.
-			$this->initialize_customer();
-
-			// Initialize cart.
-			// $this->initialize_cart_session(); - Dev note, was causing pain problems instead of being helpful. Thanks WC!
-			$this->initialize_cart();
-
-			// Destroy cookies not needed to help with performance.
-			add_action( 'woocommerce_set_cart_cookies', function ( $set ) {
-				$unsetcookies = array(
-					'woocommerce_items_in_cart',
-					'woocommerce_cart_hash',
-				);
-				foreach ( $unsetcookies as $name ) {
-					if ( isset( $_COOKIE[ $name ] ) ) {
-						wc_setcookie( $name, 0, time() - HOUR_IN_SECONDS );
-						unset( $_COOKIE[ $name ] );
-					}
-				}
-			} );
+		// Check if we should prevent the requested route from initializing the session and cart.
+		if ( $this->prevent_routes_from_initializing() ) {
+			return;
 		}
+
+		// Require WooCommerce functions.
+		require_once WC_ABSPATH . 'includes/wc-cart-functions.php';
+		require_once WC_ABSPATH . 'includes/wc-notice-functions.php';
+
+		// Initialize session.
+		$this->initialize_session();
+
+		// Initialize customer.
+		$this->initialize_customer();
+
+		// Initialize cart.
+		// $this->initialize_cart_session(); - Dev note, was causing pain problems instead of being helpful. Thanks WC!
+		$this->initialize_cart();
+
+		// Destroy cookies not needed to help with performance.
+		add_action( 'woocommerce_set_cart_cookies', function ( $set ) {
+			$unsetcookies = array(
+				'woocommerce_items_in_cart',
+				'woocommerce_cart_hash',
+			);
+			foreach ( $unsetcookies as $name ) {
+				if ( isset( $_COOKIE[ $name ] ) ) {
+					wc_setcookie( $name, 0, time() - HOUR_IN_SECONDS );
+					unset( $_COOKIE[ $name ] );
+				}
+			}
+		} );
 	} // END maybe_load_cart()
 
 	/**
