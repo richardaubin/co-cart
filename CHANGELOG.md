@@ -14,7 +14,7 @@
 * Plugin: Session handler - Removed the need to set cart hash at the start.
 * Plugin: Session handler - Added a warning log for when the session data must have really screwed up.
 * Plugin: Session handler - Added max expiration exceed limit to 30 days to avoid performance issues and the session table growing too large.
-* Authentication and CORS optimized to parse data less allowing for a faster response.
+* REST API: Moved global headers to be filtered in `rest_pre_serve_request` instead of `CoCart_Response` which is not used for Products API.
 * Plugin: Moved the cart cache to load once WooCommerce has loaded instead of only during the REST API.
 
 > Developer note: Cart cache allows for items with custom pricing to be calculated on the native site and not just via the REST API to keep consistent with calculations.

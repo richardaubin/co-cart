@@ -7,7 +7,7 @@
  * @author  Sébastien Dumont
  * @package CoCart\Classes
  * @since   1.0.0 Introduced.
- * @version 4.3.27
+ * @version 4.6.2
  */
 
 use WC_Customer as Customer;
@@ -68,6 +68,9 @@ class CoCart_REST_API {
 
 		// Set Cache Headers.
 		add_filter( 'rest_pre_serve_request', array( $this, 'set_cache_control_headers' ), 2, 4 );
+
+		// Set general CoCart Headers.
+		add_filter( 'rest_pre_serve_request', array( $this, 'set_global_headers' ), 10, 4 );
 	} // END __construct()
 
 	/**
@@ -421,7 +424,7 @@ class CoCart_REST_API {
 	 * @param WP_REST_Request  $request The request object.
 	 * @param WP_REST_Server   $server  Server instance.
 	 *
-	 * @return null|bool
+	 * @return bool $served Returns true if headers were set.
 	 */
 	public function set_cache_control_headers( $served, $result, $request, $server ) {
 		/**
@@ -503,6 +506,34 @@ class CoCart_REST_API {
 
 		return $served;
 	} // END set_cache_control_headers()
+
+	/**
+	 * Sets global headers for CoCart.
+	 *
+	 * @access public
+	 *
+	 * @since 4.6.2 Introduced.
+	 *
+	 * @param bool             $served  Whether the request has already been served. Default false.
+	 * @param WP_HTTP_Response $result  Result to send to the client. Usually a WP_REST_Response.
+	 * @param WP_REST_Request  $request The request object.
+	 * @param WP_REST_Server   $server  Server instance.
+	 *
+	 * @return bool $served Returns true if headers were set.
+	 */
+	public function set_global_headers( $served, $result, $request, $server ) {
+		if ( method_exists( $server, 'send_header' ) ) {
+			// Add version of CoCart.
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				$server->send_header( 'CoCart-Version', COCART_VERSION );
+			}
+
+			// Add timestamp of response.
+			$server->send_header( 'CoCart-Timestamp', time() );
+		}
+
+		return $served;
+	} // END set_global_headers()
 
 	/**
 	 * Prevents certain routes from initializing the session and cart.

@@ -96,14 +96,6 @@ class CoCart_Response {
 			// Return response.
 			$response = rest_ensure_response( $data );
 
-			// Add timestamp of response.
-			$response->header( 'CoCart-Timestamp', time() );
-
-			// Add version of CoCart.
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				$response->header( 'CoCart-Version', COCART_VERSION );
-			}
-
 			// Returns additional headers for the cart endpoint.
 			if ( strpos( $raw_endpoint, 'cart' ) !== false ) {
 				$cart_expiring   = WC()->session->get_cart_is_expiring();
