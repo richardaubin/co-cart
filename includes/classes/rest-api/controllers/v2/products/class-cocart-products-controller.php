@@ -509,7 +509,7 @@ class CoCart_REST_Products_V2_Controller extends CoCart_Products_Controller {
 				'price'         => cocart_prepare_money_response( $price_function( $product ), wc_get_price_decimals() ),
 				'regular_price' => cocart_prepare_money_response( $price_function( $product, array( 'price' => $regular_price ) ), wc_get_price_decimals() ),
 				'sale_price'    => $product->get_sale_price( 'view' ) ? cocart_prepare_money_response( $price_function( $product, array( 'price' => $sale_price ) ), wc_get_price_decimals() ) : '',
-				'price_range'   => $this->get_price_range( $product, $tax_display_mode ),
+				'price_range'   => CoCart_Utilities_Product_Helpers::get_price_range( $product, $tax_display_mode ),
 				'on_sale'       => $product->is_on_sale( 'view' ),
 				'date_on_sale'  => array(
 					'from'     => ! is_null( $date_on_sale_from ) ? cocart_prepare_date_response( $date_on_sale_from->date( 'Y-m-d\TH:i:s' ), false ) : null,
@@ -985,7 +985,7 @@ class CoCart_REST_Products_V2_Controller extends CoCart_Products_Controller {
 	public function get_price_range( $product, $tax_display_mode = '' ) {
 		cocart_deprecated_function( 'CoCart_REST_Products_V2_Controller::get_price_range', '4.2.0', 'CoCart_Utilities_Product_Helpers::get_price_range' );
 
-		$tax_display_mode = $this->get_tax_display_mode( $tax_display_mode );
+		$tax_display_mode = CoCart_Utilities_Product_Helpers::get_tax_display_mode( $tax_display_mode );
 
 		$price = array();
 
