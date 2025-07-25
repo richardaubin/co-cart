@@ -1,7 +1,7 @@
 {
 	"title": "CoCart API - Headless WooCommerce Made Easy",
 	"name": "cart-rest-api-for-woocommerce",
-	"version": "4.6.1",
+	"version": "4.6.2",
 	"private": false,
 	"contributors": [
 		"cocartforwc",
