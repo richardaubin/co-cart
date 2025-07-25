@@ -322,13 +322,14 @@ class CoCart_REST_Add_Item_V2_Controller extends CoCart_REST_Cart_V2_Controller 
 				} else {
 					$response = $this->get_item( $item_added['data'], $item_added, $request );
 				}
+
+				$response = ( new CoCart_REST_Utilities_Cart_Response() )->add_headers( $response, $request );
 			} else {
-				$request['dont_calculate'] = true;
+				$request['dont_calculate'] = true; // May need to remove this line. Will see after beta feedback testing.
 				$response                  = $this->get_cart( $request );
 			}
 
 			$response = rest_ensure_response( $response );
-			$response = ( new CoCart_REST_Utilities_Cart_Response() )->add_headers( $response, $request );
 
 			return $response;
 		} catch ( CoCart_Data_Exception $e ) {
