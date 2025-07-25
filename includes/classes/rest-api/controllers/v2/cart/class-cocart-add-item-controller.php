@@ -258,7 +258,9 @@ class CoCart_REST_Add_Item_V2_Controller extends CoCart_REST_Cart_V2_Controller 
 				 */
 				do_action( 'cocart_item_added_to_cart', $request, $item_key, $item_added );
 
-				cocart_add_to_cart_message( array( $request['id'] => $request['quantity'] ) );
+				if ( ! isset( $request['no_notice'] ) ) {
+					cocart_add_to_cart_message( array( $request['id'] => $request['quantity'] ) );
+				}
 			} else {
 				/**
 				 * If WooCommerce can provide a reason for the error then let that error message return first.
