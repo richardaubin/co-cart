@@ -64,33 +64,6 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		protected $auth_method = '';
 
 		/**
-		 * Allowed headers.
-		 *
-		 * @var array
-		 */
-		const ALLOW_HEADERS = array(
-			'Authorization',
-			'X-Requested-With',
-			'Content-Disposition',
-			'Content-MD5',
-			'Content-Type',
-		);
-
-		/**
-		 * Exposed headers.
-		 *
-		 * @var array
-		 */
-		const EXPOSE_HEADERS = array(
-			'X-WP-Total',
-			'X-WP-TotalPages',
-			'Link',
-			'CoCart-API-Cart-Key',
-			'CoCart-API-Cart-Expiring',
-			'CoCart-API-Cart-Expiration',
-		);
-
-		/**
 		 * Basic authentication pattern.
 		 *
 		 * @access private
@@ -556,6 +529,8 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 *
 		 * @since 4.2.0 Introduced.
 		 *
+		 * @deprecated 4.6.2 No longer require. Uses `rest_allowed_cors_headers` and `rest_exposed_cors_headers` filters instead.
+		 *
 		 * @uses is_user_logged_in()
 		 *
 		 * @param bool             $served  Whether the request has already been served. Default false.
@@ -566,6 +541,8 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 * @return bool
 		 */
 		public function send_headers( $served, $result, $request, $server ) {
+			cocart_deprecated_function( 'CoCart_Authentication::send_headers', '4.6.2' );
+
 			if ( strpos( $request->get_route(), 'cocart/' ) !== false ) {
 				$server->send_header( 'Access-Control-Allow-Headers', implode( ', ', self::ALLOW_HEADERS ) );
 				$server->send_header( 'Access-Control-Expose-Headers', implode( ', ', self::EXPOSE_HEADERS ) );
