@@ -4,7 +4,7 @@ Tags: woocommerce, rest-api, decoupled, headless, cart
 Requires at least: 6.3
 Requires PHP: 7.4
 Tested up to: 6.8
-Stable tag: 4.6.2
+Stable tag: 4.6.3
 WC requires at least: 9.0
 WC tested up to: 10.0
 License: GPLv3
@@ -295,6 +295,12 @@ We’d love to hear what you have to say. [Share your experience](https://testim
 
 📢 Only bug and security updates will be provided here on WordPress dot ORG. Any new major updates starting with v5.0 will be provided [directly from us](https://cocartapi.com?utm_medium=website&utm_source=wpplugindirectory&utm_campaign=readme&utm_content=readmelink).
 
+= v4.6.3 - 27th July, 2025 =
+
+### Bug Fix
+
+* REST API: Fixes identifying namespace and routes in the WordPress REST API Index if not set should they already be filtered out.
+
 = v4.6.2 - 25th July, 2025 =
 
 ### Bug Fix
@@ -303,7 +309,7 @@ We’d love to hear what you have to say. [Share your experience](https://testim
 
 > WooCommerce v10 caused a cache issue due to a change in the many times session data is handled.
 
-### Improvement
+### Improvements
 
 * Plugin: Session handler optimized - New sessions created first, then auth users if no cart requested.
 * Plugin: Session handler - Removed the need to set cart hash at the start.
@@ -583,6 +589,6 @@ add_filter( 'cocart_get_customer_billing_country', function( $value ) {
 
 == Upgrade Notice ==
 
-= 4.6.1 =
+= 4.6.3 =
 
-This release fixes a compatibility issue with WooCommerce v10.
+This update fixes the WordPress REST API Index should namespace and routes be filtered out.

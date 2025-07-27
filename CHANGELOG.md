@@ -1,5 +1,11 @@
 # Changelog for CoCart Core
 
+## v4.6.3 - 27th July, 2025
+
+### Bug Fix
+
+* REST API: Fixes identifying namespace and routes in the WordPress REST API Index if not set should they already be filtered out.
+
 ## v4.6.2 - 25th July, 2025
 
 ### Bug Fix
@@ -8,7 +14,7 @@
 
 > WooCommerce v10 caused a cache issue due to a change in the many times session data is handled.
 
-### Improvement
+### Improvements
 
 * Plugin: Session handler optimized - New sessions created first, then auth users if no cart requested.
 * Plugin: Session handler - Removed the need to set cart hash at the start.
