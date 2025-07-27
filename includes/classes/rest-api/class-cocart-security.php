@@ -48,19 +48,23 @@ class CoCart_Security {
 		// Check if WP_DEBUG is not defined or is false.
 		if ( ! defined( 'WP_DEBUG' ) || ( defined( 'WP_DEBUG' ) && WP_DEBUG !== true ) ) {
 
-			// Loop through each registered route.
-			foreach ( $response->data['routes'] as $route => $endpoints ) {
-				// Check if the current namespace matches any CoCart namespace.
-				if ( ! empty( $route ) && strpos( $route, 'cocart' ) !== false ) {
-					unset( $response->data['routes'][ $route ] );
+			if ( isset( $response->data['routes'] ) ) {
+				// Loop through each registered route.
+				foreach ( $response->data['routes'] as $route => $endpoints ) {
+					// Check if the current namespace matches any CoCart namespace.
+					if ( ! empty( $route ) && strpos( $route, 'cocart' ) !== false ) {
+						unset( $response->data['routes'][ $route ] );
+					}
 				}
 			}
 
-			// Loop through each registered namespace.
-			foreach ( $response->data['namespaces'] as $key => $namespace ) {
-				// Check if the current namespace matches any CoCart namespace.
-				if ( ! empty( $namespace ) && strpos( $namespace, 'cocart' ) !== false ) {
-					unset( $response->data['namespaces'][ $key ] );
+			if ( isset( $response->data['namespaces'] ) ) {
+				// Loop through each registered namespace.
+				foreach ( $response->data['namespaces'] as $key => $namespace ) {
+					// Check if the current namespace matches any CoCart namespace.
+					if ( ! empty( $namespace ) && strpos( $namespace, 'cocart' ) !== false ) {
+						unset( $response->data['namespaces'][ $key ] );
+					}
 				}
 			}
 		}
