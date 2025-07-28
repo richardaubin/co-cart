@@ -56,20 +56,22 @@ class CoCart_REST_API {
 		$this->rest_api_includes();
 		$this->routes = $this->get_rest_namespaces();
 
-		// Initialize cart.
-		$this->maybe_load_cart();
-
 		// Register REST routes.
 		$this->register_all_routes();
 
-		// Prevents certain routes from being cached with WP REST API Cache plugin (https://wordpress.org/plugins/wp-rest-api-cache/).
-		add_filter( 'rest_cache_skip', array( $this, 'prevent_cache' ), 10, 2 );
+		if ( CoCart::is_rest_api_request() ) {
+			// Initialize cart.
+			$this->maybe_load_cart();
 
-		// Set Cache Headers.
-		add_filter( 'rest_pre_serve_request', array( $this, 'set_cache_control_headers' ), 2, 4 );
+			// Prevents certain routes from being cached with WP REST API Cache plugin (https://wordpress.org/plugins/wp-rest-api-cache/).
+			add_filter( 'rest_cache_skip', array( $this, 'prevent_cache' ), 10, 2 );
 
-		// Enhanced error handling and allows for final modifications to the response before returning.
-		add_filter( 'rest_request_after_callbacks', array( $this, 'handle_rest_response' ), 10, 3 );
+			// Set Cache Headers.
+			add_filter( 'rest_pre_serve_request', array( $this, 'set_cache_control_headers' ), 2, 4 );
+
+			// Set general CoCart Headers.
+			add_filter( 'rest_pre_serve_request', array( $this, 'set_global_headers' ), 10, 4 );
+		}
 	} // END __construct()
 
 	/**
@@ -535,41 +537,38 @@ class CoCart_REST_API {
 	 * @since 4.1.0 Initialize customer separately.
 	 */
 	private function maybe_load_cart() {
-		if ( CoCart::is_rest_api_request() ) {
-
-			// Check if we should prevent the requested route from initializing the session and cart.
-			if ( $this->prevent_routes_from_initializing() ) {
-				return;
-			}
-
-			// Require WooCommerce functions.
-			require_once WC_ABSPATH . 'includes/wc-cart-functions.php';
-			require_once WC_ABSPATH . 'includes/wc-notice-functions.php';
-
-			// Initialize session.
-			$this->initialize_session();
-
-			// Initialize customer.
-			$this->initialize_customer();
-
-			// Initialize cart.
-			// $this->initialize_cart_session(); - Dev note, was causing pain problems instead of being helpful. Thanks WC!
-			$this->initialize_cart();
-
-			// Destroy cookies not needed to help with performance.
-			add_action( 'woocommerce_set_cart_cookies', function ( $set ) {
-				$unsetcookies = array(
-					'woocommerce_items_in_cart',
-					'woocommerce_cart_hash',
-				);
-				foreach ( $unsetcookies as $name ) {
-					if ( isset( $_COOKIE[ $name ] ) ) {
-						wc_setcookie( $name, 0, time() - HOUR_IN_SECONDS );
-						unset( $_COOKIE[ $name ] );
-					}
-				}
-			} );
+		// Check if we should prevent the requested route from initializing the session and cart.
+		if ( $this->prevent_routes_from_initializing() ) {
+			return;
 		}
+
+		// Require WooCommerce functions.
+		require_once WC_ABSPATH . 'includes/wc-cart-functions.php';
+		require_once WC_ABSPATH . 'includes/wc-notice-functions.php';
+
+		// Initialize session.
+		$this->initialize_session();
+
+		// Initialize customer.
+		$this->initialize_customer();
+
+		// Initialize cart.
+		// $this->initialize_cart_session(); - Dev note, was causing pain problems instead of being helpful. Thanks WC!
+		$this->initialize_cart();
+
+		// Destroy cookies not needed to help with performance.
+		add_action( 'woocommerce_set_cart_cookies', function ( $set ) {
+			$unsetcookies = array(
+				'woocommerce_items_in_cart',
+				'woocommerce_cart_hash',
+			);
+			foreach ( $unsetcookies as $name ) {
+				if ( isset( $_COOKIE[ $name ] ) ) {
+					wc_setcookie( $name, 0, time() - HOUR_IN_SECONDS );
+					unset( $_COOKIE[ $name ] );
+				}
+			}
+		} );
 	} // END maybe_load_cart()
 
 	/**
@@ -744,7 +743,7 @@ class CoCart_REST_API {
 	 * @param WP_REST_Request  $request The request object.
 	 * @param WP_REST_Server   $server  Server instance.
 	 *
-	 * @return null|bool
+	 * @return bool $served Returns true if headers were set.
 	 */
 	public function set_cache_control_headers( $served, $result, $request, $server ) {
 		/**
@@ -829,6 +828,34 @@ class CoCart_REST_API {
 
 		return $served;
 	} // END set_cache_control_headers()
+
+	/**
+	 * Sets global headers for CoCart.
+	 *
+	 * @access public
+	 *
+	 * @since 4.6.2 Introduced.
+	 *
+	 * @param bool             $served  Whether the request has already been served. Default false.
+	 * @param WP_HTTP_Response $result  Result to send to the client. Usually a WP_REST_Response.
+	 * @param WP_REST_Request  $request The request object.
+	 * @param WP_REST_Server   $server  Server instance.
+	 *
+	 * @return bool $served Returns true if headers were set.
+	 */
+	public function set_global_headers( $served, $result, $request, $server ) {
+		if ( method_exists( $server, 'send_header' ) ) {
+			// Add version of CoCart.
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				$server->send_header( 'CoCart-Version', COCART_VERSION );
+			}
+
+			// Add timestamp of response.
+			$server->send_header( 'CoCart-Timestamp', time() );
+		}
+
+		return $served;
+	} // END set_global_headers()
 
 	/**
 	 * Prevents certain routes from initializing the session and cart.

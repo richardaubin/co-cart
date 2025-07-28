@@ -5,7 +5,7 @@
  * @author  Sébastien Dumont
  * @package CoCart
  * @since   2.6.0
- * @version 4.5.0
+ * @version 4.6.2
  * @license GPL-3.0
  */
 
@@ -81,7 +81,7 @@ final class CoCart {
 	 *
 	 * @var string
 	 */
-	public static $required_woo = '7.0';
+	public static $required_woo = '9.0';
 
 	/**
 	 * Required PHP version.

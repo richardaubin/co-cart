@@ -65,34 +65,6 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		protected $auth_method = '';
 
 		/**
-		 * Allowed headers.
-		 *
-		 * @var array
-		 */
-		const ALLOW_HEADERS = array(
-			'Authorization',
-			'X-Requested-With',
-			'Content-Disposition',
-			'Content-MD5',
-			'Content-Type',
-		);
-
-		/**
-		 * Exposed headers.
-		 *
-		 * @var array
-		 */
-		const EXPOSE_HEADERS = array(
-			'X-WP-Total',
-			'X-WP-TotalPages',
-			'Link',
-			'Cart-Key',
-			'Cart-Hash',
-			'Cart-Expiring',
-			'Cart-Expiration',
-		);
-
-		/**
 		 * Basic authentication pattern.
 		 *
 		 * @access private
@@ -114,27 +86,68 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 */
 		public function __construct() {
 			// Check that we are only authenticating for our API.
-			if ( CoCart::is_rest_api_request() ) {
-				// Authenticate user.
-				add_filter( 'determine_current_user', array( $this, 'authenticate' ), 16 );
-				add_filter( 'rest_authentication_errors', array( $this, 'authentication_fallback' ) );
-
-				// Triggers saved cart after login and updates user activity.
-				add_filter( 'rest_authentication_errors', array( $this, 'cocart_user_logged_in' ), 10 );
-
-				// Check authentication errors.
-				add_filter( 'rest_authentication_errors', array( $this, 'check_authentication_error' ), 15 );
-
-				// Check API permissions.
-				add_filter( 'rest_pre_dispatch', array( $this, 'check_api_permissions' ), 10, 3 );
-
-				// Send headers.
-				add_filter( 'rest_pre_serve_request', array( $this, 'send_headers' ), 1, 4 );
-
-				// Allow all cross origin requests.
-				add_action( 'rest_api_init', array( $this, 'allow_all_cors' ), 15 );
+			if ( ! CoCart::is_rest_api_request() ) {
+				return;
 			}
-		} // END __construct()
+
+			// Authenticate user.
+			add_filter( 'determine_current_user', array( $this, 'authenticate' ), 16 );
+			add_filter( 'rest_authentication_errors', array( $this, 'authentication_fallback' ) );
+
+			// Check authentication errors.
+			add_filter( 'rest_authentication_errors', array( $this, 'check_authentication_error' ), 15 );
+
+			// Check API permissions.
+			add_filter( 'rest_pre_dispatch', array( $this, 'check_api_permissions' ), 10, 3 );
+
+			// Remove the default CORS headers. We will add our own.
+			remove_filter( 'rest_pre_serve_request', 'rest_send_cors_headers' );
+
+			// Sets CORS server headers.
+			add_filter( 'rest_pre_serve_request', array( $this, 'cors_headers' ), 0, 4 );
+			add_filter( 'rest_allowed_cors_headers', array( $this, 'allowed_cors_headers' ) );
+			add_filter( 'rest_exposed_cors_headers', array( $this, 'exposed_cors_headers' ) );
+		} // END init()
+
+		/**
+		 * Add allowed CORS headers for CoCart.
+		 *
+		 * @access public
+		 *
+		 * @since 4.6.2 Introduced.
+		 *
+		 * @param array $allowed_headers Allowed headers.
+		 *
+		 * @return array
+		 */
+		public function allowed_cors_headers( $allowed_headers ) {
+			$allowed_headers[] = 'CoCart-API-Cart-Key';
+			$allowed_headers[] = 'CoCart-API-Cart-Expiring';
+			$allowed_headers[] = 'CoCart-API-Cart-Expiration';
+
+			return $allowed_headers;
+		} // END allowed_cors_headers()
+
+		/**
+		 * Expose headers in CORS responses.
+		 *
+		 * We're explicitly exposing the cart headers.
+		 *
+		 * @access public
+		 *
+		 * @since 4.6.2 Introduced.
+		 *
+		 * @param array $exposed_headers Exposed headers.
+		 *
+		 * @return array
+		 */
+		public function exposed_cors_headers( $exposed_headers ) {
+			$exposed_headers[] = 'CoCart-API-Cart-Key';
+			$exposed_headers[] = 'CoCart-API-Cart-Expiring';
+			$exposed_headers[] = 'CoCart-API-Cart-Expiration';
+
+			return $exposed_headers;
+		} // END exposed_cors_headers()
 
 		/**
 		 * Triggers saved cart after login and updates user activity.
@@ -147,11 +160,15 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 * @since 4.3.7 Reinstated again.
 		 * @since 4.3.14 Don't update user to load saved cart when requesting to delete.
 		 *
+		 * @deprecated 4.6.2 No longer supported in WooCommerce as v10
+		 *
 		 * @param WP_Error|null|bool $error Error from another authentication handler, null if we should handle it, or another value if not.
 		 *
 		 * @return WP_Error|null|bool
 		 */
 		public function cocart_user_logged_in( $error ) {
+			cocart_deprecated_function( 'CoCart_Authentication::cocart_user_logged_in', '4.6.2' );
+
 			// Pass through errors from other authentication error checks used before this one.
 			if ( ! empty( $error ) ) {
 				return $error;
@@ -508,35 +525,6 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		} // END is_wp_environment_local()
 
 		/**
-		 * Allow all cross origin header requests.
-		 *
-		 * Disabled by default. Requires `cocart_disable_all_cors` filter set to false to enable.
-		 *
-		 * @access public
-		 *
-		 * @since   2.2.0 Introduced.
-		 * @version 3.0.0
-		 */
-		public function allow_all_cors() {
-			/**
-			 * Modifies if the "Cross Origin Headers" are allowed.
-			 *
-			 * Set as false to enable support.
-			 *
-			 * @since 2.2.0 Introduced.
-			 */
-			if ( apply_filters( 'cocart_disable_all_cors', true ) ) {
-				return;
-			}
-
-			// Remove the default cors server headers.
-			remove_filter( 'rest_pre_serve_request', 'rest_send_cors_headers' );
-
-			// Sets CORS server headers.
-			add_filter( 'rest_pre_serve_request', array( $this, 'cors_headers' ), 0, 4 );
-		} // END allow_all_cors()
-
-		/**
 		 * Is the request a preflight request? Checks the request method.
 		 *
 		 * @access protected
@@ -558,6 +546,8 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 *
 		 * @since 4.2.0 Introduced.
 		 *
+		 * @deprecated 4.6.2 No longer require. Uses `rest_allowed_cors_headers` and `rest_exposed_cors_headers` filters instead.
+		 *
 		 * @uses is_user_logged_in()
 		 *
 		 * @param bool             $served  Whether the request has already been served. Default false.
@@ -568,6 +558,8 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 * @return bool
 		 */
 		public function send_headers( $served, $result, $request, $server ) {
+			cocart_deprecated_function( 'CoCart_Authentication::send_headers', '4.6.2' );
+
 			if ( strpos( $request->get_route(), 'cocart/' ) !== false ) {
 				$server->send_header( 'Access-Control-Allow-Headers', implode( ', ', self::ALLOW_HEADERS ) );
 				$server->send_header( 'Access-Control-Expose-Headers', implode( ', ', self::EXPOSE_HEADERS ) );
@@ -600,7 +592,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 * This overrides that by providing access should the request be for CoCart.
 		 *
 		 * These checks prevent access to the API from non-allowed origins. By default, the WordPress REST API allows
-		 * access from any origin. Because some API routes return PII, we need to add our own CORS headers.
+		 * access from any origin. Because some CoCart API routes return PII, we need to add our own CORS headers.
 		 *
 		 * Allowed origins can be changed using the `cocart_allowed_http_origins` or `cocart_allow_origin` filters if
 		 * access needs to be granted to other domains.
@@ -609,6 +601,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 *
 		 * @since 2.2.0 Introduced.
 		 * @since 3.3.0 Added new custom headers without the prefix `X-`
+		 * @since 4.6.2 Removed the need to check if request was a CoCart API request again.
 		 *
 		 * @uses CoCart_Authentication()::get_http_origin()
 		 * @uses CoCart_Authentication()::is_allowed_http_origin()
@@ -621,25 +614,34 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 		 * @return bool
 		 */
 		public function cors_headers( $served, $result, $request, $server ) {
-			if ( strpos( $request->get_route(), 'cocart/' ) !== false ) {
-				$server->send_header( 'Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE' );
-				$server->send_header( 'Access-Control-Allow-Credentials', 'true' );
-				$server->send_header( 'Vary', 'Origin', false );
-				$server->send_header( 'Access-Control-Max-Age', '600' ); // Cache the result of preflight requests (600 is the upper limit for Chromium).
-				$server->send_header( 'X-Robots-Tag', 'noindex' );
-				$server->send_header( 'X-Content-Type-Options', 'nosniff' );
+			/**
+			 * Modifies if the "Cross Origin Headers" are allowed.
+			 *
+			 * Set as false to enable support.
+			 *
+			 * @since 2.2.0 Introduced.
+			 */
+			if ( apply_filters( 'cocart_disable_all_cors', true ) ) {
+				return $served;
+			}
 
-				// Allow preflight requests and any allowed origins. Preflight requests
-				// are allowed because we'll be unable to validate customer header at that point.
-				if ( $this->is_preflight() || $this->is_allowed_http_origin() ) {
-					$server->send_header( 'Access-Control-Allow-Origin', $this->get_http_origin() );
-				}
+			$server->send_header( 'Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE' );
+			$server->send_header( 'Access-Control-Allow-Credentials', 'true' );
+			$server->send_header( 'Vary', 'Origin', false );
+			$server->send_header( 'Access-Control-Max-Age', '600' ); // Cache the result of preflight requests (600 is the upper limit for Chromium).
+			$server->send_header( 'X-Robots-Tag', 'noindex' );
+			$server->send_header( 'X-Content-Type-Options', 'nosniff' );
 
-				// Exit early during preflight requests. This is so someone cannot access API data by sending an OPTIONS request
-				// with preflight headers and a _GET property to override the method.
-				if ( $this->is_preflight() ) {
-					exit;
-				}
+			// Allow preflight requests and any allowed origins. Preflight requests
+			// are allowed because we'll be unable to validate customer header at that point.
+			if ( $this->is_preflight() || $this->is_allowed_http_origin() ) {
+				$server->send_header( 'Access-Control-Allow-Origin', $this->get_http_origin() );
+			}
+
+			// Exit early during preflight requests. This is so someone cannot access API data by sending an OPTIONS request
+			// with preflight headers and a _GET property to override the method.
+			if ( $this->is_preflight() ) {
+				exit;
 			}
 
 			return $served;

@@ -1,6 +1,12 @@
 # Changelog for CoCart Core
 
-## v4.6.2 - ?? July, 2025
+## v4.6.3 - 27th July, 2025
+
+### Bug Fix
+
+* REST API: Fixes identifying namespace and routes in the WordPress REST API Index if not set should they already be filtered out.
+
+## v4.6.2 - 25th July, 2025
 
 ### Bug Fix
 
@@ -8,15 +14,27 @@
 
 > WooCommerce v10 caused a cache issue due to a change in the many times session data is handled.
 
-### Improvement
+### Improvements
 
 * Plugin: Session handler optimized - New sessions created first, then auth users if no cart requested.
 * Plugin: Session handler - Removed the need to set cart hash at the start.
-* Plugin: Session handler - Added warning log for when the session data to have really screwed up.
+* Plugin: Session handler - Added a warning log for when the session data must have really screwed up.
 * Plugin: Session handler - Added max expiration exceed limit to 30 days to avoid performance issues and the session table growing too large.
+* REST API: Check REST request is CoCart before maybe loading cart or filtering served requests.
+* REST API: Fixed deprecated functions still called in Products API.
+* REST API: Authentication and CORS optimized to parse data less allowing for a faster response.
+* REST API: Moved global headers to be filtered in `rest_pre_serve_request` instead of `CoCart_Response` which is not used for Products API.
 * Plugin: Moved the cart cache to load once WooCommerce has loaded instead of only during the REST API.
 
-> Developer note: This allows for items with custom pricing to be calculated on the native site and not just via the REST API to keep consistent with calculations.
+> Developer note: Cart cache allows for items with custom pricing to be calculated on the native site and not just via the REST API to keep consistent with calculations.
+
+### Requirements
+
+* WooCommerce v9 minimum is now required for CoCart but for best performance recommend using v10+
+
+### Compatibility
+
+* Tested with WooCommerce v10.0.4
 
 ## v4.6.1 - 21st July, 2025
 
