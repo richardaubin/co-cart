@@ -188,7 +188,7 @@ class CoCart_REST_API {
 	 * @access private
 	 *
 	 * @since 4.2.0 Introduced.
-	 * @since 4.6.0 Deprecated hooking `persistent_cart_update` function below WC v10.0.
+	 * @since 4.6.0 Deprecated hooking `persistent_cart_update` function below WC v10.1.
 	 */
 	private function initialize_cart_session() {
 		add_filter( 'woocommerce_cart_session_initialize', function ( $must_initialize, $session ) {
@@ -197,13 +197,13 @@ class CoCart_REST_API {
 
 			// Update session when the cart is updated.
 			add_action( 'woocommerce_after_calculate_totals', array( $session, 'set_session' ), 1000 );
-			if ( version_compare( WC_VERSION, '10.0', '<' ) ) {
+			if ( version_compare( WC_VERSION, '10.1', '<' ) ) {
 				add_action( 'woocommerce_cart_loaded_from_session', array( $session, 'set_session' ) );
 			}
 			add_action( 'woocommerce_removed_coupon', array( $session, 'set_session' ) );
 
-			// Persistent cart stored to usermeta. Only supported for WC users below v10. @todo Remove hooks below in future.
-			if ( method_exists( $session, 'persistent_cart_update' ) && version_compare( WC_VERSION, '10.0', '<' ) ) {
+			// Persistent cart stored to usermeta. Only supported for WC users below v10.1 @todo Remove hooks below in future.
+			if ( method_exists( $session, 'persistent_cart_update' ) && version_compare( WC_VERSION, '10.1', '<' ) ) {
 				add_action( 'woocommerce_add_to_cart', array( $session, 'persistent_cart_update' ) );
 				add_action( 'woocommerce_cart_item_removed', array( $session, 'persistent_cart_update' ) );
 				add_action( 'woocommerce_cart_item_restored', array( $session, 'persistent_cart_update' ) );
