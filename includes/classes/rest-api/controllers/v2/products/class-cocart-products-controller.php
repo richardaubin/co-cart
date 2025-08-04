@@ -5,7 +5,7 @@
  * @author  Sébastien Dumont
  * @package CoCart\API\Products\v2
  * @since   3.1.0 Introduced.
- * @version 4.0.0
+ * @version 4.6.4
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -458,8 +458,8 @@ class CoCart_REST_Products_V2_Controller extends CoCart_Products_Controller {
 	 */
 	protected function get_product_data( $product ) {
 		$type         = $product->get_type();
-		$rating_count = $product->get_rating_count( 'view' );
-		$average      = $product->get_average_rating( 'view' );
+		$rating_count = $product->get_rating_count();
+		$average      = $product->get_average_rating();
 
 		$tax_display_mode = CoCart_Utilities_Product_Helpers::get_tax_display_mode();
 		$price_function   = CoCart_Utilities_Product_Helpers::get_price_from_tax_display_mode( $tax_display_mode );
@@ -528,7 +528,7 @@ class CoCart_REST_Products_V2_Controller extends CoCart_Products_Controller {
 				'shipping_required' => $product->needs_shipping(),
 			),
 			'average_rating'     => $average,
-			'review_count'       => $product->get_review_count( 'view' ),
+			'review_count'       => $product->get_review_count(),
 			'rating_count'       => $rating_count,
 			'rated_out_of'       => html_entity_decode( wp_strip_all_tags( wc_get_rating_html( $average, $rating_count ) ) ),
 			'images'             => CoCart_Utilities_Product_Helpers::get_images( $product ),
