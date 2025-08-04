@@ -550,6 +550,22 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	} // END get_session()
 
 	/**
+	 * Delete the session from the cache and database.
+	 *
+	 * @since 4.6.4 Introduced.
+	 *
+	 * @param string $customer_id Customer session ID.
+	 */
+	public function delete_session( $customer_id ) {
+		if ( ! $customer_id ) {
+			return;
+		}
+
+		$GLOBALS['wpdb']->delete( $this->_table, array( 'cart_key' => $customer_id ) );
+		wp_cache_delete( $this->get_cache_prefix() . $customer_id, COCART_CART_CACHE_GROUP );
+	} // END delete_session()
+
+	/**
 	 * Update cart.
 	 *
 	 * @access public
