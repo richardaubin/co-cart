@@ -746,6 +746,19 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 		);
 	} // END update_session_timestamp()
 
+	/**
+	 * Check if a session exists in the database.
+	 *
+	 * @since 4.6.4 Introduced.
+	 *
+	 * @param string $customer_id Customer ID.
+	 *
+	 * @return bool
+	 */
+	private function session_exists( $customer_id ) {
+		return $customer_id && null !== $GLOBALS['wpdb']->get_var( $GLOBALS['wpdb']->prepare( 'SELECT cart_key FROM %i WHERE cart_key = %s', $this->_table, $customer_id ) );
+	} // END session_exists()
+
 	/* Functions below this line are deprecated! */
 
 	/**
