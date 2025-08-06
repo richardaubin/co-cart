@@ -126,7 +126,7 @@ class CoCart_Load_Cart {
 	public static function load_cart_action() {
 		if ( self::maybe_load_cart() ) {
 			$action          = self::get_action_query();
-			$cart_key        = isset( $_REQUEST[ $action ] ) ? trim( sanitize_text_field( wp_unslash( $_REQUEST[ $action ] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$cart_key        = isset( $_GET[ $action ] ) ? trim( sanitize_text_field( wp_unslash( $_GET[ $action ] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$override_cart   = true;  // Override the cart by default.
 			$notify_customer = false; // Don't notify the customer by default.
 
@@ -187,7 +187,7 @@ class CoCart_Load_Cart {
 			}
 
 			// Check if we are notifying the customer via the web.
-			if ( ! empty( $_REQUEST['notify'] ) && is_bool( $_REQUEST['notify'] ) !== true ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			if ( ! empty( $_GET['notify'] ) && is_bool( $_GET['notify'] ) !== true ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				$notify_customer = true;
 			}
 
