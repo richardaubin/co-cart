@@ -186,6 +186,8 @@ class CoCart_Load_Cart {
 				$notify_customer = true;
 			}
 
+			$wc_session = WC()->session;
+
 			// Get the cart in the database.
 			$stored_cart = WC()->session->get_session( $cart_key );
 
