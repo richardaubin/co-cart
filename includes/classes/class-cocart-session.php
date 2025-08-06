@@ -63,8 +63,6 @@ class CoCart_Load_Cart {
 
 			cocart_nocache_headers();
 
-			// At this point, the cart should load into session with no issues as we have passed verification.
-
 			$wc_session = WC()->session;
 
 			// Get the cart in the database.
@@ -186,10 +184,12 @@ class CoCart_Load_Cart {
 			}
 
 			// Set guest customer's cart into session. - This allows the cart to stay synced with the REST API.
-			$wc_session->set_customer_id( $cart_key );
-			$wc_session->set_cart_hash();
-			$wc_session->set_session_expiration();
-			$wc_session->set_customer_session_cookie( true );
+			if ( ! is_user_logged_in() ) {
+				$wc_session->set_customer_id( $cart_key );
+				$wc_session->set_cart_hash();
+				$wc_session->set_session_expiration();
+				$wc_session->set_customer_session_cookie( true );
+			}
 
 			/**
 			 * Hook: cocart_cart_loaded.
