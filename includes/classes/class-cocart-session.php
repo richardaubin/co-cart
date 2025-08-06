@@ -30,7 +30,7 @@ class CoCart_Load_Cart {
 	 */
 	public function __construct() {
 		// Loads a cart in session if still valid.
-		add_action( 'woocommerce_load_cart_from_session', array( $this, 'load_cart_action' ), 10 );
+		add_action( 'woocommerce_load_cart_from_session', array( $this, 'load_cart_action' ) );
 
 		// Append cart to load for proceed to checkout url.
 		add_action( 'woocommerce_get_checkout_url', array( $this, 'proceed_to_checkout' ) );
