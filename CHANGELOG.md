@@ -1,5 +1,21 @@
 # Changelog for CoCart Core
 
+## v4.6.4 - 6th August, 2025
+
+### Bug Fixes
+
+* REST API: Fixes both the product review and rating count.
+* Feature: Fixed "Load Cart from Session" from destroying sessions once loaded due to session improvements made in WC v10.
+
+### Improvements
+
+* Plugin: Ensure that dependent plugins can be installed/activated if the plugin is installed in a different folder name.
+* Feature: "Load Cart from Session" improved session data checking.
+
+### Deprecated
+
+* Action hook `cocart_load_cart_override` is no longer used.
+
 ## v4.6.3 - 27th July, 2025
 
 ### Bug Fix

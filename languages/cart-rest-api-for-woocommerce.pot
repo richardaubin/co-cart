@@ -2,9 +2,9 @@
 # This file is distributed under the same license as the CoCart package.
 msgid ""
 msgstr ""
-"Project-Id-Version: CoCart API - Headless WooCommerce Made Easy 4.6.3\n"
+"Project-Id-Version: CoCart API - Headless WooCommerce Made Easy 4.6.4\n"
 "Report-Msgid-Bugs-To: https://github.com/co-cart/co-cart/issues\n"
-"POT-Creation-Date: 2025-07-27 04:20:28+00:00\n"
+"POT-Creation-Date: 2025-08-06 13:34:07+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -37,12 +37,12 @@ msgstr ""
 msgid "Unserializing instances of this class is forbidden."
 msgstr ""
 
-#: includes/class-cocart.php:404
+#: includes/class-cocart.php:405
 #. translators: %1$s: CoCart, %2$s: Environment message
 msgid "%1$s could not be activated. %2$s"
 msgstr ""
 
-#: includes/class-cocart.php:416 includes/class-cocart.php:428
+#: includes/class-cocart.php:417 includes/class-cocart.php:429
 #. translators: %1$s: CoCart Core, %2$s: CoCart Plus
 #. translators: %1$s: CoCart Core, %2$s: CoCart Pro
 msgid "%1$s is not required as it is already packaged within %2$s"
@@ -1231,18 +1231,18 @@ msgstr ""
 msgid "Sessions scheduled for transfer."
 msgstr ""
 
-#: includes/classes/class-cocart-session-handler.php:320
+#: includes/classes/class-cocart-session-handler.php:322
 #. translators: %d = Expiration in seconds.
 msgid ""
 "Keeping sessions for longer than %d days results in performance issues, "
 "expiry has been capped."
 msgstr ""
 
-#: includes/classes/class-cocart-session-handler.php:399
+#: includes/classes/class-cocart-session-handler.php:401
 msgid "Session data does not exist. Something really bad must have happened."
 msgstr ""
 
-#: includes/classes/class-cocart-session-handler.php:757
+#: includes/classes/class-cocart-session-handler.php:779
 #. translators: %s: Filter name
 msgid "%s is no longer used."
 msgstr ""
@@ -1269,16 +1269,16 @@ msgstr ""
 msgid "Technical error made! See error log for reason."
 msgstr ""
 
-#: includes/classes/class-cocart-session.php:201
+#: includes/classes/class-cocart-session.php:198
 #. translators: %s: cart key
 msgid "Unable to find cart for: %s"
 msgstr ""
 
-#: includes/classes/class-cocart-session.php:209
-msgid "Sorry but this cart has expired!"
+#: includes/classes/class-cocart-session.php:206
+msgid "Cart is not valid! If this is an error, contact for help."
 msgstr ""
 
-#: includes/classes/class-cocart-session.php:317
+#: includes/classes/class-cocart-session.php:307
 #. translators: %1$s: Start of link to Shop archive. %2$s: Start of link to
 #. checkout page. %3$s: Closing link tag.
 msgid ""
@@ -1487,12 +1487,12 @@ msgstr ""
 msgid "Request returned nothing for \"%s\"! Please seek assistance."
 msgstr ""
 
-#: includes/classes/rest-api/class-cocart-rest-api.php:597
-#: includes/classes/rest-api/class-cocart-rest-api.php:642
+#: includes/classes/rest-api/class-cocart-rest-api.php:583
+#: includes/classes/rest-api/class-cocart-rest-api.php:628
 msgid "User switching is now deprecated."
 msgstr ""
 
-#: includes/classes/rest-api/class-cocart-rest-api.php:618
+#: includes/classes/rest-api/class-cocart-rest-api.php:604
 #. translators: %1$s is previous ID, %2$s is current ID.
 msgid "User has changed! Was %1$s before and is now %2$s"
 msgstr ""
