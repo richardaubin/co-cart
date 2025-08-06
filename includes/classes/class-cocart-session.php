@@ -181,11 +181,6 @@ class CoCart_Load_Cart {
 
 			// At this point, the cart should load into session with no issues as we have passed verification.
 
-			// Check if we are keeping the cart currently set via the web.
-			if ( ! empty( $_REQUEST['keep-cart'] ) && is_bool( $_REQUEST['keep-cart'] ) !== true ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				$override_cart = false;
-			}
-
 			// Check if we are notifying the customer via the web.
 			if ( ! empty( $_GET['notify'] ) && is_bool( $_GET['notify'] ) !== true ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				$notify_customer = true;
@@ -238,22 +233,10 @@ class CoCart_Load_Cart {
 				$new_cart['cart_cached'] = maybe_unserialize( $stored_cart['cart_cached'] );
 			}
 
-			// Check if we are overriding the cart currently in session via the web.
-			if ( $override_cart ) {
-				// Only clear the cart if it's not already empty.
-				if ( ! WC()->cart->is_empty() ) {
-					WC()->cart->empty_cart( false );
+			cocart_deprecated_hook( 'cocart_load_cart_override', '4.6.4' );
 
-					/**
-					 * Hook: cocart_load_cart_override.
-					 *
-					 * Manipulate the overriding cart before it set in session.
-					 *
-					 * @since 2.1.0 Introduced.
-					 */
-					do_action( 'cocart_load_cart_override', $new_cart, $stored_cart );
-				}
-			} else {
+			// Check if we are keeping the cart currently set via the web.
+			if ( ! empty( $_GET['keep-cart'] ) && is_bool( $_GET['keep-cart'] ) !== true ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				$new_cart_content = array_merge( $new_cart['cart'], maybe_unserialize( $cart_in_session ) );
 				/**
 				 * Filter allows you to adjust the merged cart contents.
