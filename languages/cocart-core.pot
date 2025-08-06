@@ -5,7 +5,7 @@ msgstr ""
 "Project-Id-Version: CoCart API - Headless WooCommerce Made Easy "
 "5.0.0-beta.10\n"
 "Report-Msgid-Bugs-To: https://github.com/co-cart/co-cart/issues\n"
-"POT-Creation-Date: 2025-07-28 12:20:10+00:00\n"
+"POT-Creation-Date: 2025-08-06 17:41:19+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -1613,29 +1613,57 @@ msgstr ""
 msgid "Sessions scheduled for transfer."
 msgstr ""
 
-#: includes/classes/class-cocart-session-handler.php:335
+#: includes/classes/class-cocart-session-handler.php:337
 #. translators: %d = Expiration in seconds.
 msgid ""
 "Keeping sessions for longer than %d days results in performance issues, "
 "expiry has been capped."
 msgstr ""
 
-#: includes/classes/class-cocart-session-handler.php:425
+#: includes/classes/class-cocart-session-handler.php:427
 msgid "Session data does not exist. Something really bad must have happened."
 msgstr ""
 
-#: includes/classes/class-cocart-session.php:75
+#: includes/classes/class-cocart-session.php:79
+#. translators: %s: cart key
+msgid "Cart key \"%s\" is already loaded as the currently logged in user."
+msgstr ""
+
+#: includes/classes/class-cocart-session.php:88
+#. translators: %s: cart key
+msgid ""
+"Customer is logged in as a different user. Cart key \"%s\" cannot be loaded "
+"into session for a different user."
+msgstr ""
+
+#: includes/classes/class-cocart-session.php:96
+msgid ""
+"Cart key is recognized as a registered user on site. Cannot be loaded into "
+"session as a guest."
+msgstr ""
+
+#: includes/classes/class-cocart-session.php:104
+msgid "Technical error made! See error log for reason."
+msgstr ""
+
+#: includes/classes/class-cocart-session.php:128
+#. translators: %s: cart key
+msgid "Unable to find cart for: %s"
+msgstr ""
+
+#: includes/classes/class-cocart-session.php:136
+#: includes/classes/class-cocart-session.php:234
 msgid "Cart is not valid! If this is an error, contact for help."
 msgstr ""
 
-#: includes/classes/class-cocart-session.php:220
+#: includes/classes/class-cocart-session.php:340
 #: includes/classes/rest-api/class-cocart-response.php:66
 #: includes/classes/rest-api/class-cocart-response.php:77
 #: includes/classes/rest-api/controllers/v1/products/class-cocart-product-reviews-controller.php:978
 msgid "No longer use."
 msgstr ""
 
-#: includes/classes/class-cocart-session.php:248
+#: includes/classes/class-cocart-session.php:368
 msgid "No longer used."
 msgstr ""
 
@@ -1928,7 +1956,7 @@ msgstr ""
 msgid "%s has been removed from your cart because it has since been modified."
 msgstr ""
 
-#: includes/classes/rest-api/class-cocart-rest-api.php:978
+#: includes/classes/rest-api/class-cocart-rest-api.php:964
 #. translators: %s: REST API URL
 msgid "Request returned nothing for \"%s\"!"
 msgstr ""

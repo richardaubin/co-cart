@@ -87,6 +87,8 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 * Init hooks and cart data.
 	 *
 	 * @uses CoCart::is_rest_api_request()
+	 * @uses CoCart_Session_Handler::init_session_cocart()
+	 * @uses WC_Session_Handler::init()
 	 *
 	 * @access public
 	 *
@@ -126,7 +128,7 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 			$this->cart_key = (string) trim( sanitize_key( wp_unslash( $_REQUEST['cart_key'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		}
 
-		// Are we requesting via custom header? - Old method
+		// Are we requesting via custom header? - Old method.
 		if ( ! empty( $_SERVER['HTTP_COCART_API_CART_KEY'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$this->cart_key = (string) trim( sanitize_key( wp_unslash( $_SERVER['HTTP_COCART_API_CART_KEY'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		}
@@ -584,6 +586,22 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	} // END get_session()
 
 	/**
+	 * Delete the session from the cache and database.
+	 *
+	 * @since 4.6.4 Introduced.
+	 *
+	 * @param string $customer_id Customer session ID.
+	 */
+	public function delete_session( $customer_id ) {
+		if ( ! $customer_id ) {
+			return;
+		}
+
+		$GLOBALS['wpdb']->delete( $this->_table, array( 'cart_key' => $customer_id ) );
+		wp_cache_delete( $this->get_cache_prefix() . $customer_id, COCART_CART_CACHE_GROUP );
+	} // END delete_session()
+
+	/**
 	 * Update cart.
 	 *
 	 * @access public
@@ -740,4 +758,31 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	public function get_carts_expiration() {
 		return $this->cart_expiration;
 	} // END get_carts_expiration()
+
+	/**
+	 * Update the session expiry timestamp.
+	 *
+	 * @param string $customer_id Customer ID.
+	 * @param int    $timestamp Timestamp to expire the cookie.
+	 */
+	public function update_session_timestamp( $customer_id, $timestamp ) {
+		if ( ! $customer_id ) {
+			return;
+		}
+
+		$GLOBALS['wpdb']->update( $this->_table, array( 'cart_expiry' => $timestamp ), array( 'cart_key' => $customer_id ), array( '%d' ) );
+	} // END update_session_timestamp()
+
+	/**
+	 * Check if a session exists in the database.
+	 *
+	 * @since 4.6.4 Introduced.
+	 *
+	 * @param string $customer_id Customer ID.
+	 *
+	 * @return bool
+	 */
+	private function session_exists( $customer_id ) {
+		return $customer_id && null !== $GLOBALS['wpdb']->get_var( $GLOBALS['wpdb']->prepare( 'SELECT cart_key FROM %i WHERE cart_key = %s', $this->_table, $customer_id ) );
+	} // END session_exists()
 } // END class

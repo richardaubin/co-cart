@@ -116,7 +116,6 @@ Simply provide these two parameters with the data point values on any page and t
 ##### New Actions
 
 * Introduced new hook `cocart_cart_created` that fires once a cart is created.
-* Introduced new hook `cocart_set_requested_cart` that fires before the session is finally set.
 * Introduced new hook `cocart_item_updated` that fires once an item has updated in cart.
 
 ##### New Filters

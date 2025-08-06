@@ -1064,9 +1064,9 @@ class CoCart_Products_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	protected function get_product_data( $product ) {
-		$rating_count = $product->get_rating_count( 'view' );
-		$review_count = $product->get_review_count( 'view' );
-		$average      = $product->get_average_rating( 'view' );
+		$rating_count = $product->get_rating_count();
+		$review_count = $product->get_review_count();
+		$average      = $product->get_average_rating();
 
 		$data = array(
 			'id'                    => $product->get_id(),
@@ -1118,7 +1118,7 @@ class CoCart_Products_Controller extends WP_REST_Controller {
 				'unit'   => get_option( 'woocommerce_dimension_unit' ),
 			),
 			'shipping_required'     => $product->needs_shipping(),
-			'reviews_allowed'       => $product->get_reviews_allowed( 'view' ),
+			'reviews_allowed'       => $product->get_reviews_allowed(),
 			'average_rating'        => $average,
 			'rating_count'          => $rating_count,
 			'review_count'          => $review_count,

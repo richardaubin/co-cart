@@ -5,7 +5,7 @@
  * @author  Sébastien Dumont
  * @package CoCart
  * @since   2.6.0
- * @version 4.6.2
+ * @version 4.6.4
  * @license GPL-3.0
  */
 
@@ -771,7 +771,7 @@ final class CoCart {
 	 *
 	 * @static
 	 *
-	 * @since 5.0.0 Introduced.
+	 * @since 4.6.4 Introduced.
 	 *
 	 * @param string $slug The plugin slug to convert.
 	 *
