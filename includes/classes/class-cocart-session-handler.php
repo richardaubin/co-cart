@@ -77,6 +77,8 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 * Init hooks and cart data.
 	 *
 	 * @uses CoCart::is_rest_api_request()
+	 * @uses CoCart_Session_Handler::init_session_cocart()
+	 * @uses WC_Session_Handler::init()
 	 *
 	 * @access public
 	 *
