@@ -201,12 +201,11 @@ class CoCart_Load_Cart {
 					'info'
 				);
 
-				if ( $notify_customer ) {
-					wc_add_notice(
-						__( 'Sorry but this cart has expired!', 'cart-rest-api-for-woocommerce' ),
-						'error'
-					);
-				}
+				wc_clear_notices();
+				wc_add_notice(
+					esc_html__( 'Cart is not valid! If this is an error, contact for help.', 'cart-rest-api-for-woocommerce' ),
+					'error'
+				);
 
 				return;
 			}
