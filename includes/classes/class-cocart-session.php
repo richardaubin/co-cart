@@ -283,14 +283,6 @@ class CoCart_Load_Cart {
 				WC()->session->set( 'cart_cached', $new_cart['cart_cached'] );
 			}
 
-			// Set loaded cart for guest customer.
-			if ( ! is_user_logged_in() && self::maybe_use_cookie_monster() ) {
-				WC()->session->set_cart_hash();
-				WC()->session->set_customer_id( $cart_key );
-				WC()->session->set_cart_expiration();
-				WC()->session->set_customer_session_cookie( true );
-			}
-
 			// If true, notify the customer that there cart has transferred over via the web.
 			if ( ! empty( $new_cart ) && $notify_customer ) {
 				wc_add_notice(
@@ -305,6 +297,14 @@ class CoCart_Load_Cart {
 					),
 					'notice'
 				);
+			}
+
+			// Set guest customer's cart into session. - This allows the cart to stay synced with the REST API.
+			if ( ! is_user_logged_in() && self::maybe_use_cookie_monster() ) {
+				$wc_session->set_customer_id( $cart_key );
+				$wc_session->set_cart_hash();
+				$wc_session->set_session_expiration();
+				$wc_session->set_customer_session_cookie( true );
 			}
 
 			/**
