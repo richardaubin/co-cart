@@ -730,20 +730,11 @@ class CoCart_Session_Handler extends WC_Session_Handler {
 	 * @param int    $timestamp Timestamp to expire the cookie.
 	 */
 	public function update_session_timestamp( $customer_id, $timestamp ) {
-		global $wpdb;
+		if ( ! $customer_id ) {
+			return;
+		}
 
-		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			$this->_table,
-			array(
-				'cart_expiry' => $timestamp,
-			),
-			array(
-				'cart_key' => $customer_id,
-			),
-			array(
-				'%d',
-			)
-		);
+		$GLOBALS['wpdb']->update( $this->_table, array( 'cart_expiry' => $timestamp ), array( 'cart_key' => $customer_id ), array( '%d' ) );
 	} // END update_session_timestamp()
 
 	/**
