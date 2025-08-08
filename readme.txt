@@ -1,10 +1,10 @@
-=== Headless WooCommerce Made Easy with CoCart ===
+=== Headless API for Developers - CoCart ===
 Contributors: cocartforwc, sebd86
 Tags: woocommerce, rest-api, decoupled, headless, cart
 Requires at least: 6.3
 Requires PHP: 7.4
 Tested up to: 6.8
-Stable tag: 4.6.4
+Stable tag: 4.7.0
 WC requires at least: 9.0
 WC tested up to: 10.0
 License: GPLv3
@@ -294,6 +294,17 @@ We’d love to hear what you have to say. [Share your experience](https://testim
 == Changelog ==
 
 📢 Only bug and security updates will be provided here on WordPress dot ORG. Any new major updates starting with v5.0 will be provided [directly from us](https://cocartapi.com?utm_medium=website&utm_source=wpplugindirectory&utm_campaign=readme&utm_content=readmelink).
+
+= v4.7.0 - 8th August, 2025 =
+
+### What's New?
+
+* Authentication: Added support for authenticating via JSON request body on login endpoint.
+
+### Improvements
+
+* Authentication: Internal refactor to return `WP_Error` consistently from permission checks.
+* REST API: Login (API v2 ONLY) Explicit added query params for `username` and `password`.
 
 = v4.6.4 - 6th August, 2025 =
 
