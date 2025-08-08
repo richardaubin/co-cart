@@ -306,6 +306,11 @@ We’d love to hear what you have to say. [Share your experience](https://testim
 
 * Plugin: Ensure that dependent plugins can be installed/activated if the plugin is installed in a different folder name.
 * Feature: "Load Cart from Session" improved session data checking.
+* Session handler: Reduced duplicate session calls and optimized `update_session_timestamp()` database query.
+* Session handler: Restored `persistent_cart_update` compatibility for WooCommerce v10; only active for versions lower than v10.1.
+* Session handler: Overrode `session_exists()` and `delete_session()` to use CoCart's session table.
+* Load Cart: Switched from `$_REQUEST` to `$_GET` and removed the priority for `load_cart_action`.
+* Load Cart: Re-enabled `initialize_cart_session()` and stopped destroying cookies when loading carts.
 
 ### Deprecated
 
