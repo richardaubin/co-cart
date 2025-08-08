@@ -16,7 +16,7 @@ If you are looking for documentation, head over here: [https://cocartapi.com/doc
 
 ### Description
 
-A developer-first REST API to decouple WooCommerce cleanly. Fast, secure, customizable, easy.
+A developer-first REST API to decouple WooCommerce on the frontend. Fast, secure, customizable, easy.
 
 [Try the REST API](https://cocartapi.com/try-free-demo/?utm_medium=repo&utm_source=github.com&utm_campaign=readme&utm_content=cocartcore)
 

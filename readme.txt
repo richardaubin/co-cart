@@ -10,7 +10,7 @@ WC tested up to: 10.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-A developer-first REST API to decouple WooCommerce cleanly. Fast, secure, customizable, easy.
+A developer-first REST API to decouple WooCommerce on the frontend. Fast, secure, customizable, easy.
 
 == Description ==
 
