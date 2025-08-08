@@ -2,10 +2,12 @@
 
 ## v4.7.0 - 8th August, 2025
 
-> Note: To avoid getting the plugin removed from the WordPress directory, the trademark word "WooCommerce" as been removed as part of it.
+> Note: To avoid getting the plugin removed from the WordPress directory, the trademark word "WooCommerce" as been removed as part of the plugin title for the plugin listing.
 
 **Before**: Headless WooCommerce Made Easy with CoCart
-**Now**: Headless API for Developers - CoCart
+**Now**: Headless eCommerce API for Developers - CoCart
+
+> In your WordPress dashboard under "Plugins", you will see it labeled as "CoCart API - Headless eCommerce API for Developers", before "CoCart API - Headless WooCommerce Made Easy"
 
 ### What's New?
 
