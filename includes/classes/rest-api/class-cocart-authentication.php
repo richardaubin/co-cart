@@ -104,49 +104,28 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 
 			// Sets CORS server headers.
 			add_filter( 'rest_pre_serve_request', array( $this, 'cors_headers' ), 0, 4 );
-			add_filter( 'rest_allowed_cors_headers', array( $this, 'allowed_cors_headers' ) );
-			add_filter( 'rest_exposed_cors_headers', array( $this, 'exposed_cors_headers' ) );
+			add_filter( 'rest_allowed_cors_headers', array( $this, 'add_cors_headers' ) );
+			add_filter( 'rest_exposed_cors_headers', array( $this, 'add_cors_headers' ) );
 		} // END init()
 
 		/**
-		 * Add allowed CORS headers for CoCart.
+		 * Add allowed and exposed headers to CORS.
 		 *
 		 * @access public
 		 *
 		 * @since 4.6.2 Introduced.
 		 *
-		 * @param array $allowed_headers Allowed headers.
+		 * @param array $headers CORS headers array.
 		 *
 		 * @return array
 		 */
-		public function allowed_cors_headers( $allowed_headers ) {
-			$allowed_headers[] = 'CoCart-API-Cart-Key';
-			$allowed_headers[] = 'CoCart-API-Cart-Expiring';
-			$allowed_headers[] = 'CoCart-API-Cart-Expiration';
+		public function add_cors_headers( $headers ) {
+			$headers[] = 'CoCart-API-Cart-Key';
+			$headers[] = 'CoCart-API-Cart-Expiring';
+			$headers[] = 'CoCart-API-Cart-Expiration';
 
-			return $allowed_headers;
-		} // END allowed_cors_headers()
-
-		/**
-		 * Expose headers in CORS responses.
-		 *
-		 * We're explicitly exposing the cart headers.
-		 *
-		 * @access public
-		 *
-		 * @since 4.6.2 Introduced.
-		 *
-		 * @param array $exposed_headers Exposed headers.
-		 *
-		 * @return array
-		 */
-		public function exposed_cors_headers( $exposed_headers ) {
-			$exposed_headers[] = 'CoCart-API-Cart-Key';
-			$exposed_headers[] = 'CoCart-API-Cart-Expiring';
-			$exposed_headers[] = 'CoCart-API-Cart-Expiration';
-
-			return $exposed_headers;
-		} // END exposed_cors_headers()
+			return $headers;
+		} // END add_cors_headers()
 
 		/**
 		 * Triggers saved cart after login and updates user activity.
