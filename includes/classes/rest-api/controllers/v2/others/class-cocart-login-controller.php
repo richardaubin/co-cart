@@ -199,4 +199,34 @@ class CoCart_REST_Login_V2_Controller {
 			),
 		);
 	} // END get_public_item_schema()
+
+	/**
+	 * Get the query params for login.
+	 *
+	 * @access public
+	 *
+	 * @since 4.7.0 Introduced.
+	 *
+	 * @return array $params The query params.
+	 */
+	public function get_collection_params() {
+		$params = array(
+			'username' => array(
+				'description'       => __( 'Username, email, or phone number for authentication.', 'cart-rest-api-for-woocommerce' ),
+				'type'              => 'string',
+				'required'          => false,
+				'sanitize_callback' => 'sanitize_text_field',
+				'validate_callback' => 'rest_validate_request_arg',
+			),
+			'password' => array(
+				'description'       => __( 'Password for authentication.', 'cart-rest-api-for-woocommerce' ),
+				'type'              => 'string',
+				'required'          => false,
+				'sanitize_callback' => 'sanitize_text_field',
+				'validate_callback' => 'rest_validate_request_arg',
+			),
+		);
+
+		return $params;
+	} // END get_collection_params()
 } // END class
