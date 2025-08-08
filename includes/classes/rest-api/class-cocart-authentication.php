@@ -5,7 +5,7 @@
  * @author  Sébastien Dumont
  * @package CoCart\Classes
  * @since   2.6.0 Introduced.
- * @version 4.3.7
+ * @version 4.7.0
  */
 
 // Exit if accessed directly.
@@ -776,7 +776,7 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 				// Return previous result if nothing has changed.
 				return $result;
 			} catch ( CoCart_Data_Exception $e ) {
-				return CoCart_Response::get_error_response( $e->getErrorCode(), $e->getMessage(), $e->getCode(), $e->getAdditionalData() );
+				return new \WP_Error( $e->getErrorCode(), $e->getMessage(), array( 'status' => $e->getCode() ), $e->getAdditionalData() );
 			}
 		} // END check_api_permissions()
 
