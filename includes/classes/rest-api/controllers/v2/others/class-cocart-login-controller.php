@@ -91,7 +91,8 @@ class CoCart_REST_Login_V2_Controller {
 	 * @return WP_REST_Response The returned response.
 	 */
 	public function login() {
-		$current_user = get_userdata( get_current_user_id() );
+		$current_user_id = get_current_user_id();
+		$current_user    = get_userdata( $current_user_id );
 
 		$user_roles = $current_user->roles;
 
@@ -102,7 +103,7 @@ class CoCart_REST_Login_V2_Controller {
 		}
 
 		$response = array(
-			'user_id'      => strval( get_current_user_id() ),
+			'user_id'      => strval( $current_user_id ),
 			'first_name'   => $current_user->first_name,
 			'last_name'    => $current_user->last_name,
 			'display_name' => esc_html( $current_user->display_name ),
