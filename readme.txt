@@ -303,7 +303,7 @@ In your WordPress dashboard under "Plugins", you will see it labeled as "CoCart 
 
 ### What's New?
 
-* Authentication: Added support for authenticating via JSON request body on login endpoint.
+* Authentication: Added support for authenticating via JSON request body with clear indication for the login endpoint (API v2 ONLY).
 
 ### Improvements
 
@@ -625,6 +625,6 @@ add_filter( 'cocart_get_customer_billing_country', function( $value ) {
 
 == Upgrade Notice ==
 
-= 4.6.4 =
+= 4.7.0 =
 
-This update fixes a few things. See changelog for more details.
+Added support for authenticating via JSON request body with clear indication for the login endpoint (API v2 ONLY).

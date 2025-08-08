@@ -11,7 +11,7 @@
 
 ### What's New?
 
-* Authentication: Added support for authenticating via JSON request body on login endpoint.
+* Authentication: Added support for authenticating via JSON request body with clear indication for the login endpoint (API v2 ONLY).
 
 ### Improvements
 
