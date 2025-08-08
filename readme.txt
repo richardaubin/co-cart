@@ -16,7 +16,7 @@ A developer-first REST API to decouple WooCommerce on the frontend. Fast, secure
 
 **CoCart: Headless WooCommerce API for Developers**
 
-[CoCart](https://cocartapi.com/?utm_medium=website&utm_source=wpplugindirectory&utm_campaign=readme&utm_content=readmelink) gives you a developer-first REST API to decouple WooCommerce cleanly. Build modern storefronts with full control over auth, sessions, cart and product flows.
+[CoCart](https://cocartapi.com/?utm_medium=website&utm_source=wpplugindirectory&utm_campaign=readme&utm_content=readmelink) gives you a developer-first REST API to decouple WooCommerce on the frontend. Build modern storefronts with full control over auth, sessions, cart and product flows.
 
 #### Why developers choose CoCart
 
