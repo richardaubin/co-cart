@@ -58,6 +58,7 @@ class CoCart_REST_Login_V2_Controller {
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'login' ),
 					'permission_callback' => array( $this, 'get_permission_callback' ),
+					'args'                => $this->get_collection_params(),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
