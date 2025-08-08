@@ -469,6 +469,26 @@ if ( ! class_exists( 'CoCart_Authentication' ) ) {
 				$username = trim( sanitize_user( wp_unslash( $_REQUEST['username'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				$username = self::get_username( $username );
 				$password = trim( sanitize_text_field( wp_unslash( $_REQUEST['password'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			} else {
+				// Attempt to read JSON from raw input if request is posting and the content type is "application/json".
+				$content_type   = isset( $_SERVER['CONTENT_TYPE'] ) ? trim( sanitize_text_field( wp_unslash( $_SERVER['CONTENT_TYPE'] ) ) ) : '';
+				$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '';
+
+				if ( 'POST' === $request_method && false !== stripos( $content_type, 'application/json' ) ) {
+					$raw_input = file_get_contents( 'php://input' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+
+					if ( ! empty( $raw_input ) ) {
+						$body_params = json_decode( $raw_input, true );
+
+						if ( is_array( $body_params ) ) {
+							if ( ! empty( $body_params['username'] ) && ! empty( $body_params['password'] ) ) {
+								$username = trim( sanitize_user( $body_params['username'] ) );
+								$username = self::get_username( $username );
+								$password = trim( sanitize_text_field( $body_params['password'] ) );
+							}
+						}
+					}
+				}
 			}
 
 			// If no username or password identified then authentication is not required.
