@@ -2,9 +2,10 @@
 # This file is distributed under the same license as the CoCart package.
 msgid ""
 msgstr ""
-"Project-Id-Version: CoCart API - Headless WooCommerce Made Easy 4.7.0\n"
+"Project-Id-Version: CoCart API - Headless eCommerce API for Developers "
+"4.7.0\n"
 "Report-Msgid-Bugs-To: https://github.com/co-cart/co-cart/issues\n"
-"POT-Creation-Date: 2025-08-08 15:25:09+00:00\n"
+"POT-Creation-Date: 2025-08-08 18:22:44+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
